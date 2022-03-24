@@ -1,6 +1,6 @@
 # RLbench
 
-## (Mandatory) Directory structure of the data files
+## (Mandatory) Directory structure of data files
 ### Overall structure
 ```
 LunarLanderContinuous-v2/
@@ -45,13 +45,13 @@ python plot_numeric --env [ENV_NAME] \
     --data-path [PATH]
 ```
 
-> example
+*example*
 
 ```
-python plot_numeric.py --env LunarLanderContinuous-v2
-    --agents [a1s1r1,a2s1r1,a3s1r1,a4s1r1,a5s1r1,a6s1r1,a7s1r1,a8s1r1]
-    --x episode 
-    --y t 
+python plot_numeric.py --env LunarLanderContinuous-v2 \
+    --agents "[a1s1r1,a2s1r1,a3s1r1,a4s1r1,a5s1r1,a6s1r1,a7s1r1,a8s1r1]" \
+    --x episode \
+    --y t \
     --data-path /home/neurlab-dl1/workspace/sb3-practice
 ```
 

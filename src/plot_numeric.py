@@ -23,15 +23,15 @@ def plot_numeric(args):
     file_paths = []
     for (root_dir, _, files) in os.walk(os.path.join(args.data_path, args.env)):
         for file in files:
-            file_path = os.path.join(root_dir, file)
-            file_paths.append(file_path)
+            if ".csv" in file:
+                file_path = os.path.join(root_dir, file)
+                file_paths.append(file_path)
 
     agent_list = args.agents
     y_idx, y_name = Y_AXIS[args.y]
     for agent in agent_list:
         for file_path in file_paths:
-            _, ext = os.path.splitext(file_path)
-            if (agent in file_path) and (ext == ".csv"):
+            if (agent in file_path):
                 df = pd.read_csv(file_path,skiprows=1)
                 plt.plot(df.iloc[:, y_idx], label=agent)
 
