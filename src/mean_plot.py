@@ -2,9 +2,7 @@ import matplotlib.pyplot as plt
 import os
 import pandas as pd
 from datetime import date
-from options import get_args
-
-from . import MAPPER_Y
+from options import MAPPER_Y, get_args 
 
 def mean_plot(args):
 
