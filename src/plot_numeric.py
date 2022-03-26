@@ -25,9 +25,9 @@ def plot_numeric(args):
 
     agent_list = args.agents
     y_idx, y_name = MAPPER_Y[args.y]
-    for agent in agent_list:
-        for file_path in file_paths:
-            if (agent in file_path):
+    for file_path in file_paths:
+        for agent in agent_list:
+            if agent in file_path:
                 df = pd.read_csv(file_path,skiprows=1)
                 plt.plot(df.iloc[:, y_idx], label=agent)
 
