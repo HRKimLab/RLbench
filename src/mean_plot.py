@@ -4,11 +4,7 @@ import pandas as pd
 from datetime import date
 from options import get_args
 
-Y_AXIS = {
-    'rew': (0, 'reward'),
-    'len': (1, 'length'),
-    't': (2, 'time') 
-}
+from . import MAPPER_Y
 
 def mean_plot(args):
 
@@ -22,7 +18,7 @@ def mean_plot(args):
                 file_paths.append(file_path)
 
     agent_list = args.agents
-    y_idx, y_name = Y_AXIS[args.y]
+    y_idx, y_name = MAPPER_Y[args.y]
 
     dfs = [[]*x for x in range(len(agent_list))]
 
