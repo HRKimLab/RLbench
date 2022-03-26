@@ -2,7 +2,13 @@ import matplotlib.pyplot as plt
 import os
 import pandas as pd
 from datetime import date
-from options import MAPPER_Y, get_args 
+from options import get_args
+
+Y_AXIS = {
+    'rew': (0, 'reward'),
+    'len': (1, 'length'),
+    't': (2, 'time') 
+}
 
 def mean_plot(args):
 
@@ -16,24 +22,24 @@ def mean_plot(args):
                 file_paths.append(file_path)
 
     agent_list = args.agents
-    y_idx, y_name = MAPPER_Y[args.y]
+    y_idx, y_name = Y_AXIS[args.y]
 
     dfs = [[]*x for x in range(len(agent_list))]
-
-    for file in file_paths:
-        for agent in agent_list:
-            if agent in file:
+    
+    for i in range(len(agent_list)):
+        for file in file_paths:
+            if agent_list[i] in file:
                 df = pd.read_csv(file,skiprows=1)
-                for i in range(len(agent_list)):
-                    dfs[i].append(df)
-                    df_concat = pd.concat(dfs[i])
+                dfs[i].append(df)
+                df_concat = pd.concat(dfs[i])
 
                 mean_df = df_concat.groupby(df_concat.index).mean()
                 std_df = df_concat.groupby(df_concat.index).std()
 
-                plt.plot(mean_df.iloc[:,y_idx], label = agent) #label
-                plt.fill_between(mean_df.index, (mean_df-std_df).iloc[:,2], (mean_df+std_df).iloc[:,2], alpha = 0.5)
-    
+        plt.plot(mean_df.iloc[:,y_idx], label = agent_list[i]) 
+        plt.fill_between(mean_df.index, (mean_df-std_df).iloc[:,y_idx], (mean_df+std_df).iloc[:,y_idx], alpha = 0.5)
+                
+
     plt.xlabel(args.x)
     plt.ylabel(y_name)
     plt.title(f"{args.env} [{args.x}-{y_name}] {date_today}")
@@ -50,5 +56,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     mean_plot(args)
-
 
