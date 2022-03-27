@@ -36,7 +36,11 @@ def mean_plot(args):
                 mean_df = df_concat.groupby(df_concat.index).mean()
                 std_df = df_concat.groupby(df_concat.index).std()
 
+<<<<<<< HEAD
         plt.plot(mean_df.iloc[:,y_idx], label = agent_list[i]) #label
+=======
+        plt.plot(mean_df.iloc[:,y_idx], label = agent_list[i]) 
+>>>>>>> fbfdf9092afaf46f4cfafb844b5386e520734874
         plt.fill_between(mean_df.index, (mean_df-std_df).iloc[:,y_idx], (mean_df+std_df).iloc[:,y_idx], alpha = 0.5)
                 
 
@@ -56,5 +60,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     mean_plot(args)
-
 

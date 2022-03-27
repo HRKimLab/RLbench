@@ -1,6 +1,12 @@
 import ast
 import argparse
 
+# Mapper
+MAPPER_Y = {
+    'rew': (0, 'reward'),
+    'len': (1, 'length'),
+    't': (2, 'time') 
+}
 
 def str2list(s):
     return list(map(lambda x: x.strip(), s[1:-1].split(',')))

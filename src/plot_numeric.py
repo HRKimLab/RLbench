@@ -4,14 +4,8 @@ from datetime import date
 import pandas as pd
 import matplotlib.pyplot as plt
 
-from options import get_args
+from options import MAPPER_Y, get_args
 
-# Mapper
-Y_AXIS = {
-    'rew': (0, 'reward'),
-    'len': (1, 'length'),
-    't': (2, 'time') 
-}
 
 def plot_numeric(args):
     """ Plot the numeric data on y-axis
@@ -28,10 +22,10 @@ def plot_numeric(args):
                 file_paths.append(file_path)
 
     agent_list = args.agents
-    y_idx, y_name = Y_AXIS[args.y]
-    for agent in agent_list:
-        for file_path in file_paths:
-            if (agent in file_path):
+    y_idx, y_name = MAPPER_Y[args.y]
+    for file_path in file_paths:
+        for agent in agent_list:
+            if agent in file_path:
                 df = pd.read_csv(file_path,skiprows=1)
                 plt.plot(df.iloc[:, y_idx], label=agent)
 
