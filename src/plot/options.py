@@ -16,7 +16,8 @@ def get_args():
     parser = argparse.ArgumentParser(description="Visualize the training/evaluation process")
     parser.add_argument(
         '--env', '-E', type=str,
-        help="Environment name; Available: (LunarLanderContinuous-v2, )"
+        choices=['LunarLanderContinuous-v2'],
+        help="Environment name; Available: (LunarLanderContinuous-v2)"
     )
     parser.add_argument(
         '--agents', '-A', type=str2list,
@@ -24,21 +25,25 @@ def get_args():
     )
     parser.add_argument(
         '--x', type=str,
+        choices=['episode'],
         default='episode', help="x-axis variable"
     )
     parser.add_argument(
         '--y', type=str,
-        help="y-axis variable; Available: (rew, len, t, e_rew, act_v, )"
+        choices=['rew', 'len', 't', 'e_rew'],
+        help="y-axis variable; Available: (rew, len, t, e_rew)"
     )
     parser.add_argument(
         '--data-path', '-S', type=str,
         default="/tmp/sb3-log", help="Path of data"
     )
 
-    return parser
+    args = parser.parse_args()
 
-# if __name__ == "__main__":
-#     parser = get_args()
-#     args = parser.parse_args()
+    return args
 
-#     print(args)
+
+if __name__ == "__main__":
+    args = get_args()
+
+    print(args)

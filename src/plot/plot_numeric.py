@@ -41,7 +41,7 @@ def plot_numeric(args):
 
 
 if __name__ == "__main__":
-    parser = get_args()
-    args = parser.parse_args()
+    args = get_args()
+    print(args)
 
     plot_numeric(args)

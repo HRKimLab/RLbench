@@ -50,8 +50,9 @@ def plot_mean_var(args):
 
     plt.show()
 
+
 if __name__ == "__main__":
-    parser = get_args()
-    args = parser.parse_args()
+    args = get_args()
+    print(args)
 
     plot_mean_var(args)
