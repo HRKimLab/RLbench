@@ -6,7 +6,6 @@ import matplotlib.pyplot as plt
 
 from options import MAPPER_Y, get_args
 
-
 def plot_numeric(args):
     """ Plot the numeric data on y-axis
     args: user arguments

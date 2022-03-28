@@ -6,7 +6,6 @@ import matplotlib.pyplot as plt
 
 from options import MAPPER_Y, get_args
 
-
 def plot_mean_var(args):
     """ Plot the mean of the data and show standard deviation on y-axis
     args: user arguments
@@ -31,10 +30,10 @@ def plot_mean_var(args):
             if agent in file:
                 df = pd.read_csv(file, skiprows=1)
                 bundle.append(df)
-                df_concat = pd.concat(bundle)
-                
-                mean_df = df_concat.groupby(df_concat.index).mean()
-                std_df = df_concat.groupby(df_concat.index).std()
+        df_concat = pd.concat(bundle)
+        
+        mean_df = df_concat.groupby(df_concat.index).mean()
+        std_df = df_concat.groupby(df_concat.index).std()
 
         plt.plot(mean_df.iloc[:,y_idx], label = agent)
         plt.fill_between(mean_df.index, (mean_df-std_df).iloc[:,y_idx], (mean_df+std_df).iloc[:,y_idx], alpha = 0.5)
@@ -56,4 +55,3 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     plot_mean_var(args)
-

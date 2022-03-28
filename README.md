@@ -37,8 +37,10 @@ LunarLanderContinuous-v2/
 ```
 
 ## How to use
+In `/src` directory,
+
 ```
-python plot_numeric --env [ENV_NAME] \
+python plot/plot_numeric --env [ENV_NAME] \
     --agents [AGENT_LIST] \ 
     --x [X-AXIS] \
     --y [Y-AXIS] \
@@ -48,7 +50,7 @@ python plot_numeric --env [ENV_NAME] \
 *example*
 
 ```
-python plot_numeric.py --env LunarLanderContinuous-v2 \
+python plot/plot_numeric.py --env LunarLanderContinuous-v2 \
     --agents "[a1s1r1,a2s1r1,a3s1r1,a4s1r1,a5s1r1,a6s1r1,a7s1r1,a8s1r1]" \
     --x episode \
     --y t \
@@ -56,4 +58,4 @@ python plot_numeric.py --env LunarLanderContinuous-v2 \
 ```
 
 For more information, please type the following command.  
-`python plot_numeric.py --help`
+`python plot/plot_numeric.py --help`
