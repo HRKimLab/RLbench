@@ -24,7 +24,6 @@ def get_env(env_name, env_list):
     return env
 
 def get_model(algo_name, algo_list, env, seed, hp):
-    ## Get model
     model = None, None
     if algo_name not in algo_list:
         raise ValueError(f"Given algorithm name [{algo_name}] does not exist.")
