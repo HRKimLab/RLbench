@@ -35,7 +35,7 @@ def get_args():
     )
     parser.add_argument(
         '--hp', '-H', type=str,
-        help="Hyperparameter configuration file name (./cfs/[FILE].json)"
+        help="Hyperparameter configuration file name (./cfg/[FILE].json)"
     )
 
     # Train
