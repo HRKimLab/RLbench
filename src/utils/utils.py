@@ -133,7 +133,7 @@ def save_config(save_path, data):
     hyperparams_path = str(save_path.parent) + '/hyperparams.json'
     model_path = str(save_path.parent.parent) + '/model.json'
 
-    if os.path.exists(hyperparams_path) == True & os.path.exists(model_path) == True:
+    if os.path.exists(hyperparams_path) and os.path.exists(model_path):
         print('File already exists')
         
     else:
