@@ -13,6 +13,11 @@ from sb3_contrib import ARS, QRDQN, TQC, TRPO
 from stable_baselines3 import A2C, DDPG, DQN, PPO, SAC, TD3
 from stable_baselines3.common.save_util import data_to_json
 
+from pathlib import Path
+import json
+import os.path
+
+
 def set_seed(seed):
     os.environ['PYTHONHASHSEED'] = str(seed)
     random.seed(seed)
@@ -123,3 +128,17 @@ def set_data_path(env_name, algo_name, model_info, seed):
     #TODO depth 3~
 
     return None
+
+def save_config(save_path, data):
+    hyperparams_path = str(save_path.parent) + '/hyperparams.json'
+    model_path = str(save_path.parent.parent) + '/model.json'
+
+    if os.path.exists(hyperparams_path) == True & os.path.exists(model_path) == True:
+        print('File already exists')
+        
+    else:
+        with open(hyperparams_path, 'w') as outfile:
+            json.dump(data,outfile, indent = 4)
+
+        with open(model_path,'w') as outfile:
+            json.dump(data['policy_class'], outfile, indent = 4)
