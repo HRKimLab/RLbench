@@ -33,5 +33,6 @@ def get_param_list():
     return env_list, algo_list
 
 #TODO: Implement
-def get_save_path():
+def get_save_path(env_name, algo_name, seed):
+    # Case 1. Very first of environment
     pass

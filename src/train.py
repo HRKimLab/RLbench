@@ -3,7 +3,6 @@ import json
 from importlib import import_module
 
 import gym
-from gym import envs
 from stable_baselines3.common.logger import configure
 from stable_baselines3.common.callbacks import EvalCallback
 
