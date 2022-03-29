@@ -35,7 +35,7 @@ def get_args():
     )
     parser.add_argument(
         '--hp', '-H', type=str,
-        help="Hyperparameter configuration file name (./cfg/[FILE].json)"
+        help="Hyperparameter configuration file name (./config/[FILE].json)"
     )
 
     # Train
@@ -75,7 +75,7 @@ def get_args():
 
     # Post-processing
     args.seed = SEEDS[:args.nseed]
-    args.hp = os.path.join(os.getcwd(), f"cfg/{args.hp}.json")
+    args.hp = os.path.join(os.getcwd(), f"config/{args.hp}.json")
     validate_args(args)
 
     return args

@@ -1,3 +1,7 @@
 from .utils import (
-    set_seed, configure_cudnn, get_param_list, get_save_path
+    set_seed,
+    configure_cudnn,
+    get_env,
+    get_model,
+    set_data_path
 )
