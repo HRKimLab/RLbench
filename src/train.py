@@ -25,16 +25,19 @@ def train(args):
 
         # Get appropriate path by model info
         save_path = args.save_path
+        already_run = False
         if save_path is None:
-            save_path = set_data_path(args.env, args.algo, model_info, seed)
-            # set_config_files(save_path, model_info)
+            save_path, already_run = set_data_path(args.env, model_info, seed)
 
-        # Train with single seed
-        print(f"[{i + 1}/{args.nseed}] Ready to train {i + 1}th agent - RANDOM SEED: {seed}")
-        _train(
-            model, args.nstep,
-            eval_env, args.eval_freq, args.eval_eps, save_path
-        )
+        # If given setting had already been run, save_path will be given as None
+        if already_run:
+            print(f"[{i + 1}/{args.nseed}] Already exists: '{save_path}', skip to run")
+        else: # Train with single seed
+            print(f"[{i + 1}/{args.nseed}] Ready to train {i + 1}th agent - RANDOM SEED: {seed}")
+            _train(
+                model, args.nstep,
+                eval_env, args.eval_freq, args.eval_eps, save_path
+            )
 
         del env, eval_env, model
 
@@ -58,6 +61,7 @@ def _train(
 
 def render(env, model, nstep):
     """ Render how agent interact with environment"""
+
     obs = env.reset()
     for i in range(nstep):
         action, _state = model.predict(obs, deterministic=True)

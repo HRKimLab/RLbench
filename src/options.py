@@ -62,7 +62,7 @@ def get_args():
     # If save_path has not been indicated, all of data
     # would be saved on the pre-defined directory structure.
     parser.add_argument(
-        '--save-path', '-S', type=str,
+        '--save-path', '-S', type=str, default=None,
         help="Path to save the data"
     )
 

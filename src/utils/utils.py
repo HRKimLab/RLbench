@@ -13,11 +13,6 @@ from sb3_contrib import ARS, QRDQN, TQC, TRPO
 from stable_baselines3 import A2C, DDPG, DQN, PPO, SAC, TD3
 from stable_baselines3.common.save_util import data_to_json
 
-from pathlib import Path
-import json
-import os.path
-
-
 def set_seed(seed):
     os.environ['PYTHONHASHSEED'] = str(seed)
     random.seed(seed)
@@ -95,7 +90,10 @@ def get_model(algo_name, env, hp, seed):
 
     return model, model_info
 
-def set_data_path(env_name, algo_name, model_info, seed):
+def set_data_path(env_name, model_info, seed):
+    DEP2_CONFIG = "policy.json"
+    DEP3_CONFIG = "hyperparams.json"
+
     def _sort_dict(obj):
         if isinstance(obj, dict):
             return sorted((k, _sort_dict(v)) for k, v in obj.items())
@@ -107,38 +105,81 @@ def set_data_path(env_name, algo_name, model_info, seed):
     def _is_same_dict(dict1, dict2):
         return _sort_dict(dict1) == _sort_dict(dict2)
 
-    policy_info = _sort_dict(model_info["policy_class"])
+    agent_info = _sort_dict(model_info["policy_class"]["__module__"])
     data_path = p.abspath(p.join(os.getcwd(), os.pardir, 'data'))
+    os.makedirs(data_path, exist_ok=True)
+
+    agent_id, session_id = None, None
 
     # Environment (Depth-1)
     data_path = p.join(data_path, env_name)
     os.makedirs(data_path, exist_ok=True)
 
-    # Agent (Depth-2)
-    for agent_name in os.listdir(data_path):
-        agent_cfg_path = p.join(data_path, agent_name, "agent.json")
-        agent_cfg = None
-        with open(agent_cfg_path, "r") as f:
-            agent_cfg = _sort_dict(json.load(f))
+    # Agent (Depth-2) - Algorithm, Policy
+    agent_list = os.listdir(data_path)
+    for aid in agent_list:
+        ex_info_path = p.join(data_path, aid, DEP2_CONFIG)
+        with open(ex_info_path, "r") as f:
+            ex_info = _sort_dict(json.load(f))
 
-        if _is_same_dict(policy_info, agent_cfg):
-            data_path = p.join(data_path, agent_name)
+        if _is_same_dict(agent_info, ex_info):
+            agent_id = aid
+            data_path = p.join(data_path, agent_id)
             break
 
-    #TODO depth 3~
+    if agent_id is None: # Not found
+        agent_id = f"a{len(agent_list) + 1}"
+        data_path = p.join(data_path, agent_id)
+        if p.exists(data_path):
+            raise FileExistsError(
+                f"Unexpected directory structure detected, \
+                    '{data_path}' already exists."
+            )
 
-    return None
+        os.mkdir(data_path)
+        with open(p.join(data_path, DEP2_CONFIG), "w") as f:
+            json.dump(agent_info, f, indent=4)
 
-def save_config(save_path, data):
-    hyperparams_path = str(save_path.parent) + '/hyperparams.json'
-    model_path = str(save_path.parent.parent) + '/model.json'
-
-    if os.path.exists(hyperparams_path) and os.path.exists(model_path):
-        print('File already exists')
+    # Session (Depth-3) - Hyperparameters
+    session_list = [x for x in os.listdir(data_path) if x != DEP2_CONFIG]
+    for sid in session_list:
+        ex_info_path = p.join(data_path, sid, DEP3_CONFIG)
+        with open(ex_info_path, "r") as f:
+            session_info = _sort_dict(json.load(f))
         
-    else:
-        with open(hyperparams_path, 'w') as outfile:
-            json.dump(data,outfile, indent = 4)
+        if _is_same_dict(model_info, session_info):
+            session_id = sid
+            data_path = p.join(data_path, sid)
+            break
 
-        with open(model_path,'w') as outfile:
-            json.dump(data['policy_class'], outfile, indent = 4)
+    if session_id is None: # Not found
+        session_id = f"s{len(session_list) + 1}"
+        data_path = p.join(data_path, agent_id + session_id)
+        if p.exists(data_path):
+            raise FileExistsError(
+                f"Unexpected directory structure detected, \
+                    '{data_path}' already exists."
+            )
+
+        os.mkdir(data_path)
+        with open(p.join(data_path, DEP3_CONFIG), "w") as f:
+            json.dump(model_info, f, indent=4)
+
+    # Run (Depth-4) - Random seed
+    seed_list = dict(map(
+        lambda x: (int(x.split("-")[-1]), x),
+        [x for x in os.listdir(data_path) if x != DEP3_CONFIG]
+    ))
+
+    already_run = False
+    if seed in seed_list.keys(): # Given setting had already been run
+        already_run = True
+        data_path = p.join(data_path, seed_list[seed])
+    else:
+        seed_id = f"r{len(seed_list) + 1}"
+        data_path = p.join(
+            data_path,
+            agent_id + session_id + seed_id + f"-{seed}"
+        )
+
+    return data_path, already_run
