@@ -73,7 +73,8 @@ def get_args():
 
     args = parser.parse_args()
 
-    # Post-processing
+    # Post-processing for arguments
+    args.algo == args.algo.lower()
     args.seed = SEEDS[:args.nseed]
     args.hp = os.path.join(os.getcwd(), f"config/{args.hp}.json")
     validate_args(args)
