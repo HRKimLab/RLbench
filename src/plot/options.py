@@ -42,6 +42,38 @@ def get_args():
 
     return args
 
+def get_args_envs():
+    parser = argparse.ArgumentParser(description="Visualize the training/evaluation process")
+    parser.add_argument(
+        '--env', '-E', type=str2list,
+        default = [],
+        help="Environment name"
+    )
+    parser.add_argument(
+        '--agent', '-A', type=str,
+        help="Agent to plot (specify the agent numbers)"
+    )
+    parser.add_argument(
+        '--x', type=str,
+        choices=['episode'],
+        default='episode', help="x-axis variable"
+
+        
+    )
+    parser.add_argument(
+        '--y', type=str,
+        choices=['rew', 'len', 't', 'e_rew'],
+        help="y-axis variable; Available: (rew, len, t, e_rew)"
+    )
+    parser.add_argument(
+        '--data-path', '-S', type=str,
+        default="/tmp/sb3-log", help="Path of data"
+    ) #TODO: Suppose that all of data has been saved on 'data/' path (if data_path is None)
+
+    args = parser.parse_args()
+
+    return args
+    
 
 if __name__ == "__main__":
     args = get_args()
