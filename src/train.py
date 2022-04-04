@@ -1,8 +1,6 @@
 import os
-import json
-from importlib import import_module
+import zipfile
 
-import gym
 from stable_baselines3.common.logger import configure
 from stable_baselines3.common.callbacks import EvalCallback
 
@@ -58,6 +56,11 @@ def _train(
 
     model.learn(total_timesteps=nstep, callback=eval_callback)
     model.save(save_path)
+
+    # Save the logging files
+    with zipfile.ZipFile(f"{save_path}.zip", 'r') as zip_ref:
+        zip_ref.extractall(save_path)
+    os.remove(f"{save_path}.zip")
 
 def render(env, model, nstep):
     """ Render how agent interact with environment"""

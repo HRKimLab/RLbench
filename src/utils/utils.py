@@ -49,6 +49,7 @@ def get_model(algo_name, env, hp, seed):
 
     def _trim_model_info(d, targets=[":serialized:", "__doc__"]):
         """ Trim the model information (Drop the unnecessary info) """
+        del d['seed'] # Seed value will be indicated in other way (directory name)
         for v1 in list(d.values()):
             if isinstance(v1, dict):
                 for k2, v2 in list(v1.items()):
@@ -148,7 +149,7 @@ def set_data_path(env_name, model_info, seed):
             session_info = _sort_dict(json.load(f))
         
         if _is_same_dict(model_info, session_info):
-            session_id = sid
+            session_id = sid.lstrip(agent_id)
             data_path = p.join(data_path, sid)
             break
 
@@ -168,7 +169,7 @@ def set_data_path(env_name, model_info, seed):
     # Run (Depth-4) - Random seed
     seed_list = dict(map(
         lambda x: (int(x.split("-")[-1]), x),
-        [x for x in os.listdir(data_path) if x != DEP3_CONFIG]
+        [x for x in os.listdir(data_path) if x != DEP3_CONFIG and "zip" not in x]
     ))
 
     already_run = False
