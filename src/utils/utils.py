@@ -9,7 +9,6 @@ import numpy as np
 import torch
 from torch.backends import cudnn
 from gym import envs
-from gym.wrappers import Monitor
 from sb3_contrib import ARS, QRDQN, TQC, TRPO
 from stable_baselines3 import A2C, DDPG, DQN, PPO, SAC, TD3
 from stable_baselines3.common.monitor import Monitor
