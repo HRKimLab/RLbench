@@ -1,6 +1,7 @@
 import os
 import zipfile
 
+import torch
 from stable_baselines3.common.logger import configure
 from stable_baselines3.common.callbacks import EvalCallback
 
@@ -9,6 +10,7 @@ from utils import (
     set_seed, configure_cudnn,
     get_env, get_model, set_data_path
 )
+from utils.sb3_callbacks import TqdmCallback
 
 def train(args):
     """ Train with multiple random seeds """
@@ -18,7 +20,6 @@ def train(args):
 
         # Get env, model
         env = get_env(args.env)
-        eval_env = get_env(args.env)
         model, model_info = get_model(args.algo, env, args.hp, seed)
 
         # Get appropriate path by model info
@@ -34,27 +35,38 @@ def train(args):
             print(f"[{i + 1}/{args.nseed}] Ready to train {i + 1}th agent - RANDOM SEED: {seed}")
             _train(
                 model, args.nstep,
-                eval_env, args.eval_freq, args.eval_eps, save_path
+                args.eval_freq, args.eval_eps, save_path
             )
 
-        del env, eval_env, model
+        del env, model
 
 def _train(
     model, nstep,
-    eval_env, eval_freq, eval_eps, save_path
+    eval_freq, eval_eps, save_path
 ):
     """ Train with single seed """
 
     # Set logger
-    logger = configure(save_path, ["stdout", "csv"])
+    logger = configure(save_path, ["csv"])
     model.set_logger(logger)
 
     #TODO: Sophisticate the evaluation process (eval_eps)
     eval_callback = EvalCallback(
-        eval_env, eval_freq=eval_freq, deterministic=False, render=False
+        model.get_env(),
+        n_eval_episodes=eval_eps,
+        eval_freq=eval_freq, 
+        log_path=f"{save_path}/",
+        best_model_save_path=f"{save_path}/",
+        deterministic=True,
+        verbose=0
     )
+    tqdm_callback = TqdmCallback()
 
-    model.learn(total_timesteps=nstep, callback=eval_callback)
+    model.learn(
+        total_timesteps=nstep,
+        callback=[eval_callback, tqdm_callback],
+        eval_log_path=save_path
+    )
     model.save(save_path)
 
     # Save the logging files
@@ -78,4 +90,5 @@ if __name__ == "__main__":
     args = get_args()
     configure_cudnn(args.debug)
 
+    print(f"Using {'CUDA' if torch.cuda.is_available() else 'CPU'} device")
     train(args)

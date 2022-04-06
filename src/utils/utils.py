@@ -9,8 +9,11 @@ import numpy as np
 import torch
 from torch.backends import cudnn
 from gym import envs
+from gym.wrappers import Monitor
 from sb3_contrib import ARS, QRDQN, TQC, TRPO
 from stable_baselines3 import A2C, DDPG, DQN, PPO, SAC, TD3
+from stable_baselines3.common.monitor import Monitor
+from stable_baselines3.common.vec_env import DummyVecEnv
 from stable_baselines3.common.save_util import data_to_json
 
 def set_seed(seed):
@@ -33,6 +36,8 @@ def get_env(env_name):
     env = None
     if env_name in ENV_LIST:
         env = gym.make(env_name)
+        env = Monitor(env, "/home/neurlab-dl1/workspace/RLbench")
+        env = DummyVecEnv([lambda: env])
     else:
         try:
             env = import_module(f"envs.{env_name}")
@@ -69,7 +74,7 @@ def get_model(algo_name, env, hp, seed):
         hp = json.load(f)
 
     # Get model
-    model = ALGO_LIST[algo_name](env=env, seed=seed, verbose=1, **hp)
+    model = ALGO_LIST[algo_name](env=env, seed=seed, verbose=0, **hp)
 
     # Get model information
     model_info = model.__dict__.copy()
