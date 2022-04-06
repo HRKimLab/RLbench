@@ -36,7 +36,7 @@ def plot_mean_var(args):
         std_df = df_concat.groupby(df_concat.index).std()
 
         plt.plot(mean_df.iloc[:,y_idx], label = agent)
-        plt.fill_between(mean_df.index, (mean_df-std_df).iloc[:,y_idx], (mean_df+std_df).iloc[:,y_idx], alpha = 0.5)       
+        plt.fill_between(mean_df.index, (mean_df-std_df).iloc[:,y_idx], (mean_df+std_df).iloc[:,y_idx], alpha = 0.5)
 
     plt.xlabel(args.x)
     plt.ylabel(y_name)
