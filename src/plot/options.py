@@ -57,8 +57,6 @@ def get_args_envs():
         '--x', type=str,
         choices=['episode'],
         default='episode', help="x-axis variable"
-
-        
     )
     parser.add_argument(
         '--y', type=str,
