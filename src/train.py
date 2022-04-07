@@ -20,6 +20,7 @@ def train(args):
 
         # Get env, model
         env = get_env(args.env)
+        eval_env = get_env(args.env)
         model, model_info = get_model(args.algo, env, args.hp, seed)
 
         # Get appropriate path by model info
@@ -35,14 +36,14 @@ def train(args):
             print(f"[{i + 1}/{args.nseed}] Ready to train {i + 1}th agent - RANDOM SEED: {seed}")
             _train(
                 model, args.nstep,
-                args.eval_freq, args.eval_eps, save_path
+                eval_env, args.eval_freq, args.eval_eps, save_path
             )
 
         del env, model
 
 def _train(
     model, nstep,
-    eval_freq, eval_eps, save_path
+    eval_env, eval_freq, eval_eps, save_path
 ):
     """ Train with single seed """
 
@@ -52,7 +53,7 @@ def _train(
 
     #TODO: Sophisticate the evaluation process (eval_eps)
     eval_callback = EvalCallback(
-        model.get_env(),
+        eval_env,
         n_eval_episodes=eval_eps,
         eval_freq=eval_freq, 
         log_path=f"{save_path}/",
