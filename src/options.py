@@ -59,7 +59,7 @@ def get_args():
         help="Number of episodes to use for evaluation"
     )
 
-    # If save_path has not been indicated, all of data
+    # If the save_path has not been given, all of the data
     # would be saved on the pre-defined directory structure.
     parser.add_argument(
         '--save-path', '-S', type=str, default=None,

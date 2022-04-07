@@ -95,7 +95,7 @@ def get_model(algo_name, env, hp, seed):
 
     return model, model_info
 
-def set_data_path(env_name, model_info, seed):
+def set_data_path(algo_name, env_name, model_info, seed):
     DEP2_CONFIG = "policy.json"
     DEP3_CONFIG = "hyperparams.json"
 
@@ -110,7 +110,10 @@ def set_data_path(env_name, model_info, seed):
     def _is_same_dict(dict1, dict2):
         return _sort_dict(dict1) == _sort_dict(dict2)
 
-    agent_info = _sort_dict(model_info["policy_class"]["__module__"])
+    agent_info = {
+        "algorithm": algo_name,
+        "policy": model_info["policy_class"]["__module__"]
+    }
     data_path = p.abspath(p.join(os.getcwd(), os.pardir, 'data'))
     os.makedirs(data_path, exist_ok=True)
 

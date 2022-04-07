@@ -26,7 +26,7 @@ def train(args):
         save_path = args.save_path
         already_run = False
         if save_path is None:
-            save_path, already_run = set_data_path(args.env, model_info, seed)
+            save_path, already_run = set_data_path(args.algo, args.env, model_info, seed)
 
         # If given setting had already been run, save_path will be given as None
         if already_run:
