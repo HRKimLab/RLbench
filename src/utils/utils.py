@@ -4,16 +4,15 @@ import json
 import random
 from importlib import import_module
 
-import gym
 import numpy as np
 import torch
 from torch.backends import cudnn
 from gym import envs
 from sb3_contrib import ARS, QRDQN, TQC, TRPO
 from stable_baselines3 import A2C, DDPG, DQN, PPO, SAC, TD3
+from stable_baselines3.common.env_util import make_vec_env
 from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.vec_env import DummyVecEnv
-from stable_baselines3.common.save_util import data_to_json
 
 def set_seed(seed):
     os.environ['PYTHONHASHSEED'] = str(seed)
@@ -29,20 +28,28 @@ def configure_cudnn(debug):
         cudnn.deterministic = True
         cudnn.benchmark = False
 
-def get_env(env_name, save_path):
+def get_env(env_name, save_path, seed):
     ENV_LIST = [env_spec.id for env_spec in envs.registry.all()]
 
     env = None
     if env_name in ENV_LIST:
-        env = gym.make(env_name)
-        env = Monitor(env, save_path)
-        env = DummyVecEnv([lambda: env])
+        env = make_vec_env(
+            env_name, n_envs=1,
+            seed=seed, monitor_dir=save_path
+        )
+        eval_env = make_vec_env(
+            env_name, n_envs=1,
+            seed=np.random.randint(0, 1000), monitor_dir=save_path
+        )
+        # env = gym.make(env_name)
+        # env = Monitor(env, save_path)
+        # env = DummyVecEnv([lambda: env])
     else:
         try:
             env = import_module(f"envs.{env_name}")
         except ImportError:
             raise ValueError(f"Given environment name [{env_name}] does not exist.")
-    return env
+    return env, eval_env
 
 def get_model(algo_name, env, hp, seed):
     ALGO_LIST = {
@@ -51,45 +58,13 @@ def get_model(algo_name, env, hp, seed):
         "ars": ARS, "qrdqn": QRDQN, "tqc": TQC, "trpo": TRPO,
     }
 
-    def _trim_model_info(d, targets=[":serialized:", "__doc__"]):
-        """ Trim the model information (Drop the unnecessary info) """
-        del d['seed'] # Seed value will be indicated in other way (directory name)
-        for v1 in list(d.values()):
-            if isinstance(v1, dict):
-                for k2, v2 in list(v1.items()):
-                    # Remove targets from keys of depth-2 on dictionary
-                    for target in targets:
-                        if target in k2:
-                            del v1[target]
-                    # Remove keys in which the address is in value
-                    if isinstance(v2, str) and ("at 0x" in v2):
-                        del v1[k2]
-
     if algo_name not in ALGO_LIST:
         raise ValueError(f"Given algorithm name [{algo_name}] does not exist.")
 
     # Get model
     model = ALGO_LIST[algo_name](env=env, seed=seed, verbose=0, **hp)
 
-    # Get model information
-    model_info = model.__dict__.copy()
-    state_dicts_names, torch_variable_names = model._get_torch_save_params()
-    all_pytorch_variables = state_dicts_names + torch_variable_names
-    exclude = set(model._excluded_save_params())
-
-    for torch_var in all_pytorch_variables:
-        # We need to get only the name of the top most module as we'll remove that
-        var_name = torch_var.split(".")[0]
-        # Any params that are in the save vars must not be saved by data
-        exclude.add(var_name)
-
-    for param_name in exclude:
-        model_info.pop(param_name, None)
-
-    model_info = json.loads(data_to_json(model_info))
-    _trim_model_info(model_info)
-
-    return model, model_info
+    return model
 
 def set_data_path(algo_name, env_name, hp, seed):
     DEP2_CONFIG = "policy.json"

@@ -31,9 +31,8 @@ def train(args):
             save_path, already_run = set_data_path(args.algo, args.env, hp, seed)
 
         # Get env, model
-        env = get_env(args.env, save_path)
-        eval_env = get_env(args.env, save_path)
-        model, model_info = get_model(args.algo, env, hp, seed)
+        env, eval_env = get_env(args.env, save_path, seed)
+        model = get_model(args.algo, env, hp, seed)
 
         # If given setting had already been run, save_path will be given as None
         if already_run:
