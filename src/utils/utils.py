@@ -29,13 +29,13 @@ def configure_cudnn(debug):
         cudnn.deterministic = True
         cudnn.benchmark = False
 
-def get_env(env_name):
+def get_env(env_name, save_path):
     ENV_LIST = [env_spec.id for env_spec in envs.registry.all()]
 
     env = None
     if env_name in ENV_LIST:
         env = gym.make(env_name)
-        env = Monitor(env, "/home/neurlab-dl1/workspace/RLbench")
+        env = Monitor(env, save_path)
         env = DummyVecEnv([lambda: env])
     else:
         try:
@@ -68,10 +68,6 @@ def get_model(algo_name, env, hp, seed):
     if algo_name not in ALGO_LIST:
         raise ValueError(f"Given algorithm name [{algo_name}] does not exist.")
 
-    # Load hyperparameters
-    with open(hp, "r") as f:
-        hp = json.load(f)
-
     # Get model
     model = ALGO_LIST[algo_name](env=env, seed=seed, verbose=0, **hp)
 
@@ -95,25 +91,19 @@ def get_model(algo_name, env, hp, seed):
 
     return model, model_info
 
-def set_data_path(algo_name, env_name, model_info, seed):
+def set_data_path(algo_name, env_name, hp, seed):
     DEP2_CONFIG = "policy.json"
     DEP3_CONFIG = "hyperparams.json"
 
-    def _sort_dict(obj):
-        if isinstance(obj, dict):
-            return sorted((k, _sort_dict(v)) for k, v in obj.items())
-        if isinstance(obj, list):
-            return sorted(_sort_dict(x) for x in obj)
-        else:
-            return obj
-
     def _is_same_dict(dict1, dict2):
-        return _sort_dict(dict1) == _sort_dict(dict2)
+        return sorted(dict1.items()) == sorted(dict2.items())
 
     agent_info = {
         "algorithm": algo_name,
-        "policy": model_info["policy_class"]["__module__"]
+        "policy": hp["policy"]
     }
+    hp = dict(sorted(hp.items()))
+
     data_path = p.abspath(p.join(os.getcwd(), os.pardir, 'data'))
     os.makedirs(data_path, exist_ok=True)
 
@@ -124,11 +114,11 @@ def set_data_path(algo_name, env_name, model_info, seed):
     os.makedirs(data_path, exist_ok=True)
 
     # Agent (Depth-2) - Algorithm, Policy
-    agent_list = os.listdir(data_path)
+    agent_list = [x for x in os.listdir(data_path) if p.isdir(p.join(data_path, x))]
     for aid in agent_list:
         ex_info_path = p.join(data_path, aid, DEP2_CONFIG)
         with open(ex_info_path, "r") as f:
-            ex_info = _sort_dict(json.load(f))
+            ex_info = json.load(f)
 
         if _is_same_dict(agent_info, ex_info):
             agent_id = aid
@@ -149,13 +139,13 @@ def set_data_path(algo_name, env_name, model_info, seed):
             json.dump(agent_info, f, indent=4)
 
     # Session (Depth-3) - Hyperparameters
-    session_list = [x for x in os.listdir(data_path) if x != DEP2_CONFIG]
+    session_list = [x for x in os.listdir(data_path) if p.isdir(p.join(data_path, x))]
     for sid in session_list:
         ex_info_path = p.join(data_path, sid, DEP3_CONFIG)
         with open(ex_info_path, "r") as f:
-            session_info = _sort_dict(json.load(f))
+            session_info = json.load(f)
         
-        if _is_same_dict(model_info, session_info):
+        if _is_same_dict(hp, session_info):
             session_id = sid.lstrip(agent_id)
             data_path = p.join(data_path, sid)
             break
@@ -171,12 +161,12 @@ def set_data_path(algo_name, env_name, model_info, seed):
 
         os.mkdir(data_path)
         with open(p.join(data_path, DEP3_CONFIG), "w") as f:
-            json.dump(model_info, f, indent=4)
+            json.dump(hp, f, indent=4)
 
     # Run (Depth-4) - Random seed
     seed_list = dict(map(
         lambda x: (int(x.split("-")[-1]), x),
-        [x for x in os.listdir(data_path) if x != DEP3_CONFIG and "zip" not in x]
+        [x for x in os.listdir(data_path) if p.isdir(p.join(data_path, x))]
     ))
 
     already_run = False
@@ -187,7 +177,8 @@ def set_data_path(algo_name, env_name, model_info, seed):
         seed_id = f"r{len(seed_list) + 1}"
         data_path = p.join(
             data_path,
-            agent_id + session_id + seed_id + f"-{seed}"
+            agent_id + session_id + seed_id + f"-{seed}/"
         )
+        os.mkdir(data_path)
 
     return data_path, already_run

@@ -1,4 +1,5 @@
 import os
+import json
 import zipfile
 
 import torch
@@ -15,19 +16,24 @@ from utils.sb3_callbacks import TqdmCallback
 def train(args):
     """ Train with multiple random seeds """
 
+    # Load hyperparameters
+    hp = None
+    with open(args.hp, "r") as f:
+        hp = json.load(f)
+
     for i, seed in enumerate(args.seed):
         set_seed(seed)
-
-        # Get env, model
-        env = get_env(args.env)
-        eval_env = get_env(args.env)
-        model, model_info = get_model(args.algo, env, args.hp, seed)
 
         # Get appropriate path by model info
         save_path = args.save_path
         already_run = False
         if save_path is None:
-            save_path, already_run = set_data_path(args.algo, args.env, model_info, seed)
+            save_path, already_run = set_data_path(args.algo, args.env, hp, seed)
+
+        # Get env, model
+        env = get_env(args.env, save_path)
+        eval_env = get_env(args.env, save_path)
+        model, model_info = get_model(args.algo, env, hp, seed)
 
         # If given setting had already been run, save_path will be given as None
         if already_run:
@@ -51,13 +57,12 @@ def _train(
     logger = configure(save_path, ["csv"])
     model.set_logger(logger)
 
-    #TODO: Sophisticate the evaluation process (eval_eps)
     eval_callback = EvalCallback(
         eval_env,
         n_eval_episodes=eval_eps,
         eval_freq=eval_freq, 
-        log_path=f"{save_path}/",
-        best_model_save_path=f"{save_path}/",
+        log_path=save_path,
+        best_model_save_path=save_path,
         deterministic=True,
         verbose=0
     )
@@ -68,12 +73,12 @@ def _train(
         callback=[eval_callback, tqdm_callback],
         eval_log_path=save_path
     )
-    model.save(save_path)
+    model.save(os.path.join(save_path, "info.zip"))
 
-    # Save the logging files
-    with zipfile.ZipFile(f"{save_path}.zip", 'r') as zip_ref:
-        zip_ref.extractall(save_path)
-    os.remove(f"{save_path}.zip")
+    ## Unzip -- Modify required
+    # with zipfile.ZipFile(f"{save_path}.zip", 'r') as zip_ref:
+    #     zip_ref.extractall(save_path)
+    # os.remove(f"{save_path}.zip")
 
 def render(env, model, nstep):
     """ Render how agent interact with environment"""
