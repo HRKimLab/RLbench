@@ -11,8 +11,6 @@ from gym import envs
 from sb3_contrib import ARS, QRDQN, TQC, TRPO
 from stable_baselines3 import A2C, DDPG, DQN, PPO, SAC, TD3
 from stable_baselines3.common.env_util import make_vec_env
-from stable_baselines3.common.monitor import Monitor
-from stable_baselines3.common.vec_env import DummyVecEnv
 
 def set_seed(seed):
     os.environ['PYTHONHASHSEED'] = str(seed)
@@ -39,7 +37,7 @@ def get_env(env_name, save_path, seed):
         )
         eval_env = make_vec_env(
             env_name, n_envs=1,
-            seed=np.random.randint(0, 1000), monitor_dir=save_path
+            seed=np.random.randint(0, 1000), monitor_dir=None
         )
         # env = gym.make(env_name)
         # env = Monitor(env, save_path)

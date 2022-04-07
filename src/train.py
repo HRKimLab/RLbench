@@ -1,6 +1,5 @@
 import os
 import json
-import zipfile
 
 import torch
 from stable_baselines3.common.logger import configure
@@ -73,11 +72,6 @@ def _train(
         eval_log_path=save_path
     )
     model.save(os.path.join(save_path, "info.zip"))
-
-    ## Unzip -- Modify required
-    # with zipfile.ZipFile(f"{save_path}.zip", 'r') as zip_ref:
-    #     zip_ref.extractall(save_path)
-    # os.remove(f"{save_path}.zip")
 
 def render(env, model, nstep):
     """ Render how agent interact with environment"""
