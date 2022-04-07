@@ -95,14 +95,10 @@ def set_data_path(algo_name, env_name, hp, seed):
     DEP2_CONFIG = "policy.json"
     DEP3_CONFIG = "hyperparams.json"
 
-    def _is_same_dict(dict1, dict2):
-        return sorted(dict1.items()) == sorted(dict2.items())
-
     agent_info = {
         "algorithm": algo_name,
         "policy": hp["policy"]
     }
-    hp = dict(sorted(hp.items()))
 
     data_path = p.abspath(p.join(os.getcwd(), os.pardir, 'data'))
     os.makedirs(data_path, exist_ok=True)
@@ -120,7 +116,7 @@ def set_data_path(algo_name, env_name, hp, seed):
         with open(ex_info_path, "r") as f:
             ex_info = json.load(f)
 
-        if _is_same_dict(agent_info, ex_info):
+        if agent_info == ex_info:
             agent_id = aid
             data_path = p.join(data_path, agent_id)
             break
@@ -145,7 +141,7 @@ def set_data_path(algo_name, env_name, hp, seed):
         with open(ex_info_path, "r") as f:
             session_info = json.load(f)
         
-        if _is_same_dict(hp, session_info):
+        if hp == session_info:
             session_id = sid.lstrip(agent_id)
             data_path = p.join(data_path, sid)
             break
