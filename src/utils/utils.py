@@ -28,6 +28,17 @@ def configure_cudnn(debug):
         cudnn.deterministic = True
         cudnn.benchmark = False
 
+def load_json(hp_path):
+    with open(hp_path, "r") as f:
+        hp = json.load(f)
+
+    #TODO Should be modified
+    for k in hp.keys():
+        if isinstance(hp[k], list):
+            hp[k] = tuple(hp[k])
+
+    return hp
+
 def get_logger():
     os.makedirs("../log", exist_ok=True)
 
@@ -48,17 +59,6 @@ def get_logger():
     error_logger.addHandler(error_fileHandler)
 
     return info_logger, error_logger
-
-def get_hp(hp_path):
-    with open(hp_path, "r") as f:
-        hp = json.load(f)
-
-    # !! This code should be modified
-    for k in hp.keys():
-        if isinstance(hp[k], list):
-            hp[k] = tuple(hp[k])
-
-    return hp
 
 def get_env(env_name, save_path, seed):
     ENV_LIST = [env_spec.id for env_spec in envs.registry.all()]
@@ -119,9 +119,7 @@ def set_data_path(algo_name, env_name, hp, seed):
     # Agent (Depth-2) - Algorithm, Policy
     agent_list = [x for x in os.listdir(data_path) if p.isdir(p.join(data_path, x))]
     for aid in agent_list:
-        ex_info_path = p.join(data_path, aid, DEP2_CONFIG)
-        with open(ex_info_path, "r") as f:
-            ex_info = json.load(f)
+        ex_info = load_json(p.join(data_path, aid, DEP2_CONFIG))
 
         if agent_info == ex_info:
             agent_id = aid
@@ -144,9 +142,7 @@ def set_data_path(algo_name, env_name, hp, seed):
     # Session (Depth-3) - Hyperparameters
     session_list = [x for x in os.listdir(data_path) if p.isdir(p.join(data_path, x))]
     for sid in session_list:
-        ex_info_path = p.join(data_path, sid, DEP3_CONFIG)
-        with open(ex_info_path, "r") as f:
-            session_info = json.load(f)
+        session_info = load_json(p.join(data_path, sid, DEP3_CONFIG))
         
         if hp == session_info:
             session_id = sid.lstrip(agent_id)

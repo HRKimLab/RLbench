@@ -7,7 +7,7 @@ from stable_baselines3.common.callbacks import EvalCallback
 
 from options import get_args
 from utils import (
-    set_seed, configure_cudnn, get_logger, get_hp,
+    set_seed, configure_cudnn, load_json, get_logger,
     get_env, get_model, set_data_path
 )
 from utils.sb3_callbacks import TqdmCallback
@@ -16,7 +16,7 @@ def train(args):
     """ Train with multiple random seeds """
 
     info_logger, error_logger = get_logger()
-    hp = get_hp(args.hp)
+    hp = load_json(args.hp)
 
     for i, seed in enumerate(args.seed):
         set_seed(seed)
