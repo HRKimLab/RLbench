@@ -1,5 +1,5 @@
 import os
-import json
+from datetime import datetime
 
 import torch
 from stable_baselines3.common.logger import configure
@@ -7,7 +7,7 @@ from stable_baselines3.common.callbacks import EvalCallback
 
 from options import get_args
 from utils import (
-    set_seed, configure_cudnn,
+    set_seed, configure_cudnn, get_logger, get_hp,
     get_env, get_model, set_data_path
 )
 from utils.sb3_callbacks import TqdmCallback
@@ -15,10 +15,8 @@ from utils.sb3_callbacks import TqdmCallback
 def train(args):
     """ Train with multiple random seeds """
 
-    # Load hyperparameters
-    hp = None
-    with open(args.hp, "r") as f:
-        hp = json.load(f)
+    info_logger, error_logger = get_logger()
+    hp = get_hp(args.hp)
 
     for i, seed in enumerate(args.seed):
         set_seed(seed)
@@ -30,20 +28,29 @@ def train(args):
             save_path, already_run = set_data_path(args.algo, args.env, hp, seed)
 
         # Get env, model
-        env, eval_env = get_env(args.env, save_path, seed)
-        model = get_model(args.algo, env, hp, seed)
+        try:
+            env, eval_env = get_env(args.env, save_path, seed)
+            model = get_model(args.algo, env, hp, seed)
+        except Exception as e:
+            info_logger.info("Loading error [ENV: %s] | [ALGO: %s]", args.env, args.algo)
+            error_logger.error("Loading error with [%s / %s] at %s", args.env, args.algo, datetime.now(), exc_info=e)
+            exit()
 
         # If given setting had already been run, save_path will be given as None
         if already_run:
             print(f"[{i + 1}/{args.nseed}] Already exists: '{save_path}', skip to run")
         else: # Train with single seed
-            print(f"[{i + 1}/{args.nseed}] Ready to train {i + 1}th agent - RANDOM SEED: {seed}")
-            _train(
-                model, args.nstep,
-                eval_env, args.eval_freq, args.eval_eps, save_path
-            )
+            try:
+                print(f"[{i + 1}/{args.nseed}] Ready to train {i + 1}th agent - RANDOM SEED: {seed}")
+                _train(
+                    model, args.nstep,
+                    eval_env, args.eval_freq, args.eval_eps, save_path
+                )
+                del env, model
+            except Exception as e:
+                info_logger.info("Train error [ENV: %s] | [ALGO: %s]", args.env, args.algo)
+                error_logger.error("Train error with [%s / %s] at %s", args.env, args.algo, datetime.now(), exc_info=e)
 
-        del env, model
 
 def _train(
     model, nstep,

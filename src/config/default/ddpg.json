@@ -1,0 +1,10 @@
+{
+    "policy": "MlpPolicy",
+    "learning_rate": 0.001,
+    "buffer_size": 1000000,
+    "learning_starts": 100,
+    "tau": 0.005,
+    "gamma": 0.99,
+    "train_freq": [1, "episode"],
+    "gradient_steps": -1
+}

@@ -2,7 +2,9 @@ import os
 import os.path as p
 import json
 import random
+import logging
 from importlib import import_module
+from datetime import date
 
 import numpy as np
 import torch
@@ -25,6 +27,38 @@ def configure_cudnn(debug):
     if debug:
         cudnn.deterministic = True
         cudnn.benchmark = False
+
+def get_logger():
+    os.makedirs("../log", exist_ok=True)
+
+    formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+
+    # Info logger
+    info_logger = logging.getLogger("info")
+    info_fileHandler = logging.FileHandler(f"../log/summary_{date.today().isoformat()}.log", mode='a')
+    info_fileHandler.setFormatter(formatter)
+    info_logger.setLevel(level=logging.INFO)
+    info_logger.addHandler(info_fileHandler)
+
+    # Error logger
+    error_logger = logging.getLogger("error")
+    error_fileHandler = logging.FileHandler(f"../log/error_{date.today().isoformat()}.log", mode='a')
+    error_fileHandler.setFormatter(formatter)
+    error_logger.setLevel(level=logging.ERROR)
+    error_logger.addHandler(error_fileHandler)
+
+    return info_logger, error_logger
+
+def get_hp(hp_path):
+    with open(hp_path, "r") as f:
+        hp = json.load(f)
+
+    # !! This code should be modified
+    for k in hp.keys():
+        if isinstance(hp[k], list):
+            hp[k] = tuple(hp[k])
+
+    return hp
 
 def get_env(env_name, save_path, seed):
     ENV_LIST = [env_spec.id for env_spec in envs.registry.all()]
