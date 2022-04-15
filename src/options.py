@@ -31,6 +31,7 @@ def get_args():
     )
     parser.add_argument(
         '--algo', '-A', type=str,
+        choices=["a2c", "ddpg", "dqn", "ppo", "sac", "td3"],
         help="Algorithm name"
     )
     parser.add_argument(
