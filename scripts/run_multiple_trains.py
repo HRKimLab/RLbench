@@ -3,9 +3,10 @@ import subprocess
 from gym import envs
 
 ALGOS = ["a2c", "ddpg", "dqn", "ppo", "sac", "td3"]
-ENVS = [env_spec.id for env_spec in envs.registry.all()]
+ENVS = [env_spec.id for env_spec in envs.registry.all()][:600]
+# ENVS = [env_spec.id for env_spec in envs.registry.all()]
 
-N_SEEDS = 2
+N_SEEDS = 5
 N_TIMESTEPS = int(3e5)
 EVAL_FREQ = 5000
 N_EVAL_EPISODES = 5
