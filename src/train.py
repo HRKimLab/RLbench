@@ -12,10 +12,40 @@ from .utils import (
 )
 from .utils.sb3_callbacks import TqdmCallback
 
+def train_debug(args):
+    """ Train with multiple random seeds """
+
+    hp = load_json(args.hp)
+
+    for i, seed in enumerate(args.seed):
+        set_seed(seed)
+
+        # Get appropriate path by model info
+        save_path = args.save_path
+        already_run = False
+        if save_path is None:
+            save_path, already_run = set_data_path(args.algo, args.env, hp, seed)
+
+        # Get env, model
+        env, eval_env = get_env(args.env, save_path, seed)
+        model = get_model(args.algo, env, hp, seed)
+
+        # If given setting had already been run, save_path will be given as None
+        if already_run:
+            print(f"[{i + 1}/{args.nseed}] Already exists: '{save_path}', skip to run")
+        else: # Train with single seed
+            print(f"[{i + 1}/{args.nseed}] Ready to train {i + 1}th agent - RANDOM SEED: {seed}")
+            _train(
+                model, args.nstep,
+                eval_env, args.eval_freq, args.eval_eps, save_path
+            )
+            del env, model
+
 def train(args):
     """ Train with multiple random seeds """
 
     info_logger, error_logger = get_logger()
+
     hp = load_json(args.hp)
 
     for i, seed in enumerate(args.seed):
@@ -97,4 +127,9 @@ if __name__ == "__main__":
     configure_cudnn(args.debug)
 
     print(f"Using {'CUDA' if torch.cuda.is_available() else 'CPU'} device")
-    train(args)
+    if args.debug:
+        print("---DEBUG MODE---")
+        train_debug(args)
+    else:
+        print("---START EXPERIMENTS---")
+        train(args)

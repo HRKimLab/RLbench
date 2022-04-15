@@ -67,8 +67,8 @@ def get_args():
     )
 
     # Debugging mode
-    parser.add_argument('--DEBUG', dest='debug', action='store_true')
-    parser.add_argument('--NO-DEBUG', dest='debug', action='store_false')
+    parser.add_argument('--debug', dest='debug', action='store_true')
+    parser.add_argument('--no-debug', dest='debug', action='store_false')
     parser.set_defaults(debug=False)
 
     args = parser.parse_args()
