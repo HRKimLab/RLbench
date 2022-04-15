@@ -76,7 +76,7 @@ def get_args():
     # Post-processing for arguments
     args.algo == args.algo.lower()
     args.seed = SEEDS[:args.nseed]
-    args.hp = os.path.join(os.getcwd(), f"config/{args.hp}.json")
+    args.hp = os.path.join(os.getcwd(), f"src/config/{args.hp}.json")
     validate_args(args)
 
     return args

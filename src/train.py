@@ -5,12 +5,12 @@ import torch
 from stable_baselines3.common.logger import configure
 from stable_baselines3.common.callbacks import EvalCallback
 
-from options import get_args
-from utils import (
+from .options import get_args
+from .utils import (
     set_seed, configure_cudnn, load_json, get_logger,
     get_env, get_model, set_data_path
 )
-from utils.sb3_callbacks import TqdmCallback
+from .utils.sb3_callbacks import TqdmCallback
 
 def train(args):
     """ Train with multiple random seeds """
