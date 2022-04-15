@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 
 from options import MAPPER_Y, get_args
 
+
 def plot_mean_var(args):
     """ Plot the mean of the data and show standard deviation on y-axis
     args: user arguments
@@ -14,12 +15,17 @@ def plot_mean_var(args):
     date_today = date.today().isoformat()
 
     file_paths = []
-    for (root_dir, _, files) in os.walk(os.path.join(args.data_path, args.env)):
+    for agent in args.agents:
+        get_path = args.data_path
+        if get_path is None:
+            get_path = os.path.abspath(os.path.join(os.getcwd(), os.pardir, 'data'))
+    for (root_dir, _, files) in os.walk(os.path.join(get_path, args.env)):
         for file in files:
-            if ".csv" in file:
+            if "0.monitor.csv" in file:
                 file_path = os.path.join(root_dir, file)
                 file_paths.append(file_path)
 
+    print(file_paths)
     agent_list = args.agents
     y_idx, y_name = MAPPER_Y[args.y]
 

@@ -16,7 +16,7 @@ def get_args():
     parser = argparse.ArgumentParser(description="Visualize the training/evaluation process")
     parser.add_argument(
         '--env', '-E', type=str,
-        choices=['LunarLanderContinuous-v2'],
+        #choices=['LunarLanderContinuous-v2'],
         help="Environment name; Available: (LunarLanderContinuous-v2)"
     )
     parser.add_argument(
@@ -35,8 +35,9 @@ def get_args():
     )
     parser.add_argument(
         '--data-path', '-S', type=str,
-        default="/tmp/sb3-log", help="Path of data"
+        help="Path of data"
     ) #TODO: Suppose that all of data has been saved on 'data/' path (if data_path is None)
+
 
     args = parser.parse_args()
 

@@ -14,9 +14,13 @@ def plot_numeric(args):
     date_today = date.today().isoformat()
 
     file_paths = []
-    for (root_dir, _, files) in os.walk(os.path.join(args.data_path, args.env)):
+    for agent in args.agents:
+        get_path = args.data_path
+        if get_path is None:
+            get_path = os.path.abspath(os.path.join(os.getcwd(), os.pardir, 'data'))
+    for (root_dir, _, files) in os.walk(os.path.join(get_path, args.env)):
         for file in files:
-            if ".csv" in file:
+            if "0.monitor.csv" in file:
                 file_path = os.path.join(root_dir, file)
                 file_paths.append(file_path)
 
@@ -26,7 +30,7 @@ def plot_numeric(args):
         for agent in agent_list:
             if agent in file_path:
                 df = pd.read_csv(file_path,skiprows=1)
-                plt.plot(df.iloc[:, y_idx], label=agent)
+                plt.plot(df.iloc[:, y_idx], label= file_path.split('\\')[-2])
 
     plt.xlabel(args.x)
     plt.ylabel(y_name)
