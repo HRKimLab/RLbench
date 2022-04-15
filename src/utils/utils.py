@@ -73,7 +73,8 @@ def get_env(env_name, save_path, seed):
             env_name, n_envs=1,
             seed=np.random.randint(0, 1000), monitor_dir=None
         )
-        # env = gym.make(env_name)
+        # Legacy
+        ## env = gym.make(env_name)
         # env = Monitor(env, save_path)
         # env = DummyVecEnv([lambda: env])
     else:
