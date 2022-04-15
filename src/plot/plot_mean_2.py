@@ -28,7 +28,7 @@ def plot_mean_2(args):
             if "0.monitor.csv" in file:
                 file_path = os.path.join(root_dir, file)
                 file_paths.append(file_path)
-    print(file_paths)
+   
     agent_list = args.agents
     y_idx, y_name = MAPPER_Y[args.y]
 
