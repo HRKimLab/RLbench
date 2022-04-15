@@ -28,16 +28,49 @@ LunarLanderContinuous-v2/
 │   ├── a1s1
 │   │   ├── a1s1r1-7
 │   │   │   ├── 0.monitor.csv
-│   │   │   ├── data
-│   │   │   ├── policy.optimizer.pth
-│   │   │   ├── policy.pth
-│   │   │   ├── pytorch_variables.pth
-│   │   │   ├── _stable_baselines3_version
-│   │   │   └── system_info.txt
+│   │   │   ├── best_model.zip
+│   │   │   ├── evaluations.npz
+│   │   │   ├── info.zip
+│   │   │   └── progress.csv
 ```
 
 ## How to use
-In `/src` directory,
+### Training
+At `src/` directory,
+
+```
+python train.py --env [ENV_NAME] \
+    --algo [ALGORITHM_NAME] \ 
+    --hp [CONFIG_PATH] \
+    --nseed [NUMBER_OF_EXPS] \
+    --nstep [N_TIMESTEPS] \
+    --eval_freq [EVAL_FREQ] \
+    --eval_eps [N_EVAL_EPISODES]
+```
+
+*example*
+
+```
+python train.py --env CartPole-v1 \
+    --algo ppo \
+    --hp default/ppo \
+    --nseed 3 \
+    --nstep 30000
+```
+
+For more information, please type the following command.  
+`python train.py --help`
+
+### Train with multiple algorithms and environments
+**CAUTION** The current implementation only supports running with the same hyperparameters on the multiple experiments
+
+Please modify the hyperparameters in `scripts/run_multiple_trains.py` as you want.  
+Then type the following command at the `src/` directory
+
+`python ../scripts/run_multiple_trains.py`
+
+### Plotting
+At `src/` directory,
 
 ```
 python plot/plot_numeric --env [ENV_NAME] \
