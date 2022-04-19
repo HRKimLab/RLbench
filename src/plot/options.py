@@ -16,7 +16,7 @@ def get_args():
     parser = argparse.ArgumentParser(description="Visualize the training/evaluation process")
     parser.add_argument(
         '--env', '-E', type=str,
-        choices=['LunarLanderContinuous-v2'],
+        #choices=['LunarLanderContinuous-v2'],
         help="Environment name; Available: (LunarLanderContinuous-v2)"
     )
     parser.add_argument(
