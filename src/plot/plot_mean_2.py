@@ -1,11 +1,15 @@
 import os
 from datetime import date
+import sys
+sys.path.append('.')
 
 import pandas as pd
 import matplotlib.pyplot as plt
 
 from options import MAPPER_Y, get_args
+from utils import set_data_path
 
+os.environ['KMP_DUPLICATE_LIB_OK']='True'
 def plot_mean_2(args):
     """ Plot the mean of the data and show standard deviation on y-axis
     args: user arguments
@@ -14,12 +18,17 @@ def plot_mean_2(args):
     date_today = date.today().isoformat()
 
     file_paths = []
-    for (root_dir, _, files) in os.walk(os.path.join(args.data_path, args.env)):
+    for agent in args.agents:
+        get_path = args.data_path
+        if get_path is None:
+            get_path = os.path.abspath(os.path.join(os.getcwd(), os.pardir, 'data'))
+    
+    for (root_dir, _, files) in os.walk(os.path.join(get_path, args.env)):
         for file in files:
-            if ".csv" in file:
+            if "0.monitor.csv" in file:
                 file_path = os.path.join(root_dir, file)
                 file_paths.append(file_path)
-
+   
     agent_list = args.agents
     y_idx, y_name = MAPPER_Y[args.y]
 
@@ -29,6 +38,7 @@ def plot_mean_2(args):
         for file in file_paths:
             if agent in file:
                 df = pd.read_csv(file, skiprows=1)
+                print(df)
                 plt.plot(df.iloc[:, y_idx], label= file.split('\\')[-2], color = 'lightgray')
                 bundle.append(df)
         

@@ -35,8 +35,9 @@ def get_args():
     )
     parser.add_argument(
         '--data-path', '-S', type=str,
-        default="/tmp/sb3-log", help="Path of data"
+        help="Path of data"
     ) #TODO: Suppose that all of data has been saved on 'data/' path (if data_path is None)
+
 
     args = parser.parse_args()
 
