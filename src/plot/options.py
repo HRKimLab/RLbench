@@ -9,6 +9,12 @@ MAPPER_Y = {
     't': (2, 'time') 
 }
 
+MAPPER_X = {
+    'timesteps': (0,'timesteps'),
+    'episode': (1, 'episodes'),
+    'walltime':(2, 'walltime')
+}
+
 def str2list(s):
     return list(map(lambda x: x.strip(), s[1:-1].split(',')))
 
@@ -25,7 +31,7 @@ def get_args():
     )
     parser.add_argument(
         '--x', type=str,
-        choices=['episode'],
+        #choices=['episode'],
         default='episode', help="x-axis variable"
     )
     parser.add_argument(

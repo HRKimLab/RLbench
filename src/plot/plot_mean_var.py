@@ -1,10 +1,11 @@
 import os
 from datetime import date
 
+import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-from options import MAPPER_Y, get_args
+from options import MAPPER_X, MAPPER_Y, get_args
 
 
 def plot_mean_var(args):
@@ -36,7 +37,19 @@ def plot_mean_var(args):
                 bundle.append(df)
         
         df_concat = pd.concat(bundle)  
-                
+        
+        if args.x == 'timesteps':
+            x_var = np.cumsum(df.l.values)
+            y_var = df.r.values
+        elif args.x == 'episode':
+            x_var = np.arange(len(df))
+            y_var = df.r.values
+        elif args.x == 'walltime':
+            # Convert to hours
+            x_var = df.t.values / 3600.0
+            y_var = df.r.values
+
+        
         mean_df = df_concat.groupby(df_concat.index).mean()
         std_df = df_concat.groupby(df_concat.index).std()
 
