@@ -1,5 +1,5 @@
 {
-    "policy": "MlpPolicy",
+    "policy": "CnnPolicy",
     "learning_rate": 0.0001,
     "buffer_size": 1000000,
     "learning_starts": 50000,

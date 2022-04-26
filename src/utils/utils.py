@@ -12,7 +12,7 @@ from torch.backends import cudnn
 from gym import envs
 from sb3_contrib import ARS, QRDQN, TQC, TRPO
 from stable_baselines3 import A2C, DDPG, DQN, PPO, SAC, TD3
-from stable_baselines3.common.env_util import make_vec_env
+from stable_baselines3.common.env_util import make_vec_env, make_atari_env
 
 def set_seed(seed):
     os.environ['PYTHONHASHSEED'] = str(seed)
@@ -63,16 +63,26 @@ def get_logger():
 def get_env(env_name, save_path, seed):
     ENV_LIST = [env_spec.id for env_spec in envs.registry.all()]
 
-    env = None
+    env, eval_env = None, None
     if env_name in ENV_LIST:
-        env = make_vec_env(
-            env_name, n_envs=1,
-            seed=seed, monitor_dir=save_path
-        )
-        eval_env = make_vec_env(
-            env_name, n_envs=1,
-            seed=np.random.randint(0, 1000), monitor_dir=None
-        )
+        if "ALE" in env_name:
+            env = make_atari_env(
+                env_name, n_envs=1,
+                seed=seed, monitor_dir=save_path
+            )
+            eval_env = make_atari_env(
+                env_name, n_envs=1,
+                seed=np.random.randint(0, 1000), monitor_dir=None
+            )
+        else:
+            env = make_vec_env(
+                env_name, n_envs=1,
+                seed=seed, monitor_dir=save_path
+            )
+            eval_env = make_vec_env(
+                env_name, n_envs=1,
+                seed=np.random.randint(0, 1000), monitor_dir=None
+            )
         # Legacy
         ## env = gym.make(env_name)
         # env = Monitor(env, save_path)

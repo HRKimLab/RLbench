@@ -1,4 +1,0 @@
-{
-    "policy": "MlpPolicy",
-    "train_freq": 8
-}

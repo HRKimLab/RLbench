@@ -5,6 +5,7 @@
 data/
 todo.md
 log/*
+data_backup*/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
