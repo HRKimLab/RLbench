@@ -6,23 +6,39 @@ import matplotlib.pyplot as plt
 
 from options import MAPPER_Y, get_args_envs
 
+BASELINE = {
+    "ALE/Boxing-v5": {
+        "random": 0.1,
+        "linear": 44,
+        "sarsa": 9.8,
+        "human": 4.3,
+        "dqn": 71.8
+    },
+    "": {
+
+    }
+}
 def plot_envs(args):
     """ Plot the data of different environments on y-axis
     args: user arguments
     """
-
+    
     date_today = date.today().isoformat()
     
     env_list = args.env
     file_paths = []
+
+    get_path = args.data_path
+    if get_path is None:
+        get_path = os.path.abspath(os.path.join(os.getcwd(), os.pardir, 'data'))
+
     for env in env_list:
-        for (root_dir, _, files) in os.walk(os.path.join(args.data_path, env)):
+        for (root_dir, _, files) in os.walk(os.path.join(get_path, env)):
             for file in files:
-                if ".csv" in file:
+                if "monitor.csv" in file:
                     file_path = os.path.join(root_dir, file)
                     file_paths.append(file_path)
-
-    print(file_paths)
+    
     y_idx, y_name = MAPPER_Y[args.y]
 
     for env in env_list:
@@ -31,15 +47,17 @@ def plot_envs(args):
             if env in file:
                 if args.agent in file:
                     df = pd.read_csv(file, skiprows=1)
-                    bundle.append(df)
-        
+                    bundle.append(df.tail(100))
+       
         df_concat = pd.concat(bundle)  
-                
+
+
         mean_df = df_concat.groupby(df_concat.index).mean()
         std_df = df_concat.groupby(df_concat.index).std()
-
+        print(mean_df.iloc[:,y_idx].mean())
+        #plt.barh(mean_df.iloc[:,y_idx], env)
         plt.plot(mean_df.iloc[:,y_idx], label = env)
-        plt.fill_between(mean_df.index, (mean_df-std_df).iloc[:,y_idx], (mean_df+std_df).iloc[:,y_idx], alpha = 0.5)
+        #plt.fill_between(mean_df.index, (mean_df-std_df).iloc[:,y_idx], (mean_df+std_df).iloc[:,y_idx], alpha = 0.5)
 
     plt.xlabel(args.x)
     plt.ylabel(y_name)
