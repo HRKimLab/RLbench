@@ -15,63 +15,63 @@ BASELINE = {
         "linear": 44,
         "sarsa": 9.8,
         "human": 4.3,
-        "dqn": 71.8
+        "dqn_paper": 71.8
     },
     "ALE/Qbert-v5": {
         "random": 163.9,
         "linear": 613.5,
         "sarsa": 960.3,
         "human": 13455,
-        "dqn": 10596
+        "dqn_paper": 10596
     },
     "ALE/Hero-v5":{
         "random": 1027,
         "linear": 6459,
         "sarsa": 7295,
         "human": 25763,
-        "dqn": 19950
+        "dqn_paper": 19950
     },
     "ALE/Breakout-v5": {
         "random": 1.7,
         "linear": 5.2,
         "sarsa": 6.1,
         "human": 31.8,
-        "dqn": 401.2
+        "dqn_paper": 401.2
     },
     "ALE/Asterix-v5": {
         "random": 210,
         "linear": 987.3,
         "sarsa": 1332,
         "human": 8503,
-        "dqn": 6012
+        "dqn_paper": 6012
     },
     "ALE/IceHockey-v5": {
         "random": -11.2,
         "linear": -9.5,
         "sarsa": -3.2,
         "human": 0.9,
-        "dqn": -1.6
+        "dqn_paper": -1.6
     },
     "ALE/StarGunner-v5": {
         "random": 664,
         "linear": 1070,
         "sarsa": 9.4,
         "human": 10250,
-        "dqn": 57997
+        "dqn_paper": 57997
     },
     "ALE/Robotank-v5":{
         "random": 2.2,
         "linear": 28.7,
         "sarsa": 12.4,
         "human": 11.9,
-        "dqn": 51.6
+        "dqn_paper": 51.6
     },
     "ALE/Atlantis-v5":{
         "random": 12850,
         "linear": 62687,
         "sarsa": 852.9,
         "human": 29028,
-        "dqn": 85641
+        "dqn_paper": 85641
     }
 
 }
@@ -98,7 +98,6 @@ def plot_envs(args):
     
     y_idx, y_name = MAPPER_Y[args.y]
     list_normalized_score = []
-    list_p_normalized_score = []
     for env in env_list:
         bundle = []
         for file in file_paths:
@@ -113,20 +112,17 @@ def plot_envs(args):
         mean = mean_df.iloc[:,y_idx].mean()
         std = mean_df.iloc[:,y_idx].std()
         
-        normalized_score = 100*(mean - BASELINE[env]['random'])/(BASELINE[env]['human'] - BASELINE[env]['random'])
-        p_normalized_score = 100*(BASELINE[env]['dqn'] - BASELINE[env]['random'])/(BASELINE[env]['human'] - BASELINE[env]['random'])
+        normalized_score = 100*(mean - BASELINE[env]['random'])/(BASELINE[env][args.normalize] - BASELINE[env]['random'])
         list_normalized_score.append(normalized_score)
-        list_p_normalized_score.append(p_normalized_score)
 
-    normalized_df = pd.DataFrame(zip(env_list, list_normalized_score, list_p_normalized_score), columns = ['env','dqn','dqn_paper' ])
+    normalized_df = pd.DataFrame(zip(env_list, list_normalized_score), columns = ['env','dqn'])
     width = 0.4
 
     normalized_df.sort_values(by='dqn', inplace=True, ascending=True)
     fig, ax = plt.subplots(figsize=(10,6), facecolor=(.94, .94, .94))
     
     y = np.arange(len(env_list))  
-    ax.barh(y + width/2, normalized_df['dqn'], width, label='dqn', color='skyblue')
-    ax.barh(y - width/2, normalized_df['dqn_paper'], width, label='dqn(paper)', color='lightgray')
+    ax.barh(y, normalized_df['dqn'], width, color='skyblue')
 
     ax.xaxis.set_major_formatter(mpl.ticker.StrMethodFormatter('{x:,.0f}'))
     
@@ -150,11 +146,11 @@ def plot_envs(args):
             ha=ha)
    
     ax.set_yticklabels(normalized_df['env'])
-    ax.legend()
+    
 
     plt.yticks(np.arange(min(y), max(y)+1, 1.0))
     plt.xlabel('normalized score')
-    plt.title(f"{args.env} [{args.x}-{y_name}] {date_today}")
+    plt.title('Normalization to '+args.normalize+' / '+f"{date_today}")
     plt.show()
 
 if __name__ == "__main__":

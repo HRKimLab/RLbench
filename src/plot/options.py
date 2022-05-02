@@ -72,9 +72,12 @@ def get_args_envs():
         help="y-axis variable; Available: (rew, len, t, e_rew)"
     )
     parser.add_argument(
-        '--data-path', '-S', type=str,
-        
+        '--data-path', '-S', type=str,     
     ) #TODO: Suppose that all of data has been saved on 'data/' path (if data_path is None)
+    parser.add_argument(
+        '--normalize', type=str,
+        choices=['human', 'dqn_paper']
+    )
 
     args = parser.parse_args()
 
