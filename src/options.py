@@ -48,6 +48,26 @@ def get_args():
         '--nstep', type=int, default=-1,
         help="Number of timesteps to train"
     )
+    parser.add_argument(
+        '--nenv', type=int, default=1,
+        help="Number of processes for parallel execution (vectorized envs)"
+    )
+    parser.add_argument(
+        '--noise', type=str,
+        choices=["Normal"],
+        default=None,
+        help="Type of action noise"
+    )
+    parser.add_argument(
+        '--noise-mean', type=float,
+        default=None,
+        help="Mean value of action noise"
+    )
+    parser.add_argument(
+        '--noise-std', type=float,
+        default=None,
+        help="Std. value of action noise"
+    )
 
     # Evaluation
     parser.add_argument(

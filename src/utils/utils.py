@@ -61,14 +61,14 @@ def get_logger():
 
     return info_logger, error_logger
 
-def get_env(env_name, save_path, seed):
+def get_env(env_name, n_env, save_path, seed):
     ENV_LIST = [env_spec.id for env_spec in envs.registry.all()]
 
     env, eval_env = None, None
     if env_name in ENV_LIST:
         if "ALE" in env_name:
             env = make_atari_env(
-                env_name, n_envs=1,
+                env_name, n_envs=n_env,
                 seed=seed, monitor_dir=save_path
             )
             env = VecFrameStack(env, n_stack=4) #TODO: set as a hyperparameter
@@ -79,7 +79,7 @@ def get_env(env_name, save_path, seed):
             eval_env = VecFrameStack(eval_env, n_stack=4)
         else:
             env = make_vec_env(
-                env_name, n_envs=1,
+                env_name, n_envs=n_env,
                 seed=seed, monitor_dir=save_path
             )
             eval_env = make_vec_env(
@@ -97,7 +97,7 @@ def get_env(env_name, save_path, seed):
             raise ValueError(f"Given environment name [{env_name}] does not exist.")
     return env, eval_env
 
-def get_model(algo_name, env, hp, seed):
+def get_model(algo_name, env, hp, action_noise, seed):
     ALGO_LIST = {
         "a2c": A2C, "ddpg": DDPG, "dqn": DQN,
         "ppo": PPO, "sac": SAC, "td3": TD3,
@@ -108,7 +108,10 @@ def get_model(algo_name, env, hp, seed):
         raise ValueError(f"Given algorithm name [{algo_name}] does not exist.")
 
     # Get model
-    model = ALGO_LIST[algo_name](env=env, seed=seed, verbose=0, **hp)
+    if action_noise is None:
+        model = ALGO_LIST[algo_name](env=env, seed=seed, verbose=0, **hp)
+    else:
+        model = ALGO_LIST[algo_name](env=env, seed=seed, action_noise=action_noise, verbose=0, **hp)
 
     return model
 

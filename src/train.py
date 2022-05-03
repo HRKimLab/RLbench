@@ -2,6 +2,10 @@ import os
 from datetime import datetime
 
 import torch
+from stable_baselines3.common.noise import (
+    NormalActionNoise,
+    VectorizedActionNoise
+)
 from stable_baselines3.common.logger import configure
 from stable_baselines3.common.callbacks import EvalCallback
 
@@ -27,8 +31,15 @@ def train_debug(args):
             save_path, already_run = set_data_path(args.algo, args.env, hp, seed)
 
         # Get env, model
-        env, eval_env = get_env(args.env, save_path, seed)
-        model = get_model(args.algo, env, hp, seed)
+        action_noise = None
+        if args.noise == "Normal":
+            assert model.action_space.__dict__.get('n') is None, \
+                "Cannot apply an action noise to the environment with a discrete action space."
+            action_noise = NormalActionNoise(args.noise_mean, args.noise_std)
+            if args.nenv != 1:
+                action_noise = VectorizedActionNoise(action_noise, args.nenv)
+        env, eval_env = get_env(args.env, args.nenv, save_path, seed)
+        model = get_model(args.algo, env, hp, action_noise, seed)
 
         # If given setting had already been run, save_path will be given as None
         if already_run:
@@ -59,8 +70,15 @@ def train(args):
 
         # Get env, model
         try:
-            env, eval_env = get_env(args.env, save_path, seed)
-            model = get_model(args.algo, env, hp, seed)
+            action_noise = None
+            if args.noise == "Normal":
+                assert model.action_space.__dict__.get('n') is None, \
+                    "Cannot apply an action noise to the environment with a discrete action space."
+                action_noise = NormalActionNoise(args.noise_mean, args.noise_std)
+                if args.nenv != 1:
+                    action_noise = VectorizedActionNoise(action_noise, args.nenv)
+            env, eval_env = get_env(args.env, args.nenv, save_path, seed)
+            model = get_model(args.algo, env, hp, action_noise, seed)
         except Exception as e:
             info_logger.info("Loading error [ENV: %s] | [ALGO: %s]", args.env, args.algo)
             error_logger.error("Loading error with [%s / %s] at %s", args.env, args.algo, datetime.now(), exc_info=e)
