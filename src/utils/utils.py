@@ -12,6 +12,7 @@ from torch.backends import cudnn
 from gym import envs
 from sb3_contrib import ARS, QRDQN, TQC, TRPO
 from stable_baselines3 import A2C, DDPG, DQN, PPO, SAC, TD3
+from stable_baselines3.common.vec_env import VecFrameStack
 from stable_baselines3.common.env_util import make_vec_env, make_atari_env
 
 def set_seed(seed):
@@ -70,10 +71,12 @@ def get_env(env_name, save_path, seed):
                 env_name, n_envs=1,
                 seed=seed, monitor_dir=save_path
             )
+            env = VecFrameStack(env, n_stack=4) #TODO: set as a hyperparameter
             eval_env = make_atari_env(
                 env_name, n_envs=1,
                 seed=np.random.randint(0, 1000), monitor_dir=None
             )
+            eval_env = VecFrameStack(eval_env, n_stack=4)
         else:
             env = make_vec_env(
                 env_name, n_envs=1,

@@ -32,8 +32,8 @@ def get_args():
     )
     parser.add_argument(
         '--x', type=str,
-        #choices=['episode'],
-        default='episode', help="x-axis variable"
+        choices=['timesteps', 'episode', 'walltime'],
+        default='timesteps', help="x-axis variable"
     )
     parser.add_argument(
         '--y', type=str,
@@ -54,7 +54,7 @@ def get_args_envs():
     parser = argparse.ArgumentParser(description="Visualize the training/evaluation process")
     parser.add_argument(
         '--env', '-E', type=str2list,
-        default = [],
+        default=[],
         help="Environment name"
     )
     parser.add_argument(
@@ -63,8 +63,8 @@ def get_args_envs():
     )
     parser.add_argument(
         '--x', type=str,
-        choices=['episode'],
-        default='episode', help="x-axis variable"
+        choices=['timesteps', 'episode', 'walltime'],
+        default='timesteps', help="x-axis variable"
     )
     parser.add_argument(
         '--y', type=str,
