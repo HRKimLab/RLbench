@@ -1,7 +1,7 @@
 # RLbench
 
 ## (Mandatory) Directory structure of data files
-### Overall structure
+### Overall structure 
 ```
 LunarLanderContinuous-v2/
 ├── a1
