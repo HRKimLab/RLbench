@@ -1,0 +1,66 @@
+{
+"ALE/Boxing-v5": {
+    "random": 0.1,
+    "linear": 44,
+    "sarsa": 9.8,
+    "human": 4.3,
+        "dqn": 71.8
+},
+"ALE/Qbert-v5": {
+    "random": 163.9,
+    "linear": 613.5,
+    "sarsa": 960.3,
+    "human": 13455, 
+    "dqn": 10596
+},
+ "ALE/Hero-v5":{
+    "random": 1027,
+    "linear": 6459,
+    "sarsa": 7295,
+    "human": 25763,
+    "dqn": 19950
+},
+"ALE/Breakout-v5": {
+    "random": 1.7,
+    "linear": 5.2,
+    "sarsa": 6.1,
+    "human": 31.8,
+    "dqn": 401.2
+},
+"ALE/Asterix-v5": {
+    "random": 210,
+    "linear": 987.3,
+    "sarsa": 1332,
+    "human": 8503,
+    "dqn": 6012
+},
+"ALE/IceHockey-v5": {
+    "random": -11.2,
+    "linear": -9.5,
+    "sarsa": -3.2,
+    "human": 0.9,
+    "dqn": -1.6
+},
+"ALE/StarGunner-v5": {
+    "random": 664,
+    "linear": 1070,
+    "sarsa": 9.4,
+   "human": 10250,
+    "dqn": 57997
+},
+"ALE/Robotank-v5":{
+    "random": 2.2,
+    "linear": 28.7,
+    "sarsa": 12.4,
+    "human": 11.9,
+    "dqn": 51.6
+},
+"ALE/Atlantis-v5":{
+    "random": 12850,
+    "linear": 62687,
+    "sarsa": 852.9,
+    "human": 29028,
+    "dqn": 85641
+}
+}
+
