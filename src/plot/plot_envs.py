@@ -6,79 +6,17 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 import numpy as np
+import json
 
 from options import MAPPER_Y, get_args_envs
 
-BASELINE = {
-    "ALE/Boxing-v5": {
-        "random": 0.1,
-        "linear": 44,
-        "sarsa": 9.8,
-        "human": 4.3,
-        "dqn": 71.8
-    },
-    "ALE/Qbert-v5": {
-        "random": 163.9,
-        "linear": 613.5,
-        "sarsa": 960.3,
-        "human": 13455,
-        "dqn": 10596
-    },
-    "ALE/Hero-v5":{
-        "random": 1027,
-        "linear": 6459,
-        "sarsa": 7295,
-        "human": 25763,
-        "dqn": 19950
-    },
-    "ALE/Breakout-v5": {
-        "random": 1.7,
-        "linear": 5.2,
-        "sarsa": 6.1,
-        "human": 31.8,
-        "dqn": 401.2
-    },
-    "ALE/Asterix-v5": {
-        "random": 210,
-        "linear": 987.3,
-        "sarsa": 1332,
-        "human": 8503,
-        "dqn": 6012
-    },
-    "ALE/IceHockey-v5": {
-        "random": -11.2,
-        "linear": -9.5,
-        "sarsa": -3.2,
-        "human": 0.9,
-        "dqn": -1.6
-    },
-    "ALE/StarGunner-v5": {
-        "random": 664,
-        "linear": 1070,
-        "sarsa": 9.4,
-        "human": 10250,
-        "dqn": 57997
-    },
-    "ALE/Robotank-v5":{
-        "random": 2.2,
-        "linear": 28.7,
-        "sarsa": 12.4,
-        "human": 11.9,
-        "dqn": 51.6
-    },
-    "ALE/Atlantis-v5":{
-        "random": 12850,
-        "linear": 62687,
-        "sarsa": 852.9,
-        "human": 29028,
-        "dqn": 85641
-    }
-
-}
 def plot_envs(args):
     """ Plot the data of different environments on y-axis
     args: user arguments
     """
+    with open('plot/BASELINE.json') as json_file:
+        json_data = json.load(json_file)
+
     
     date_today = date.today().isoformat()
     
@@ -113,8 +51,8 @@ def plot_envs(args):
         mean = mean_df.iloc[:,y_idx].mean()
         std = mean_df.iloc[:,y_idx].std()
         
-        normalized_score = 100*(mean - BASELINE[env]['random'])/(BASELINE[env]['human'] - BASELINE[env]['random'])
-        p_normalized_score = 100*(BASELINE[env]['dqn'] - BASELINE[env]['random'])/(BASELINE[env]['human'] - BASELINE[env]['random'])
+        normalized_score = 100*(mean - json_data[env]['random'])/(json_data[env]['human'] - json_data[env]['random'])
+        p_normalized_score = 100*(json_data[env]['dqn'] - json_data[env]['random'])/(json_data[env]['human'] - json_data[env]['random'])
         list_normalized_score.append(normalized_score)
         list_p_normalized_score.append(p_normalized_score)
 
