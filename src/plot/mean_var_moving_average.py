@@ -17,6 +17,7 @@ def plot_mean_var(args):
     date_today = date.today().isoformat()
     prop_cycle = plt.rcParams['axes.prop_cycle']
     colors = prop_cycle.by_key()['color']
+    window_size = 100
 
     get_path = args.data_path
     if get_path is None:
@@ -38,6 +39,7 @@ def plot_mean_var(args):
         for file in file_paths:
             if agent in file:
                 df = pd.read_csv(file, skiprows=1)
+                df['r'] = df.r.rolling(100).mean()
                 bundle.append(df)
                 x_var, y_var = ts2xy(df, x_name)
 
@@ -52,8 +54,16 @@ def plot_mean_var(args):
         y_val = np.vstack(y_val)
         y_val_mean = y_val.mean(axis=0)
         y_val_std = np.std(y_val,axis=0)
-
-        plt.plot(x_val,y_val_mean, label=str(agent)+'-mean', color=color)
+         
+        #moving_averages = []
+        #i = 0
+        #while i < len(y_val_mean) - window_size + 1:
+            #window = y_val_mean[i : i + window_size]
+            #window_average = round(sum(window) / window_size, 2)
+            #moving_averages.append(window_average)
+            #i += 1
+   
+        plt.plot(x_val, y_val_mean, label=str(agent)+'-mean', color=color)
         plt.fill_between(x_val, (y_val_mean-y_val_std), (y_val_mean+y_val_std), alpha = 0.5)
 
     plt.xlabel(args.x)
