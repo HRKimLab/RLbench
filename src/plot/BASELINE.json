@@ -1,66 +1,345 @@
 {
-"ALE/Boxing-v5": {
-    "random": 0.1,
-    "linear": 44,
-    "sarsa": 9.8,
-    "human": 4.3,
+    "ALE/Alien-v5": {
+        "random": 227.8,
+        "linear": 939.2,
+        "sarsa": 103.2,
+        "human": 6875,
+        "dqn": 3069
+    },
+    "ALE/Amidar-v5": {
+        "random": 5.8,
+        "linear": 103.4,
+        "sarsa": 183.6,
+        "human": 1676,
+        "dqn": 739.5
+    },
+    "ALE/Assault-v5": {
+        "random": 222.4,
+        "linear": 628,
+        "sarsa": 537,
+        "human": 1496,
+        "dqn": 3359
+    },
+    "ALE/Asterix-v5": {
+        "random": 210,
+        "linear": 987.3,
+        "sarsa": 1332,
+        "human": 8503,
+        "dqn": 6012
+    },
+    "ALE/Asteroids-v5": {
+        "random": 719.1,
+        "linear": 907.3,
+        "sarsa": 89,
+        "human": 13157,
+        "dqn": 1629
+    },
+    "ALE/Atlantis-v5": {
+        "random": 12850,
+        "linear": 62687,
+        "sarsa": 852.9,
+        "human": 29028,
+        "dqn": 85641
+    },
+    "ALE/BankHeist-v5": {
+        "random": 14.2,
+        "linear": 190.8,
+        "sarsa": 67.4,
+        "human": 734.4,
+        "dqn": 429.7
+    },
+    "ALE/BattleZone-v5": {
+        "random": 2360,
+        "linear": 15820,
+        "sarsa": 16.2,
+        "human": 37800,
+        "dqn": 26300
+    },
+    "ALE/BeamRider-v5": {
+        "random": 363.9,
+        "linear": 929.4,
+        "sarsa": 1743,
+        "human": 5775,
+        "dqn": 6846
+    },
+    "ALE/Bowling-v5": {
+        "random": 23.1,
+        "linear": 43.9,
+        "sarsa": 36.4,
+        "human": 154.8,
+        "dqn": 42.4
+    },
+    "ALE/Boxing-v5": {
+        "random": 0.1,
+        "linear": 44,
+        "sarsa": 9.8,
+        "human": 4.3,
         "dqn": 71.8
-},
-"ALE/Qbert-v5": {
-    "random": 163.9,
-    "linear": 613.5,
-    "sarsa": 960.3,
-    "human": 13455, 
-    "dqn": 10596
-},
- "ALE/Hero-v5":{
-    "random": 1027,
-    "linear": 6459,
-    "sarsa": 7295,
-    "human": 25763,
-    "dqn": 19950
-},
-"ALE/Breakout-v5": {
-    "random": 1.7,
-    "linear": 5.2,
-    "sarsa": 6.1,
-    "human": 31.8,
-    "dqn": 401.2
-},
-"ALE/Asterix-v5": {
-    "random": 210,
-    "linear": 987.3,
-    "sarsa": 1332,
-    "human": 8503,
-    "dqn": 6012
-},
-"ALE/IceHockey-v5": {
-    "random": -11.2,
-    "linear": -9.5,
-    "sarsa": -3.2,
-    "human": 0.9,
-    "dqn": -1.6
-},
-"ALE/StarGunner-v5": {
-    "random": 664,
-    "linear": 1070,
-    "sarsa": 9.4,
-   "human": 10250,
-    "dqn": 57997
-},
-"ALE/Robotank-v5":{
-    "random": 2.2,
-    "linear": 28.7,
-    "sarsa": 12.4,
-    "human": 11.9,
-    "dqn": 51.6
-},
-"ALE/Atlantis-v5":{
-    "random": 12850,
-    "linear": 62687,
-    "sarsa": 852.9,
-    "human": 29028,
-    "dqn": 85641
+    },
+    "ALE/Breakout-v5": {
+        "random": 1.7,
+        "linear": 5.2,
+        "sarsa": 6.1,
+        "human": 31.8,
+        "dqn": 401.2
+    },
+    "ALE/Centipede-v5": {
+        "random": 2091,
+        "linear": 8803,
+        "sarsa": 4647,
+        "human": 11963,
+        "dqn": 309
+    },
+    "ALE/ChopperCommand-v5": {
+        "random": 811,
+        "linear": 1582,
+        "sarsa": 16.9,
+        "human": 9882,
+        "dqn": 6687
+    },
+    "ALE/CrazyClimber-v5": {
+        "random": 10781,
+        "linear": 23411,
+        "sarsa": 149.8,
+        "human": 35411,
+        "dqn": 114103
+    },
+    "ALE/DemonAttack-v5": {
+        "random": 152.1,
+        "linear": 520.5,
+        "sarsa": 0,
+        "human": 3401,
+        "dqn": 9711
+    },
+    "ALE/DoubleDunk-v5": {
+        "random": -18.6,
+        "linear": -13.1,
+        "sarsa": -16,
+        "human": -15.5,
+        "dqn": -18.1
+    },
+    "ALE/Enduro-v5": {
+        "random": 0,
+        "linear": 129.1,
+        "sarsa": 159.4,
+        "human": 309.6,
+        "dqn": 301.8
+    },
+    "ALE/FishingDerby-v5": {
+        "random": -91.7,
+        "linear": -89.5,
+        "sarsa": -85.1,
+        "human": 5.5,
+        "dqn": -0.8
+    },
+    "ALE/Freeway-v5": {
+        "random": 0,
+        "linear": 19.1,
+        "sarsa": 19.7,
+        "human": 29.6,
+        "dqn": 30.3
+    },
+    "ALE/Frostbite-v5": {
+        "random": 65.2,
+        "linear": 216.9,
+        "sarsa": 180.9,
+        "human": 4335,
+        "dqn": 328.3
+    },
+    "ALE/Gopher-v5": {
+        "random": 257.6,
+        "linear": 1288,
+        "sarsa": 2368,
+        "human": 2321,
+        "dqn": 8520
+    },
+    "ALE/Gravitar-v5": {
+        "random": 173,
+        "linear": 387.7,
+        "sarsa": 429,
+        "human": 2672,
+        "dqn": 306.7
+    },
+    "ALE/Hero-v5": {
+        "random": 1027,
+        "linear": 6459,
+        "sarsa": 7295,
+        "human": 25763,
+        "dqn": 19950
+    },
+    "ALE/IceHockey-v5": {
+        "random": -11.2,
+        "linear": -9.5,
+        "sarsa": -3.2,
+        "human": 0.9,
+        "dqn": -1.6
+    },
+    "ALE/JamesBond-v5": {
+        "random": 29,
+        "linear": 202.8,
+        "sarsa": 354.1,
+        "human": 406.7,
+        "dqn": 576.7
+    },
+    "ALE/Kangaroo-v5": {
+        "random": 52,
+        "linear": 1622,
+        "sarsa": 8.8,
+        "human": 3035,
+        "dqn": 6740
+    },
+    "ALE/Krull-v5": {
+        "random": 1598,
+        "linear": 3372,
+        "sarsa": 3341,
+        "human": 2395,
+        "dqn": 3805
+    },
+    "ALE/KungFuMaster-v5": {
+        "random": 258.5,
+        "linear": 19544,
+        "sarsa": 29151,
+        "human": 22736,
+        "dqn": 23270
+    },
+    "ALE/MontezumasRevenge-v5": {
+        "random": 0,
+        "linear": 10.7,
+        "sarsa": 259,
+        "human": 4367,
+        "dqn": 0
+    },
+    "ALE/MsPacman-v5": {
+        "random": 307.3,
+        "linear": 1692,
+        "sarsa": 1227,
+        "human": 15693,
+        "dqn": 2311
+    },
+    "ALE/NameThisGame-v5": {
+        "random": 2292,
+        "linear": 2500,
+        "sarsa": 2247,
+        "human": 4076,
+        "dqn": 7257
+    },
+    "ALE/Pong-v5": {
+        "random": -20.7,
+        "linear": -19,
+        "sarsa": -17.4,
+        "human": 9.3,
+        "dqn": 18.9
+    },
+    "ALE/PrivateEye-v5": {
+        "random": 24.9,
+        "linear": 684.3,
+        "sarsa": 86,
+        "human": 69571,
+        "dqn": 1788
+    },
+    "ALE/Qbert-v5": {
+        "random": 163.9,
+        "linear": 613.5,
+        "sarsa": 960.3,
+        "human": 13455,
+        "dqn": 10596
+    },
+    "ALE/RiverRaid-v5": {
+        "random": 1339,
+        "linear": 1904,
+        "sarsa": 2650,
+        "human": 13513,
+        "dqn": 8316
+    },
+    "ALE/RoadRunner-v5": {
+        "random": 11.5,
+        "linear": 67.7,
+        "sarsa": 89.1,
+        "human": 7845,
+        "dqn": 18257
+    },
+    "ALE/Robotank-v5": {
+        "random": 2.2,
+        "linear": 28.7,
+        "sarsa": 12.4,
+        "human": 11.9,
+        "dqn": 51.6
+    },
+    "ALE/Seaquest-v5": {
+        "random": 68.4,
+        "linear": 664.8,
+        "sarsa": 675.5,
+        "human": 20182,
+        "dqn": 5286
+    },
+    "ALE/SpaceInvaders-v5": {
+        "random": 148,
+        "linear": 250.1,
+        "sarsa": 267.9,
+        "human": 1652,
+        "dqn": 1976
+    },
+    "ALE/StarGunner-v5": {
+        "random": 664,
+        "linear": 1070,
+        "sarsa": 9.4,
+        "human": 10250,
+        "dqn": 57997
+    },
+    "ALE/Tennis-v5": {
+        "random": -23.8,
+        "linear": -0.1,
+        "sarsa": 0,
+        "human": -8.9,
+        "dqn": -2.5
+    },
+    "ALE/TimePilot-v5": {
+        "random": 3568,
+        "linear": 3741,
+        "sarsa": 24.9,
+        "human": 5925,
+        "dqn": 5947
+    },
+    "ALE/Tutankham-v5": {
+        "random": 11.4,
+        "linear": 114.3,
+        "sarsa": 98.2,
+        "human": 167.6,
+        "dqn": 186.7
+    },
+    "ALE/UpandDown-v5": {
+        "random": 533.4,
+        "linear": 3533,
+        "sarsa": 2449,
+        "human": 9082,
+        "dqn": 8456
+    },
+    "ALE/Venture-v5": {
+        "random": 0,
+        "linear": 66,
+        "sarsa": 0.6,
+        "human": 1188,
+        "dqn": 3800
+    },
+    "ALE/VideoPinball-v5": {
+        "random": 16257,
+        "linear": 16871,
+        "sarsa": 19761,
+        "human": 17298,
+        "dqn": 42684
+    },
+    "ALE/WizardofWor-v5": {
+        "random": 563.5,
+        "linear": 1981,
+        "sarsa": 36.9,
+        "human": 4757,
+        "dqn": 3393
+    },
+    "ALE/Zaxxon-v5": {
+        "random": 32.5,
+        "linear": 3365,
+        "sarsa": 21.4,
+        "human": 9173,
+        "dqn": 4977
+    }
 }
-}
-
