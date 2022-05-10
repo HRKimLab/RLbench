@@ -1,5 +1,6 @@
 import os
 from datetime import datetime
+from pathlib import Path
 
 import torch
 from stable_baselines3.common.noise import (
@@ -12,9 +13,10 @@ from stable_baselines3.common.callbacks import EvalCallback
 from options import get_args
 from utils import (
     set_seed, configure_cudnn, load_json, get_logger,
-    get_env, get_model, set_data_path
+    get_env, get_model, set_data_path, clean_data_path, FLAG_FILE_NAME
 )
 from utils.sb3_callbacks import TqdmCallback
+
 
 def train_debug(args):
     """ Train with multiple random seeds """
@@ -45,6 +47,8 @@ def train_debug(args):
         if already_run:
             print(f"[{i + 1}/{args.nseed}] Already exists: '{save_path}', skip to run")
         else: # Train with single seed
+            Path(os.path.join(save_path, FLAG_FILE_NAME)).touch()
+
             print(f"[{i + 1}/{args.nseed}] Ready to train {i + 1}th agent - RANDOM SEED: {seed}")
             _train(
                 model, args.nstep,
@@ -80,6 +84,7 @@ def train(args):
             env, eval_env = get_env(args.env, args.nenv, save_path, seed)
             model = get_model(args.algo, env, hp, action_noise, seed)
         except Exception as e:
+            clean_data_path(save_path)
             info_logger.info("Loading error [ENV: %s] | [ALGO: %s]", args.env, args.algo)
             error_logger.error("Loading error with [%s / %s] at %s", args.env, args.algo, datetime.now(), exc_info=e)
             exit()
@@ -89,6 +94,8 @@ def train(args):
             print(f"[{i + 1}/{args.nseed}] Already exists: '{save_path}', skip to run")
         else: # Train with single seed
             try:
+                Path(os.path.join(save_path, FLAG_FILE_NAME)).touch()
+
                 print(f"[{i + 1}/{args.nseed}] Ready to train {i + 1}th agent - RANDOM SEED: {seed}")
                 _train(
                     model, args.nstep,
@@ -96,6 +103,7 @@ def train(args):
                 )
                 del env, model
             except Exception as e:
+                clean_data_path(save_path)
                 info_logger.info("Train error [ENV: %s] | [ALGO: %s]", args.env, args.algo)
                 error_logger.error("Train error with [%s / %s] at %s", args.env, args.algo, datetime.now(), exc_info=e)
 
@@ -126,6 +134,7 @@ def _train(
         callback=[eval_callback, tqdm_callback],
         eval_log_path=save_path
     )
+    os.remove(os.path.join(save_path, FLAG_FILE_NAME))
     model.save(os.path.join(save_path, "info.zip"))
 
 def render(env, model, nstep):

@@ -1,5 +1,6 @@
 import os
 import os.path as p
+import shutil
 import json
 import random
 import logging
@@ -200,3 +201,19 @@ def set_data_path(algo_name, env_name, hp, seed):
         os.mkdir(data_path)
 
     return data_path, already_run
+
+def clean_data_path(target_path):
+    #TODO
+    # a1s1r1-0에 FLAG 있는지부터 확인 (있겠지만 사전체크)
+    #   있으면 a1s1r1-0 폴더 전체 삭제, 없으면 예외처리
+    # a1s1에 a1s1r1-* 가 있는지 확인
+    #   있으면 return
+    #   없으면 아래 과정
+    #       a1s1을 삭제
+    #       a1에 a1s*이 있는지 확인
+    #           있으면 return
+    #           없으면 아래 과정
+    #               a1을 삭제
+    # ENV까지 삭제하지는 않음.
+
+    pass
