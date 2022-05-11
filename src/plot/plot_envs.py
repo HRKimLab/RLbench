@@ -23,9 +23,19 @@ def plot_envs(args):
     env_list = args.env
     file_paths = []
 
+
     get_path = args.data_path
     if get_path is None:
         get_path = os.path.abspath(os.path.join(os.getcwd(), os.pardir, 'data'))
+    
+    env_list_1 = []
+    if env_list == ['ALE']:
+        for (root_dir, _, files) in os.walk(os.path.join(get_path, 'ALE')):
+            for file in files:
+                if "monitor.csv" in file:
+                    file_path = os.path.join(root_dir, file)
+                    env_list_1.append(file_path.split('/')[-6]+'/'+file_path.split('/')[-5])
+                    env_list = list(set(env_list_1))
 
     for env in env_list:
         for (root_dir, _, files) in os.walk(os.path.join(get_path, env)):
@@ -37,6 +47,7 @@ def plot_envs(args):
     y_idx, y_name = MAPPER_Y[args.y]
     list_normalized_score = []
     list_p_normalized_score = []
+    
     for env in env_list:
         bundle = []
         for file in file_paths:

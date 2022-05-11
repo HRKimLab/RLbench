@@ -6,79 +6,18 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 import numpy as np
+import json
 
 from options import MAPPER_Y, get_args_envs
 
-BASELINE = {
-    "ALE/Boxing-v5": {
-        "random": 0.1,
-        "linear": 44,
-        "sarsa": 9.8,
-        "human": 4.3,
-        "dqn_paper": 71.8
-    },
-    "ALE/Qbert-v5": {
-        "random": 163.9,
-        "linear": 613.5,
-        "sarsa": 960.3,
-        "human": 13455,
-        "dqn_paper": 10596
-    },
-    "ALE/Hero-v5":{
-        "random": 1027,
-        "linear": 6459,
-        "sarsa": 7295,
-        "human": 25763,
-        "dqn_paper": 19950
-    },
-    "ALE/Breakout-v5": {
-        "random": 1.7,
-        "linear": 5.2,
-        "sarsa": 6.1,
-        "human": 31.8,
-        "dqn_paper": 401.2
-    },
-    "ALE/Asterix-v5": {
-        "random": 210,
-        "linear": 987.3,
-        "sarsa": 1332,
-        "human": 8503,
-        "dqn_paper": 6012
-    },
-    "ALE/IceHockey-v5": {
-        "random": -11.2,
-        "linear": -9.5,
-        "sarsa": -3.2,
-        "human": 0.9,
-        "dqn_paper": -1.6
-    },
-    "ALE/StarGunner-v5": {
-        "random": 664,
-        "linear": 1070,
-        "sarsa": 9.4,
-        "human": 10250,
-        "dqn_paper": 57997
-    },
-    "ALE/Robotank-v5":{
-        "random": 2.2,
-        "linear": 28.7,
-        "sarsa": 12.4,
-        "human": 11.9,
-        "dqn_paper": 51.6
-    },
-    "ALE/Atlantis-v5":{
-        "random": 12850,
-        "linear": 62687,
-        "sarsa": 852.9,
-        "human": 29028,
-        "dqn_paper": 85641
-    }
 
-}
 def plot_envs(args):
     """ Plot the data of different environments on y-axis
     args: user arguments
     """
+    with open('plot/BASELINE.json') as json_file:
+        json_data = json.load(json_file)
+
     
     date_today = date.today().isoformat()
     
@@ -89,6 +28,15 @@ def plot_envs(args):
     if get_path is None:
         get_path = os.path.abspath(os.path.join(os.getcwd(), os.pardir, 'data'))
 
+    env_list_1 = []
+    if env_list == ['ALE']:
+        for (root_dir, _, files) in os.walk(os.path.join(get_path, 'ALE')):
+            for file in files:
+                if "monitor.csv" in file:
+                    file_path = os.path.join(root_dir, file)
+                    env_list_1.append(file_path.split('/')[-6]+'/'+file_path.split('/')[-5])
+                    env_list = list(set(env_list_1))
+
     for env in env_list:
         for (root_dir, _, files) in os.walk(os.path.join(get_path, env)):
             for file in files:
@@ -96,6 +44,7 @@ def plot_envs(args):
                     file_path = os.path.join(root_dir, file)
                     file_paths.append(file_path)
     
+    print(env_list)
     y_idx, y_name = MAPPER_Y[args.y]
     list_normalized_score = []
     for env in env_list:
@@ -112,7 +61,7 @@ def plot_envs(args):
         mean = mean_df.iloc[:,y_idx].mean()
         std = mean_df.iloc[:,y_idx].std()
         
-        normalized_score = 100*(mean - BASELINE[env]['random'])/(BASELINE[env][args.normalize] - BASELINE[env]['random'])
+        normalized_score = 100*(mean - json_data[env]['random'])/(json_data[env][args.normalize] - json_data[env]['random'])
         list_normalized_score.append(normalized_score)
 
     normalized_df = pd.DataFrame(zip(env_list, list_normalized_score), columns = ['env','dqn'])
