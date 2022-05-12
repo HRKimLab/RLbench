@@ -23,8 +23,7 @@ def plot_mean_combined(args):
         arr.mask = True
         for idx, l in enumerate(arrs):
             arr[:len(l),idx] = l
-        return arr.mean(axis = -1), arr.std(axis=-1)
-
+        return arr.mean(axis=-1), arr.std(axis=-1)
 
     data_path = args.data_path
     if data_path is None:
@@ -42,17 +41,20 @@ def plot_mean_combined(args):
     _, x_name = MAPPER_X[args.x]
     _, y_name = MAPPER_Y[args.y]
     y_var_list = []
+    window_size = args.window_size
     
     for color, agent in zip(colors, agent_list):
         bundle = []
         for file in file_paths:
             if agent in file:
                 df = pd.read_csv(file, skiprows=1)
+                df['r'] = df.r.rolling(window_size).mean()
                 bundle.append(df)
                 x_var, y_var = ts2xy(df, x_name)
                 y_var_list.append(y_var)
                 y_var_mean, y_var_std = tolerant_mean(y_var_list)
                 x=np.arange(len(y_var_mean))
+                
                 if args.mean == 'line':
                     plt.plot(
                     x_var, y_var,

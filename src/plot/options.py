@@ -49,6 +49,10 @@ def get_args():
         choices = ['var','line'],
         default = 'var'
     )
+    parser.add_argument(
+        '--window_size', type=int,
+        default = 1
+    )
 
     args = parser.parse_args()
 
