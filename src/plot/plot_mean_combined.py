@@ -8,7 +8,7 @@ from stable_baselines3.common.results_plotter import ts2xy
 
 from options import MAPPER_X, MAPPER_Y, get_args
 
-def plot_mean_2(args):
+def plot_mean_combined(args):
     """ Plot the mean of the data and show standard deviation on y-axis
     args: user arguments
     """
@@ -23,7 +23,8 @@ def plot_mean_2(args):
         arr.mask = True
         for idx, l in enumerate(arrs):
             arr[:len(l),idx] = l
-        return arr.mean(axis = -1)
+        return arr.mean(axis = -1), arr.std(axis=-1)
+
 
     data_path = args.data_path
     if data_path is None:
@@ -50,12 +51,15 @@ def plot_mean_2(args):
                 bundle.append(df)
                 x_var, y_var = ts2xy(df, x_name)
                 y_var_list.append(y_var)
-                plt.plot(
+                y_var_mean, y_var_std = tolerant_mean(y_var_list)
+                x=np.arange(len(y_var_mean))
+                if args.mean == 'line':
+                    plt.plot(
                     x_var, y_var,
                     label=file.split('/')[-2],
                     color=None if len(agent_list) == 1 else color,
                     alpha=0.2
-                )
+                    )
 
         if args.x == 'timesteps':
             # Interpolation -
@@ -68,13 +72,23 @@ def plot_mean_2(args):
             for r, l in zip(bundle, l_list):
                 y_val.append(np.interp(x_val, l, r.r))
             y_val = np.vstack(y_val)
-            y_val = y_val.mean(axis=0)
+            y_val_mean = y_val.mean(axis=0)
+            y_val_std = np.std(y_val,axis=0)
+            
+            if args.mean == 'var':
+                plt.plot(x_val,y_val_mean, label=str(agent)+'-mean', color=color)
+                plt.fill_between(x_val, (y_val_mean-y_val_std), (y_val_mean+y_val_std), alpha = 0.5)
 
-            plt.plot(x_val,y_val, label=str(agent)+'-mean', color=color)
+            if args.mean == 'line':
+                plt.plot(x_val,y_val_mean, label=str(agent)+'-mean', color=color)
         
         else:
-            y_var_mean = tolerant_mean(y_var_list)
-            plt.plot(y_var_mean, label=str(agent)+'-mean', color=color)
+            if args.mean == 'var':
+                plt.plot(x,y_var_mean,label=str(agent)+'-mean')                    
+                plt.fill_between(x,(y_var_mean - y_var_std),(y_var_mean + y_var_std),alpha = 0.5)
+               
+            if args.mean == 'line':
+                plt.plot(y_var_mean, label=str(agent)+'-mean', color=color)
                 
     plt.xlabel(args.x)
     plt.ylabel(y_name)
@@ -89,4 +103,4 @@ if __name__ == "__main__":
     args = get_args()
     print(args)
 
-    plot_mean_2(args)
+    plot_mean_combined(args)

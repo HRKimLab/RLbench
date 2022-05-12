@@ -32,7 +32,7 @@ def get_args():
     )
     parser.add_argument(
         '--x', type=str,
-        choices=['timesteps', 'episode', 'walltime'],
+        choices=['timesteps','episode','walltime'],
         default='timesteps', help="x-axis variable"
     )
     parser.add_argument(
@@ -44,7 +44,11 @@ def get_args():
         '--data-path', '-S', type=str,
         help="Path of data"
     ) #TODO: Suppose that all of data has been saved on 'data/' path (if data_path is None)
-
+    parser.add_argument(
+        '--mean', type=str,
+        choices = ['var','line'],
+        default = 'var'
+    )
 
     args = parser.parse_args()
 
@@ -54,7 +58,7 @@ def get_args_envs():
     parser = argparse.ArgumentParser(description="Visualize the training/evaluation process")
     parser.add_argument(
         '--env', '-E', type=str2list,
-        default=[],
+        default = [],
         help="Environment name"
     )
     parser.add_argument(
@@ -63,8 +67,8 @@ def get_args_envs():
     )
     parser.add_argument(
         '--x', type=str,
-        choices=['timesteps', 'episode', 'walltime'],
-        default='timesteps', help="x-axis variable"
+        choices=['episode'],
+        default='episode', help="x-axis variable"
     )
     parser.add_argument(
         '--y', type=str,
