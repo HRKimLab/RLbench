@@ -1,5 +1,7 @@
 # RLbench
 
+A simple reinforcement learning benchmark framework (under development)
+
 ## (Mandatory) Directory structure of data files
 ### Overall structure 
 ```
