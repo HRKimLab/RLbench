@@ -1,0 +1,12 @@
+{
+    "policy": "MlpPolicy",
+    "gamma": 0.99,
+    "timesteps_per_batch": 1024,
+    "max_kl": 0.01,
+    "cg_iters": 10,
+    "lam": 0.98,
+    "entcoeff": 0.0,
+    "cg_damping": 0.01,
+    "vf_stepsize": 0.0003,
+    "vf_iters": 3
+}

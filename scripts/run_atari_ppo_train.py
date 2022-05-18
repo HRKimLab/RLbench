@@ -2,7 +2,7 @@ import subprocess
 
 from gym import envs
 
-ALGO = "dqn"
+ALGO = "ppo"
 ENVS = [
     "ALE/VideoPinball-v5", "ALE/Boxing-v5", "ALE/Breakout-v5", "ALE/StarGunner-v5", 
     "ALE/Robotank-v5", "ALE/Atlantis-v5", "ALE/CrazyClimber-v5", "ALE/Gopher-v5",
@@ -22,7 +22,7 @@ ENVS = [
 N_SEEDS = 3
 N_TIMESTEPS = int(1e7)
 EVAL_FREQ = 100000
-N_EVAL_EPISODES = 5
+N_EVAL_EPISODES = 10
 
 for env_id in ENVS:
     args = [
