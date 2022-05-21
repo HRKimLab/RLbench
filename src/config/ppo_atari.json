@@ -1,5 +1,5 @@
 {
-    "policy": "MlpPolicy",
+    "policy": "CnnPolicy",
     "learning_rate": 2.5e-4,
     "n_steps": 128,
     "batch_size": 128,

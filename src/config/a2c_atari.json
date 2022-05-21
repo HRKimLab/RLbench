@@ -1,5 +1,5 @@
 {
-    "policy": "MlpPolicy",
+    "policy": "CnnPolicy",
     "learning_rate": 0.0007,
     "n_steps": 5,
     "gamma": 0.99,
