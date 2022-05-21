@@ -20,9 +20,9 @@ ENVS = [
 ]
 
 N_SEEDS = 3
-N_TIMESTEPS = int(3e6)
-EVAL_FREQ = 100000
-N_EVAL_EPISODES = 10
+N_TIMESTEPS = int(1e6)
+EVAL_FREQ = 200000
+N_EVAL_EPISODES = 3
 
 for env_id in ENVS:
     args = [
