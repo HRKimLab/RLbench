@@ -33,6 +33,8 @@ def plot_eval(args):
     if args.overwrite=='y':
         if y_name == 'reward':
             overwrite = 'y'
+        else:
+            overwrite = 'n'
     else:
         overwrite = 'n'
         fig2, ax2 = plt.subplots(figsize=(10,6), facecolor=(.94, .94, .94))
