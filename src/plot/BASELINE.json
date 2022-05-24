@@ -174,7 +174,7 @@
         "human": 0.9,
         "dqn": -1.6
     },
-    "ALE/JamesBond-v5": {
+    "ALE/Jamesbond-v5": {
         "random": 29,
         "linear": 202.8,
         "sarsa": 354.1,
