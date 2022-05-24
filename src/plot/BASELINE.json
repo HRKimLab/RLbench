@@ -307,7 +307,7 @@
         "human": 167.6,
         "dqn": 186.7
     },
-    "ALE/UpandDown-v5": {
+    "ALE/UpNDown-v5": {
         "random": 533.4,
         "linear": 3533,
         "sarsa": 2449,
