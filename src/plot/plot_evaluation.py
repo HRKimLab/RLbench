@@ -1,13 +1,16 @@
+# plot evaluation (HyeIn)
 import os
 from datetime import date
 
+import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
 from options import MAPPER_Y, get_args
+#get_args 에 overwrite 추가했음
 
-def plot_numeric(args):
-    """ Plot the numeric data on y-axis
+def plot_eval(args):
+    """ Plot the evaluation rewards on y-axis
     args: user arguments
     """
 
@@ -21,21 +24,37 @@ def plot_numeric(args):
 
     for (root_dir, _, files) in os.walk(os.path.join(get_path, args.env)):
         for file in files:
-            if "0.monitor.csv" in file:
+            if "evaluations.npz" in file:
                 file_path = os.path.join(root_dir, file)
                 file_paths.append(file_path)
 
     agent_list = args.agents
     y_idx, y_name = MAPPER_Y[args.y]
+    if args.overwrite=='y':
+        if y_name == 'reward':
+            overwrite = 'y'
+    else:
+        overwrite = 'n'
+        fig2, ax2 = plt.subplots(figsize=(10,6), facecolor=(.94, .94, .94))
     for file_path in file_paths:
         for agent in agent_list:
             if agent in file_path:
-                df = pd.read_csv(file_path,skiprows=1)
-                plt.plot(df.iloc[:, y_idx], label= file_path.split(os.sep)[-2])
+                eval_data = np.load(file_path)
+                results = eval_data['results']
+                results_mean = [sum(results[x])/len(results[x]) for x in range(len(results))]
+                if overwrite == 'y':
+                    plt.plot(eval_data['timesteps'], results_mean, label= file_path.split(os.sep)[-2])
+                else:
+                    plt.plot(eval_data['timesteps'], results_mean, label= file_path.split(os.sep)[-2])
+                    
+
 
     plt.xlabel(args.x)
-    plt.ylabel(y_name)
-    plt.title(f"{args.env} [{args.x}-{y_name}] {date_today}")
+    plt.ylabel('reward')
+    if overwrite == 'y':
+        plt.title(f"{args.env} [{args.x}-reward] train & evaluation data {date_today}")
+    else:
+        plt.title(f"{args.env} [{args.x}-reward] evaluation data {date_today}")
 
     # Sort legends by name
     handles, labels = plt.gca().get_legend_handles_labels()
