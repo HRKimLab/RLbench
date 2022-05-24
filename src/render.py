@@ -20,7 +20,8 @@ def get_atari_env(env_name, n_stack=4):
 
 def take_snap(env, ax, name, step=0):
     ax.imshow(env.render(mode='rgb_array'))
-    ax.set_title(f"{name} | Step: {step}")
+    ax.text(0.0, 1.01, f"{name} | Step: {step}", transform=ax.transAxes)
+    # ax.set_title(f"{name} | Step: {step}")
     ax.axis('off')
 
 def snap_finish(ax):
@@ -61,7 +62,7 @@ def render(env_name, models, names, nstep):
             break
 
     animation = camera.animate()
-    animation.save('animation.mp4', fps=10)
+    animation.save("animation.mp4", fps=10)
 
 if __name__ == "__main__":
     atlantis_agents = [
