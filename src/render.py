@@ -24,7 +24,8 @@ def take_snap(env, ax, name, step=0):
     # ax.set_title(f"{name} | Step: {step}")
     ax.axis('off')
 
-def snap_finish(ax):
+def snap_finish(ax, name, step):
+    ax.text(0.0, 1.01, f"{name} | Step: {step}", transform=ax.transAxes)
     ax.text(
         .5, .5, 'GAME OVER', 
         horizontalalignment='center',
@@ -44,6 +45,7 @@ def render(env_name, models, names, nstep):
     envs = [get_atari_env(env_name) for _ in range(len(models))]
     obs = [env.reset() for env in envs]
     done = [False] * fig_num
+    final_steps = [0] * 3
 
     delay = 0
     for step in range(nstep):
@@ -52,8 +54,10 @@ def render(env_name, models, names, nstep):
                 action, _ = model.predict(obs[i], deterministic=True)
                 obs[i], _, done[i], info = env.step(action)
                 take_snap(env, ax, name, step)
+                if done:
+                    final_steps[i] = step
             else:
-                snap_finish(ax)
+                snap_finish(ax, name, final_steps[i])
         if all(done):
             delay += 1
 
