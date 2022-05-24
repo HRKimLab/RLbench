@@ -1,13 +1,16 @@
-import time
-import copy
+""" Multi-screen rendering & saving for comparing multiple agents """
+
+import os
+import os.path as p
+from celluloid import Camera
 
 import gym
-import torch
 import matplotlib.pyplot as plt
 from stable_baselines3 import DQN, PPO
 from stable_baselines3.common.vec_env import VecFrameStack
 from stable_baselines3.common.env_util import make_atari_env
 
+BASE_PATH = "/Users/jhkim/Downloads/ar"
 
 def get_atari_env(env_name, n_stack=4):
     env = make_atari_env(env_name, n_envs=1)
@@ -15,64 +18,69 @@ def get_atari_env(env_name, n_stack=4):
 
     return env
 
-def show_state(env, step=0, info=""):
-    plt.figure(3)
-    plt.clf()
-    plt.imshow(env.render(mode='rgb_array'))
-    plt.title("%s | Step: %d %s" % (env._spec.id,step, info))
-    plt.axis('off')
+def take_snap(env, ax, name, step=0):
+    ax.imshow(env.render(mode='rgb_array'))
+    ax.set_title(f"{name} | Step: {step}")
+    ax.axis('off')
 
+def snap_finish(ax):
+    ax.text(
+        .5, .5, 'GAME OVER', 
+        horizontalalignment='center',
+        verticalalignment='center',
+        transform=ax.transAxes
+    )
+    ax.axis('off')
 
-def show_state(env, nrow, ncol, nidx, step=0, info=""):
-    plt.subplot(nrow, ncol, nidx)
-    plt.imshow(env.render(mode='rgb_array'))
-    plt.title("%s | Step: %d %s" % ("S", step, info))
-    plt.axis('off')
-    plt.pause(0.08)
-
-
-def render(env_name, models, nstep):
+def render(env_name, models, names, nstep):
     """ Render how agent interact with environment"""
+
+    fig_num = len(models)
+    fig, axs = plt.subplots(1, fig_num, figsize=(15, 5))
+    plt.subplots_adjust(wspace=1)
+    camera = Camera(fig)
 
     envs = [get_atari_env(env_name) for _ in range(len(models))]
     obs = [env.reset() for env in envs]
-    done = [False] * len(models)
-    for _ in range(nstep): # nstep : 5000
-        for i, (env, model) in enumerate(zip(envs, models)):
-            action, _ = model.predict(obs[i], deterministic=True)
-            obs[i], _, done[i], info = env.step(action)
-            show_state(env, len(models), 1, i+1)
-            
-            if done:
-                obs[i] = env.reset()
+    done = [False] * fig_num
 
+    delay = 0
+    for step in range(nstep):
+        for i, (ax, env, name, model) in enumerate(zip(axs, envs, names, models)):
+            if not done[i]: 
+                action, _ = model.predict(obs[i], deterministic=True)
+                obs[i], _, done[i], info = env.step(action)
+                take_snap(env, ax, name, step)
+            else:
+                snap_finish(ax)
+        if all(done):
+            delay += 1
+
+        camera.snap()
+        if delay == 10:
+            break
+
+    animation = camera.animate()
+    animation.save('animation.mp4', fps=10)
 
 if __name__ == "__main__":
-    # trained_model = DQN.load("/home/neurlab-dl1/workspace/RLbench/data/ALE/Breakout-v5/a1/a1s1/a1s1r2-42/best_model.zip", verbose=1)
-    # env = make_atari_env('BreakoutNoFrameskip-v4', n_envs=1, seed=0)
-    # env = VecFrameStack(env, n_stack=4)
-    # render(env, trained_model, 25_000)
-
     atlantis_agents = [
-        PPO.load("/home/neurlab-dl1/workspace/RLbench/data/ALE/Atlantis-v5/a1/a1s1/a1s1r1-0/best_model.zip"),
-        PPO.load("/home/neurlab-dl1/workspace/RLbench/data/ALE/Atlantis-v5/a1/a1s1/a1s1r2-42/best_model.zip"),
-        PPO.load("/home/neurlab-dl1/workspace/RLbench/data/ALE/Atlantis-v5/a1/a1s1/a1s1r3-53/best_model.zip")
+        PPO.load(p.join(BASE_PATH, "Atlantis-v5/a1/a1s1/a1s1r1-0/best_model.zip")),
+        PPO.load(p.join(BASE_PATH, "Atlantis-v5/a1/a1s1/a1s1r2-42/best_model.zip")),
+        PPO.load(p.join(BASE_PATH, "Atlantis-v5/a1/a1s1/a1s1r3-53/best_model.zip"))
     ]
-    krull_agents = [
-        PPO.load("/home/neurlab-dl1/workspace/RLbench/data/ALE/Krull-v5/a1/a1s1/a1s1r1-0/best_model.zip"),
-        PPO.load("/home/neurlab-dl1/workspace/RLbench/data/ALE/Krull-v5/a1/a1s1/a1s1r2-42/best_model.zip"),
-        PPO.load("/home/neurlab-dl1/workspace/RLbench/data/ALE/Krull-v5/a1/a1s1/a1s1r3-53/best_model.zip")
+
+    breakout_agents = [
+        PPO.load(p.join(BASE_PATH, "Breakout-v5/a1/a1s1/a1s1r1-0/best_model.zip")),
+        PPO.load(p.join(BASE_PATH, "Breakout-v5/a1/a1s1/a1s1r2-42/best_model.zip")),
+        PPO.load(p.join(BASE_PATH, "Breakout-v5/a1/a1s1/a1s1r3-53/best_model.zip"))
     ]
     kangaroo_agents = [
-        PPO.load("/home/neurlab-dl1/workspace/RLbench/data/ALE/Kangaroo-v5/a1/a1s1/a1s1r1-0/best_model.zip"),
-        PPO.load("/home/neurlab-dl1/workspace/RLbench/data/ALE/Kangaroo-v5/a1/a1s1/a1s1r2-42/best_model.zip"),
-        PPO.load("/home/neurlab-dl1/workspace/RLbench/data/ALE/Kangaroo-v5/a1/a1s1/a1s1r3-53/best_model.zip")
+        PPO.load(p.join(BASE_PATH, "Kangaroo-v5/a1/a1s1/a1s1r1-0/best_model.zip")),
+        PPO.load(p.join(BASE_PATH, "Kangaroo-v5/a1/a1s1/a1s1r2-42/best_model.zip")),
+        PPO.load(p.join(BASE_PATH, "Kangaroo-v5/a1/a1s1/a1s1r3-53/best_model.zip"))
     ]
-    # env = make_atari_env(
-    #     env_name, n_envs=n_env,
-    #     seed=seed, monitor_dir=save_path
-    # )
-    # env = VecFrameStack(env, n_stack=4) #TODO: set as a hyperparameter
-    # env = gym.make("ALE/Atlantis-v5")
 
-    render("ALE/Kangaroo-v5", kangaroo_agents, 500)
+    names = ["a1s1r1-0", "a1s1r2-42", "a1s1r3-53"]
+
+    render("ALE/Atlantis-v5", atlantis_agents, names, 500)
