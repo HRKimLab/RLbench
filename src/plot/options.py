@@ -53,6 +53,13 @@ def get_args():
         '--window_size', type=int,
         default = 1
     )
+    parser.add_argument(
+        '--overwrite','-O',
+        choices = ['y','n'],
+        default = 'n',
+        
+
+    )
 
     args = parser.parse_args()
 

@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from stable_baselines3.common.results_plotter import ts2xy
+import plot_evaluation
 
 from options import MAPPER_X, MAPPER_Y, get_args
 
@@ -99,10 +100,11 @@ def plot_mean_combined(args):
     handles, labels = plt.gca().get_legend_handles_labels()
     labels, handles = zip(*sorted(zip(labels, handles), key=lambda t: t[0]))
     plt.legend(handles, labels)
-    plt.show()
+    #plt.show()
 
 if __name__ == "__main__":
     args = get_args()
     print(args)
 
     plot_mean_combined(args)
+    plot_evaluation.plot_eval(args)
