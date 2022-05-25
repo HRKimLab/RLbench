@@ -35,20 +35,23 @@ def plot_eval(args):
     else:
         overwrite = 'n'
         fig2, ax2 = plt.subplots(figsize=(10,6), facecolor=(.94, .94, .94))
-        
+    
+    total = []
     for file_path in file_paths:
         for agent in agent_list:
             if agent in file_path:
                 eval_data = np.load(file_path)
                 results = eval_data['results']
                 results_mean = [sum(results[x])/len(results[x]) for x in range(len(results))]
-                if overwrite == 'y':
-                    plt.plot(eval_data['timesteps']*4, [np.mean(results_mean) for i in range(len(eval_data['timesteps']*4))], label= file_path.split(os.sep)[-2]+'-eval')
-                else:
+                total.append(results_mean)
+                if overwrite == 'n':
                     plt.plot(eval_data['timesteps']*4, results_mean, label= file_path.split(os.sep)[-2])
+    if overwrite == 'y':
+        zip_seed = list(zip(total[0],total[1],total[2]))
+        mean_seed = [np.mean(zip_seed[i]) for i in range(len(zip_seed))]
+        plt.plot(eval_data['timesteps']*4, mean_seed , label= 'evaluation_mean_of_seeds')
                     
-
-
+    
     plt.xlabel(args.x)
     plt.ylabel('reward')
     if overwrite == 'y':
