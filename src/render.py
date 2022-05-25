@@ -10,7 +10,7 @@ from stable_baselines3 import DQN, PPO
 from stable_baselines3.common.vec_env import VecFrameStack
 from stable_baselines3.common.env_util import make_atari_env
 
-BASE_PATH = "/Users/jhkim/Downloads/ar"
+BASE_PATH = "../data/"
 
 def get_atari_env(env_name, n_stack=4):
     env = make_atari_env(env_name, n_envs=1)
@@ -69,23 +69,30 @@ def render(env_name, models, names, nstep):
     animation.save("animation.mp4", fps=10)
 
 if __name__ == "__main__":
-    atlantis_agents = [
-        PPO.load(p.join(BASE_PATH, "Atlantis-v5/a1/a1s1/a1s1r1-0/best_model.zip")),
-        PPO.load(p.join(BASE_PATH, "Atlantis-v5/a1/a1s1/a1s1r2-42/best_model.zip")),
-        PPO.load(p.join(BASE_PATH, "Atlantis-v5/a1/a1s1/a1s1r3-53/best_model.zip"))
-    ]
+    GAME = "ALE/Breakout-v5"
 
-    breakout_agents = [
-        PPO.load(p.join(BASE_PATH, "Breakout-v5/a1/a1s1/a1s1r1-0/best_model.zip")),
-        PPO.load(p.join(BASE_PATH, "Breakout-v5/a1/a1s1/a1s1r2-42/best_model.zip")),
-        PPO.load(p.join(BASE_PATH, "Breakout-v5/a1/a1s1/a1s1r3-53/best_model.zip"))
-    ]
-    kangaroo_agents = [
-        PPO.load(p.join(BASE_PATH, "Kangaroo-v5/a1/a1s1/a1s1r1-0/best_model.zip")),
-        PPO.load(p.join(BASE_PATH, "Kangaroo-v5/a1/a1s1/a1s1r2-42/best_model.zip")),
-        PPO.load(p.join(BASE_PATH, "Kangaroo-v5/a1/a1s1/a1s1r3-53/best_model.zip"))
-    ]
-
+    agent_paths = ["a1/a1s1/a1s1r1-0/best_model", "a1/a1s1/a1s1r2-42/best_model", "a1/a1s1/a1s1r3-53/best_model"]
     names = ["a1s1r1-0", "a1s1r2-42", "a1s1r3-53"]
 
-    render("ALE/Atlantis-v5", atlantis_agents, names, 500)
+    agents = [
+        PPO.load(p.join(BASE_PATH, GAME, agent_path)) for agent_path in agent_paths
+    ]
+    # atlantis_agents = [
+    #     PPO.load(p.join(BASE_PATH, "Atlantis-v5/a1/a1s1/a1s1r1-0/best_model.zip")),
+    #     PPO.load(p.join(BASE_PATH, "Atlantis-v5/a1/a1s1/a1s1r2-42/best_model.zip")),
+    #     PPO.load(p.join(BASE_PATH, "Atlantis-v5/a1/a1s1/a1s1r3-53/best_model.zip"))
+    # ]
+
+    # breakout_agents = [
+    #     PPO.load(p.join(BASE_PATH, "Breakout-v5/a1/a1s1/a1s1r1-0/best_model.zip")),
+    #     PPO.load(p.join(BASE_PATH, "Breakout-v5/a1/a1s1/a1s1r2-42/best_model.zip")),
+    #     PPO.load(p.join(BASE_PATH, "Breakout-v5/a1/a1s1/a1s1r3-53/best_model.zip"))
+    # ]
+    # kangaroo_agents = [
+    #     PPO.load(p.join(BASE_PATH, "Kangaroo-v5/a1/a1s1/a1s1r1-0/best_model.zip")),
+    #     PPO.load(p.join(BASE_PATH, "Kangaroo-v5/a1/a1s1/a1s1r2-42/best_model.zip")),
+    #     PPO.load(p.join(BASE_PATH, "Kangaroo-v5/a1/a1s1/a1s1r3-53/best_model.zip"))
+    # ]
+
+
+    render(GAME, agents, names, 500)

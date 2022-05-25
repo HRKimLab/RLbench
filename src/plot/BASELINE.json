@@ -244,7 +244,7 @@
         "human": 13455,
         "dqn": 10596
     },
-    "ALE/RiverRaid-v5": {
+    "ALE/Riverraid-v5": {
         "random": 1339,
         "linear": 1904,
         "sarsa": 2650,
@@ -328,7 +328,7 @@
         "human": 17298,
         "dqn": 42684
     },
-    "ALE/WizardofWor-v5": {
+    "ALE/WizardOfWor-v5": {
         "random": 563.5,
         "linear": 1981,
         "sarsa": 36.9,
