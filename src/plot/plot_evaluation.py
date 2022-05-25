@@ -43,9 +43,9 @@ def plot_eval(args):
                 results = eval_data['results']
                 results_mean = [sum(results[x])/len(results[x]) for x in range(len(results))]
                 if overwrite == 'y':
-                    plt.plot(eval_data['timesteps'], results_mean, label= file_path.split(os.sep)[-2])
+                    plt.plot(eval_data['timesteps']*4, [np.mean(results_mean) for i in range(len(eval_data['timesteps']*4))], label= file_path.split(os.sep)[-2]+'-eval')
                 else:
-                    plt.plot(eval_data['timesteps'], results_mean, label= file_path.split(os.sep)[-2])
+                    plt.plot(eval_data['timesteps']*4, results_mean, label= file_path.split(os.sep)[-2])
                     
 
 
