@@ -30,14 +30,12 @@ def plot_eval(args):
 
     agent_list = args.agents
     y_idx, y_name = MAPPER_Y[args.y]
-    if args.overwrite=='y':
-        if y_name == 'reward':
-            overwrite = 'y'
-        else:
-            overwrite = 'n'
+    if (args.overwrite=='y')&(y_name == 'reward')&(args.x == 'timesteps'):
+        overwrite = 'y'
     else:
         overwrite = 'n'
         fig2, ax2 = plt.subplots(figsize=(10,6), facecolor=(.94, .94, .94))
+        
     for file_path in file_paths:
         for agent in agent_list:
             if agent in file_path:
@@ -70,4 +68,4 @@ if __name__ == "__main__":
     args = get_args()
     print(args)
 
-    plot_numeric(args)
+    plot_eval(args)
