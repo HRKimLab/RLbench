@@ -328,7 +328,7 @@
         "human": 17298,
         "dqn": 42684
     },
-    "ALE/WizardofWor-v5": {
+    "ALE/WizardOfWor-v5": {
         "random": 563.5,
         "linear": 1981,
         "sarsa": 36.9,
