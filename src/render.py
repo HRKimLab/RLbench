@@ -1,14 +1,13 @@
 """ Multi-screen rendering & saving for comparing multiple agents """
 
-import os
 import os.path as p
 from celluloid import Camera
 
-import gym
 import matplotlib.pyplot as plt
-from stable_baselines3 import DQN, PPO
+from stable_baselines3 import DQN, A2C, PPO
 from stable_baselines3.common.vec_env import VecFrameStack
 from stable_baselines3.common.env_util import make_atari_env
+from tqdm import tqdm
 
 BASE_PATH = "../data/"
 
@@ -38,8 +37,8 @@ def render(env_name, models, names, nstep):
     """ Render how agent interact with environment"""
 
     fig_num = len(models)
-    fig, axs = plt.subplots(1, fig_num, figsize=(15, 5))
-    plt.subplots_adjust(wspace=1)
+    fig, axs = plt.subplots(1, fig_num, figsize=(10, 5))
+    plt.subplots_adjust(wspace=0.4)
     camera = Camera(fig)
 
     envs = [get_atari_env(env_name) for _ in range(len(models))]
@@ -48,7 +47,7 @@ def render(env_name, models, names, nstep):
     final_steps = [0] * 3
 
     delay = 0
-    for step in range(nstep):
+    for step in tqdm(range(nstep)):
         for i, (ax, env, name, model) in enumerate(zip(axs, envs, names, models)):
             if not done[i]: 
                 action, _ = model.predict(obs[i], deterministic=True)
@@ -69,30 +68,13 @@ def render(env_name, models, names, nstep):
     animation.save("animation.mp4", fps=10)
 
 if __name__ == "__main__":
-    GAME = "ALE/Breakout-v5"
-
-    agent_paths = ["a1/a1s1/a1s1r1-0/best_model", "a1/a1s1/a1s1r2-42/best_model", "a1/a1s1/a1s1r3-53/best_model"]
-    names = ["a1s1r1-0", "a1s1r2-42", "a1s1r3-53"]
+    GAME = "ALE/Boxing-v5"
+    agent_paths = ["a1/a1s1/a1s1r1-0/best_model", "a2/a2s1/a2s1r1-0/best_model"]
+    names = ["PPO (a1s1r1)", "A2C (a2s1r1"]
 
     agents = [
-        PPO.load(p.join(BASE_PATH, GAME, agent_path)) for agent_path in agent_paths
+        PPO.load(p.join(BASE_PATH, GAME, agent_paths[0])),
+        A2C.load(p.join(BASE_PATH, GAME, agent_paths[1]))
     ]
-    # atlantis_agents = [
-    #     PPO.load(p.join(BASE_PATH, "Atlantis-v5/a1/a1s1/a1s1r1-0/best_model.zip")),
-    #     PPO.load(p.join(BASE_PATH, "Atlantis-v5/a1/a1s1/a1s1r2-42/best_model.zip")),
-    #     PPO.load(p.join(BASE_PATH, "Atlantis-v5/a1/a1s1/a1s1r3-53/best_model.zip"))
-    # ]
-
-    # breakout_agents = [
-    #     PPO.load(p.join(BASE_PATH, "Breakout-v5/a1/a1s1/a1s1r1-0/best_model.zip")),
-    #     PPO.load(p.join(BASE_PATH, "Breakout-v5/a1/a1s1/a1s1r2-42/best_model.zip")),
-    #     PPO.load(p.join(BASE_PATH, "Breakout-v5/a1/a1s1/a1s1r3-53/best_model.zip"))
-    # ]
-    # kangaroo_agents = [
-    #     PPO.load(p.join(BASE_PATH, "Kangaroo-v5/a1/a1s1/a1s1r1-0/best_model.zip")),
-    #     PPO.load(p.join(BASE_PATH, "Kangaroo-v5/a1/a1s1/a1s1r2-42/best_model.zip")),
-    #     PPO.load(p.join(BASE_PATH, "Kangaroo-v5/a1/a1s1/a1s1r3-53/best_model.zip"))
-    # ]
-
 
     render(GAME, agents, names, 500)
