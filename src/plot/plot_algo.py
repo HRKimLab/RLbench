@@ -9,7 +9,7 @@ import json
 
 from options import MAPPER_Y, get_args_envs
 
-def plot_envs(args):
+def plot_algo(args):
     """ Plot the data of different environments on y-axis
     args: user arguments
     """
@@ -41,38 +41,36 @@ def plot_envs(args):
                     file_paths.append(file_path)
     
     y_idx, y_name = MAPPER_Y[args.y]
-    list_normalized_score = []
-    list_p_normalized_score = []
-    
-    for env in env_list:
-        bundle = []
-        for file in file_paths:
-            if env in file:
-                for agent in args.agent:
+
+    list_normalized_score = [[] for i in range(len(args.agent))]
+
+    for agent in args.agent:
+        for env in env_list:
+            bundle = []
+            for file in file_paths:
+                if env in file:
                     if agent in file:
                         df = pd.read_csv(file, skiprows=1)
                         bundle.append(df.tail(100))
-        
-        df_concat = pd.concat(bundle, ignore_index = True)  
+            
+            df_concat = pd.concat(bundle, ignore_index = True)  
 
-        mean_df = df_concat.groupby(df_concat.index).mean()
-        mean = mean_df.iloc[:,y_idx].mean()
-        std = mean_df.iloc[:,y_idx].std()
-        
-        normalized_score = 100*(mean - json_data[env]['random'])/(json_data[env]['human'] - json_data[env]['random'])
-        p_normalized_score = 100*(json_data[env]['dqn'] - json_data[env]['random'])/(json_data[env]['human'] - json_data[env]['random'])
-        list_normalized_score.append(normalized_score)
-        list_p_normalized_score.append(p_normalized_score)
-
-    normalized_df = pd.DataFrame(zip(env_list, list_normalized_score, list_p_normalized_score), columns = ['env','dqn','dqn_paper' ])
+            mean_df = df_concat.groupby(df_concat.index).mean()
+            mean = mean_df.iloc[:,y_idx].mean()
+            std = mean_df.iloc[:,y_idx].std()
+            
+            normalized_score = 100*(mean - json_data[env]['random'])/(json_data[env]['human'] - json_data[env]['random'])
+            list_normalized_score[args.agent.index(agent)].append(normalized_score)
+    
+    normalized_df = pd.DataFrame(zip(env_list, list_normalized_score[0], list_normalized_score[1]), columns = ['env','dqn','dqn_paper'])
     width = 0.4
 
     normalized_df.sort_values(by='dqn', inplace=True, ascending=True)
     fig, ax = plt.subplots(figsize=(10,6), facecolor=(.94, .94, .94))
     
     y = np.arange(len(env_list))  
-    ax.barh(y + width/2, normalized_df['dqn'], width, label='dqn', color='skyblue')
-    ax.barh(y - width/2, normalized_df['dqn_paper'], width, label='dqn(paper)', color='lightgray')
+    ax.barh(y + width/2, normalized_df['dqn'], width, label=args.agent[0], color='skyblue')
+    ax.barh(y - width/2, normalized_df['dqn_paper'], width, label=args.agent[1], color='lightgray')
 
     ax.xaxis.set_major_formatter(mpl.ticker.StrMethodFormatter('{x:,.0f}'))
     
@@ -107,4 +105,4 @@ if __name__ == "__main__":
     args = get_args_envs()
     print(args)
 
-    plot_envs(args)
+    plot_algo(args)

@@ -71,7 +71,7 @@ def get_args_envs():
         help="Environment name"
     )
     parser.add_argument(
-        '--agent', '-A', type=str,
+        '--agent', '-A', type=str2list,
         help="Agent to plot (specify the agent numbers)"
     )
     parser.add_argument(
