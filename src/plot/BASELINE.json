@@ -202,7 +202,7 @@
         "human": 22736,
         "dqn": 23270
     },
-    "ALE/MontezumasRevenge-v5": {
+    "ALE/MontezumaRevenge-v5": {
         "random": 0,
         "linear": 10.7,
         "sarsa": 259,
