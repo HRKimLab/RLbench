@@ -5,8 +5,9 @@
 data/
 todo.md
 log/*
-data_backup*/
+data*/
 .vscode
+*.mp4
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
