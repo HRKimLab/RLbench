@@ -13,13 +13,10 @@ def plot_numeric(args):
 
     date_today = date.today().isoformat()
 
-    file_paths = []
-    for agent in args.agents:
-        get_path = args.data_path
-        if get_path is None:
-            get_path = os.path.abspath(os.path.join(os.getcwd(), os.pardir, 'data'))
+    data_path = args.data_path
+    data_path = os.path.abspath(os.path.join(os.getcwd(), os.pardir, 'data' if data_path is None else data_path))
 
-    for (root_dir, _, files) in os.walk(os.path.join(get_path, args.env)):
+    for (root_dir, _, files) in os.walk(os.path.join(data_path, args.env)):
         for file in files:
             if "0.monitor.csv" in file:
                 file_path = os.path.join(root_dir, file)
@@ -42,11 +39,10 @@ def plot_numeric(args):
     labels, handles = zip(*sorted(zip(labels, handles), key=lambda t: t[0]))
     plt.legend(handles, labels)
 
-    plt.show()
-
 
 if __name__ == "__main__":
     args = get_args()
     print(args)
 
     plot_numeric(args)
+    plt.show()

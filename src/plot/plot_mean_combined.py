@@ -27,8 +27,7 @@ def plot_mean_combined(args):
         return arr.mean(axis=-1), arr.std(axis=-1)
 
     data_path = args.data_path
-    if data_path is None:
-        data_path = os.path.abspath(os.path.join(os.getcwd(), os.pardir, 'data'))
+    data_path = os.path.abspath(os.path.join(os.getcwd(), os.pardir, 'data' if data_path is None else data_path))
 
     file_paths = []
     for (root_dir, _, files) in os.walk(os.path.join(data_path, args.env)):
@@ -100,7 +99,7 @@ def plot_mean_combined(args):
     handles, labels = plt.gca().get_legend_handles_labels()
     labels, handles = zip(*sorted(zip(labels, handles), key=lambda t: t[0]))
     plt.legend(handles, labels)
-    #plt.show()
+
 
 if __name__ == "__main__":
     args = get_args()
@@ -108,3 +107,4 @@ if __name__ == "__main__":
 
     plot_mean_combined(args)
     plot_evaluation.plot_eval(args)
+    plt.show()

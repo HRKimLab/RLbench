@@ -43,7 +43,7 @@ def get_args():
     parser.add_argument(
         '--data-path', '-S', type=str,
         help="Path of data"
-    ) #TODO: Suppose that all of data has been saved on 'data/' path (if data_path is None)
+    )
     parser.add_argument(
         '--mean', type=str,
         choices = ['var','line'],
@@ -57,8 +57,6 @@ def get_args():
         '--overwrite','-O',
         choices = ['y','n'],
         default = 'n',
-        
-
     )
 
     args = parser.parse_args()
@@ -88,7 +86,7 @@ def get_args_envs():
     )
     parser.add_argument(
         '--data-path', '-S', type=str,     
-    ) #TODO: Suppose that all of data has been saved on 'data/' path (if data_path is None)
+    )
     parser.add_argument(
         '--normalize', type=str,
         choices=['human', 'dqn_paper']

@@ -7,7 +7,6 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 from options import MAPPER_Y, get_args
-#get_args 에 overwrite 추가했음
 
 def plot_eval(args):
     """ Plot the evaluation rewards on y-axis
@@ -16,25 +15,23 @@ def plot_eval(args):
 
     date_today = date.today().isoformat()
 
-    file_paths = []
-    for agent in args.agents:
-        get_path = args.data_path
-        if get_path is None:
-            get_path = os.path.abspath(os.path.join(os.getcwd(), os.pardir, 'data'))
+    data_path = args.data_path
+    data_path = os.path.abspath(os.path.join(os.getcwd(), os.pardir, 'data' if data_path is None else data_path))
 
-    for (root_dir, _, files) in os.walk(os.path.join(get_path, args.env)):
+    file_paths = []
+    for (root_dir, _, files) in os.walk(os.path.join(data_path, args.env)):
         for file in files:
             if "evaluations.npz" in file:
                 file_path = os.path.join(root_dir, file)
                 file_paths.append(file_path)
 
     agent_list = args.agents
-    y_idx, y_name = MAPPER_Y[args.y]
-    if (args.overwrite=='y')&(y_name == 'reward')&(args.x == 'timesteps'):
+    _, y_name = MAPPER_Y[args.y]
+    if (args.overwrite == 'y') and (y_name == 'reward') and(args.x == 'timesteps'):
         overwrite = 'y'
     else:
         overwrite = 'n'
-        fig2, ax2 = plt.subplots(figsize=(10,6), facecolor=(.94, .94, .94))
+        plt.figure(figsize=(10, 6), facecolor=(.94, .94, .94))
     
     total = []
     #if agent name has seed, do not overwrite
@@ -66,11 +63,10 @@ def plot_eval(args):
     labels, handles = zip(*sorted(zip(labels, handles), key=lambda t: t[0]))
     plt.legend(handles, labels)
 
-    plt.show()
-
 
 if __name__ == "__main__":
     args = get_args()
     print(args)
 
     plot_eval(args)
+    plt.show()

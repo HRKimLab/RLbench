@@ -1,6 +1,5 @@
 import os
 from datetime import date
-from re import L
 
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -17,28 +16,25 @@ def plot_envs(args):
     with open('plot/BASELINE.json') as json_file:
         json_data = json.load(json_file)
 
-    
     date_today = date.today().isoformat()
     
     env_list = args.env
-    file_paths = []
 
+    data_path = args.data_path
+    data_path = os.path.abspath(os.path.join(os.getcwd(), os.pardir, 'data' if data_path is None else data_path))
 
-    get_path = args.data_path
-    if get_path is None:
-        get_path = os.path.abspath(os.path.join(os.getcwd(), os.pardir, 'data'))
-    
-    env_list_1 = []
     if env_list == ['ALE']:
-        for (root_dir, _, files) in os.walk(os.path.join(get_path, 'ALE')):
+        env_list = []
+        for (root_dir, _, files) in os.walk(os.path.join(data_path, 'ALE')):
             for file in files:
                 if "monitor.csv" in file:
                     file_path = os.path.join(root_dir, file)
-                    env_list_1.append(file_path.split('/')[-6]+'/'+file_path.split('/')[-5])
-                    env_list = list(set(env_list_1))
+                    env_list.append(file_path.split('/')[-6]+'/'+file_path.split('/')[-5])
+        env_list = list(set(env_list))
 
+    file_paths = []
     for env in env_list:
-        for (root_dir, _, files) in os.walk(os.path.join(get_path, env)):
+        for (root_dir, _, files) in os.walk(os.path.join(data_path, env)):
             for file in files:
                 if "monitor.csv" in file:
                     file_path = os.path.join(root_dir, file)
