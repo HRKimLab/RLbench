@@ -37,18 +37,19 @@ def render(env_name, models, names, nstep):
     """ Render how agent interact with environment"""
 
     fig_num = len(models)
-    fig, axs = plt.subplots(1, fig_num, figsize=(10, 5))
-    plt.subplots_adjust(wspace=0.4)
+    fig, axs = plt.subplots(nrows=2, ncols=4, figsize=(12, 6))
+    plt.subplots_adjust(wspace=0.5)
     camera = Camera(fig)
 
     envs = [get_atari_env(env_name) for _ in range(len(models))]
     obs = [env.reset() for env in envs]
     done = [False] * fig_num
-    final_steps = [0] * 3
+    final_steps = [0] * fig_num
 
     delay = 0
     for step in tqdm(range(nstep)):
-        for i, (ax, env, name, model) in enumerate(zip(axs, envs, names, models)):
+        for i, (env, name, model) in enumerate(zip(envs, names, models)):
+            ax = axs[i // 4][i % 4]
             if not done[i]: 
                 action, _ = model.predict(obs[i], deterministic=True)
                 obs[i], _, done[i], info = env.step(action)
@@ -68,13 +69,36 @@ def render(env_name, models, names, nstep):
     animation.save("animation.mp4", fps=10)
 
 if __name__ == "__main__":
-    GAME = "ALE/Boxing-v5"
-    agent_paths = ["a1/a1s1/a1s1r1-0/best_model", "a2/a2s1/a2s1r1-0/best_model"]
-    names = ["PPO (a1s1r1)", "A2C (a2s1r1"]
-
-    agents = [
-        PPO.load(p.join(BASE_PATH, GAME, agent_paths[0])),
-        A2C.load(p.join(BASE_PATH, GAME, agent_paths[1]))
+    GAME = "ALE/Assault-v5"
+    agent_paths = [
+        "a1/a1s1/a1s1r1-0/rl_model_50000_steps",
+        "a1/a1s1/a1s1r1-0/rl_model_100000_steps",
+        "a1/a1s1/a1s1r1-0/rl_model_150000_steps",
+        "a1/a1s1/a1s1r1-0/rl_model_300000_steps",
+        "a1/a1s1/a1s1r2-42/rl_model_500000_steps",
+        "a1/a1s1/a1s1r2-42/rl_model_700000_steps",
+        "a1/a1s1/a1s1r4-7/rl_model_800000_steps",
+        "a1/a1s1/a1s1r4-7/best_model"
     ]
 
-    render(GAME, agents, names, 500)
+    # agent_paths = ["a1/a1s1/a1s1r1-0/best_model", "a2/a2s1/a2s1r1-0/best_model"]
+    names = [
+        "0.05M steps",
+        "0.1M steps",
+        "0.15M steps",
+        "0.2M steps",
+        "0.4M steps",
+        "0.6M steps",
+        "0.8M steps",
+        "1.0M steps",
+    ]
+
+    agents = [ 
+        PPO.load(p.join(BASE_PATH, GAME, agent_path)) for agent_path in agent_paths
+    ]
+    # agents = [
+    #     PPO.load(p.join(BASE_PATH, GAME, agent_paths[0])),
+    #     A2C.load(p.join(BASE_PATH, GAME, agent_paths[1]))
+    # ]
+
+    render(GAME, agents, names, 1000)

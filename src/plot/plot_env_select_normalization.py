@@ -1,6 +1,5 @@
 import os
 from datetime import date
-from re import L
 
 import pandas as pd
 import matplotlib.pyplot as plt
