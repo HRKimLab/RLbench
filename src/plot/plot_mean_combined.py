@@ -7,8 +7,7 @@ import matplotlib.pyplot as plt
 from stable_baselines3.common.results_plotter import ts2xy
 import plot_evaluation
 
-from . import MAPPER_X, MAPPER_Y
-from options import get_args
+from options import MAPPER_X, MAPPER_Y, get_args
 
 def plot_mean_combined(args):
     """ Plot the mean of the data and show standard deviation on y-axis

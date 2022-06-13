@@ -7,8 +7,7 @@ import matplotlib as mpl
 import numpy as np
 import json
 
-from . import MAPPER_Y
-from options import get_args_envs
+from options import MAPPER_Y, get_args_envs
 
 def plot_envs(args):
     """ Plot the data of different environments on y-axis
