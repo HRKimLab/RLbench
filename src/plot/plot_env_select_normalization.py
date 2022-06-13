@@ -1,6 +1,5 @@
 import os
 from datetime import date
-from re import L
 
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -8,7 +7,8 @@ import matplotlib as mpl
 import numpy as np
 import json
 
-from options import MAPPER_Y, get_args_envs
+from . import MAPPER_Y
+from options import get_args_envs
 
 def plot_envs(args):
     """ Plot the data of different environments on y-axis
