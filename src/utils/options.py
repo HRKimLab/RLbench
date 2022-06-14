@@ -35,7 +35,7 @@ def get_args():
         help="Algorithm name"
     )
     parser.add_argument(
-        '--hp', '-H', type=str,
+        '--hp', '-H', type=str, default=None,
         help="Hyperparameter configuration file name (./config/[FILE].json)"
     )
 
@@ -101,7 +101,16 @@ def get_args():
     # Post-processing for arguments
     args.algo == args.algo.lower()
     args.seed = SEEDS[:args.nseed]
-    args.hp = os.path.join(os.getcwd(), f"config/{args.hp}.json")
+    if args.hp is None:
+        args.hp = os.path.join(
+            os.getcwd(), 
+            "config", "default", f"{args.algo}.json"
+        )
+    else:
+        args.hp = os.path.join(
+            os.getcwd(),
+            "config", f"{args.hp}.json"
+        )
     validate_args(args)
 
     return args
