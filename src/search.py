@@ -12,8 +12,8 @@ from pprint import pprint
 import gym
 import torch
 import optuna
-from optuna.pruners import SuccessiveHalvingPruner
 from optuna.samplers import TPESampler
+from optuna.pruners import MedianPruner
 from optuna.visualization import plot_optimization_history, plot_param_importances
 from stable_baselines3 import HerReplayBuffer
 
@@ -116,7 +116,7 @@ class HPOptimizer:
         """ Search best hyperparams """
 
         sampler = TPESampler()
-        pruner = SuccessiveHalvingPruner(min_resource=1, reduction_factor=4, min_early_stopping_rate=0)
+        pruner =  MedianPruner(n_warmup_steps=self.n_evaluations // 3)
 
         try:
             study = optuna.create_study(
@@ -187,6 +187,7 @@ class HPOptimizer:
     def is_atari(env_id: str) -> bool:
         entry_point = gym.envs.registry.env_specs[env_id].entry_point  # pytype: disable=module-attr
         return "AtariEnv" in str(entry_point)
+
 
 if __name__ == "__main__":
     args = get_search_args()
