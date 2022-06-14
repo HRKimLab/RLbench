@@ -6,7 +6,6 @@ from .utils import (
     get_env,
     get_model,
     set_data_path,
-    clean_data_path
+    clean_data_path,
+    FLAG_FILE_NAME
 )
-
-FLAG_FILE_NAME = "NOT_FINISHED"
