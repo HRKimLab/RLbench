@@ -19,7 +19,7 @@ from stable_baselines3 import HerReplayBuffer
 
 from utils import get_env, get_algo
 from utils.options import get_search_args
-from utils.sb3_callbacks import TrialEvalCallback
+from utils.sb3_callbacks import TrialEvalCallback, TqdmCallback
 from utils.hyperparams_opt import HYPERPARAMS_SAMPLER
 
 
@@ -82,11 +82,16 @@ class HPOptimizer:
             eval_freq=optuna_eval_freq,
             deterministic=not self.is_atari_env,
         )
+        tqdm_callback = TqdmCallback()
 
         learn_kwargs = {}
 
         try:
-            model.learn(self.nstep, callback=eval_callback, **learn_kwargs)
+            model.learn(
+                self.nstep,
+                callback=[eval_callback, tqdm_callback],
+                **learn_kwargs
+            )
             # Free memory
             model.env.close()
             eval_env.close()
