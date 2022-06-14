@@ -193,8 +193,12 @@ def set_data_path(algo_name, env_name, hp, seed):
 
     already_run = False
     if seed in seed_list.keys(): # Given setting had already been run
-        already_run = True
         data_path = p.join(data_path, seed_list[seed])
+        if not p.isfile(p.join(data_path, FLAG_FILE_NAME)):
+            already_run = True
+        else:
+            rmtree(data_path)
+            os.mkdir(data_path)
     else:
         seed_id = f"r{len(seed_list) + 1}"
         data_path = p.join(
