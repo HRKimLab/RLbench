@@ -68,6 +68,10 @@ def get_args():
         default=None,
         help="Std. value of action noise"
     )
+    parser.add_argument(
+        '--save-freq', type=int, default=-1,
+        help="Per timesteps to save checkpoint (default:-1; Do not save checkpoint)"
+    )
 
     # Evaluation
     parser.add_argument(
@@ -87,10 +91,10 @@ def get_args():
         help="Path to save the data"
     )
 
-    # Debugging mode
-    parser.add_argument('--debug', dest='debug', action='store_true')
-    parser.add_argument('--no-debug', dest='debug', action='store_false')
-    parser.set_defaults(debug=False)
+    # Debug mode (not used now)
+    # parser.add_argument('--debug', dest='debug', action='store_true')
+    # parser.add_argument('--no-debug', dest='debug', action='store_false')
+    # parser.set_defaults(debug=False)
 
     args = parser.parse_args()
 

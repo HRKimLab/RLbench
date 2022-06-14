@@ -23,7 +23,7 @@ def set_seed(seed):
     torch.manual_seed(seed)
     torch.cuda.manual_seed(seed)
 
-def configure_cudnn(debug):
+def configure_cudnn(debug=False):
     cudnn.enabled = True
     cudnn.benchmark = True
     if debug:

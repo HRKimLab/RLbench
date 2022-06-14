@@ -8,7 +8,7 @@ from stable_baselines3.common.noise import (
     VectorizedActionNoise
 )
 from stable_baselines3.common.logger import configure
-from stable_baselines3.common.callbacks import EvalCallback
+from stable_baselines3.common.callbacks import EvalCallback, CheckpointCallback
 
 from options import get_args
 from utils import (
@@ -17,44 +17,6 @@ from utils import (
 )
 from utils.sb3_callbacks import TqdmCallback
 
-
-def train_debug(args):
-    """ Train with multiple random seeds """
-
-    hp = load_json(args.hp)
-
-    for i, seed in enumerate(args.seed):
-        set_seed(seed)
-
-        # Get appropriate path by model info
-        save_path = args.save_path
-        already_run = False
-        if save_path is None:
-            save_path, already_run = set_data_path(args.algo, args.env, hp, seed)
-
-        # Get env, model
-        action_noise = None
-        if args.noise == "Normal":
-            assert model.action_space.__dict__.get('n') is None, \
-                "Cannot apply an action noise to the environment with a discrete action space."
-            action_noise = NormalActionNoise(args.noise_mean, args.noise_std)
-            if args.nenv != 1:
-                action_noise = VectorizedActionNoise(action_noise, args.nenv)
-        env, eval_env = get_env(args.env, args.nenv, save_path, seed)
-        model = get_model(args.algo, env, hp, action_noise, seed)
-
-        # If given setting had already been run, save_path will be given as None
-        if already_run:
-            print(f"[{i + 1}/{args.nseed}] Already exists: '{save_path}', skip to run")
-        else: # Train with single seed
-            Path(os.path.join(save_path, FLAG_FILE_NAME)).touch()
-
-            print(f"[{i + 1}/{args.nseed}] Ready to train {i + 1}th agent - RANDOM SEED: {seed}")
-            _train(
-                model, args.nstep,
-                eval_env, args.eval_freq, args.eval_eps, save_path
-            )
-            del env, model
 
 def train(args):
     """ Train with multiple random seeds """
@@ -99,7 +61,7 @@ def train(args):
                 print(f"[{i + 1}/{args.nseed}] Ready to train {i + 1}th agent - RANDOM SEED: {seed}")
                 _train(
                     model, args.nstep,
-                    eval_env, args.eval_freq, args.eval_eps, save_path
+                    eval_env, args.eval_freq, args.eval_eps, args.save_freq, save_path
                 )
                 del env, model
             except Exception as e:
@@ -110,7 +72,7 @@ def train(args):
 
 def _train(
     model, nstep,
-    eval_env, eval_freq, eval_eps, save_path
+    eval_env, eval_freq, eval_eps, save_freq, save_path
 ):
     """ Train with single seed """
 
@@ -118,6 +80,7 @@ def _train(
     logger = configure(save_path, ["csv"])
     model.set_logger(logger)
 
+    # Set callbacks
     eval_callback = EvalCallback(
         eval_env,
         n_eval_episodes=eval_eps,
@@ -128,35 +91,30 @@ def _train(
         verbose=0
     )
     tqdm_callback = TqdmCallback()
+    callbacks = [eval_callback, tqdm_callback]
+    if save_freq != -1:
+        checkpoint_callback = CheckpointCallback(
+            save_freq=save_freq,
+            save_path=save_path,
+            name_prefix='rl_model'
+        )
+        callbacks.append(checkpoint_callback)
 
+    # Training
     model.learn(
         total_timesteps=nstep,
-        callback=[eval_callback, tqdm_callback],
+        callback=callbacks,
         eval_log_path=save_path
     )
+
     os.remove(os.path.join(save_path, FLAG_FILE_NAME))
     model.save(os.path.join(save_path, "info.zip"))
-
-def render(env, model, nstep):
-    """ Render how agent interact with environment"""
-
-    obs = env.reset()
-    for i in range(nstep):
-        action, _state = model.predict(obs, deterministic=True)
-        obs, reward, done, info = env.step(action)
-        env.render()
-        if done:
-            obs = env.reset()
 
 
 if __name__ == "__main__":
     args = get_args()
-    configure_cudnn(args.debug)
+    configure_cudnn()
 
     print(f"Using {'CUDA' if torch.cuda.is_available() else 'CPU'} device")
-    if args.debug:
-        print("---DEBUG MODE---")
-        train_debug(args)
-    else:
-        print("---START EXPERIMENTS---")
-        train(args)
+    print("---START EXPERIMENTS---")
+    train(args)
