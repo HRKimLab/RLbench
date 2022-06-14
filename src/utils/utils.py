@@ -210,7 +210,6 @@ def set_data_path(algo_name, env_name, hp, seed):
     return data_path, already_run
 
 def clean_data_path(target_path):
-    # target_path: /home/neurlab-dl1/workspace/RLbench/data/CartPole-v1/a1/a1s1/a1s1r1-0
     target_path = Path(target_path)
     flag_path = target_path / FLAG_FILE_NAME
 
