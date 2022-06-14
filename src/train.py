@@ -14,7 +14,7 @@ from stable_baselines3.common.callbacks import EvalCallback, CheckpointCallback
 
 from utils import (
     set_seed, configure_cudnn, load_json, get_logger,
-    get_env, get_model, set_data_path, clean_data_path, FLAG_FILE_NAME
+    get_env, get_algo, set_data_path, clean_data_path, FLAG_FILE_NAME
 )
 from utils.options import get_args
 from utils.sb3_callbacks import TqdmCallback
@@ -46,7 +46,7 @@ def train(args):
                 if args.nenv != 1:
                     action_noise = VectorizedActionNoise(action_noise, args.nenv)
             env, eval_env = get_env(args.env, args.nenv, save_path, seed)
-            model = get_model(args.algo, env, hp, action_noise, seed)
+            model = get_algo(args.algo, env, hp, action_noise, seed)
         except KeyboardInterrupt:
             clean_data_path(save_path)
         except Exception as e:

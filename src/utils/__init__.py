@@ -4,7 +4,7 @@ from .utils import (
     load_json,
     get_logger,
     get_env,
-    get_model,
+    get_algo,
     set_data_path,
     clean_data_path,
     FLAG_FILE_NAME
