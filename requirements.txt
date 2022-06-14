@@ -1,5 +1,6 @@
-celluloid
-ffmpeg
-tqdm
 stable-baselines3
-sb3_contrib
+sb3-contrib
+celluloid==0.2.0
+ffmpeg==4.2.2
+tqdm==4.63.0
+optuna==2.10.0

@@ -47,6 +47,8 @@ def train(args):
                     action_noise = VectorizedActionNoise(action_noise, args.nenv)
             env, eval_env = get_env(args.env, args.nenv, save_path, seed)
             model = get_model(args.algo, env, hp, action_noise, seed)
+        except KeyboardInterrupt:
+            clean_data_path(save_path)
         except Exception as e:
             clean_data_path(save_path)
             info_logger.info("Loading error [ENV: %s] | [ALGO: %s]", args.env, args.algo)
@@ -66,6 +68,8 @@ def train(args):
                     eval_env, args.eval_freq, args.eval_eps, args.save_freq, save_path
                 )
                 del env, model
+            except KeyboardInterrupt:
+                clean_data_path(save_path)
             except Exception as e:
                 clean_data_path(save_path)
                 info_logger.info("Train error [ENV: %s] | [ALGO: %s]", args.env, args.algo)
