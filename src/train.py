@@ -10,11 +10,11 @@ from stable_baselines3.common.noise import (
 from stable_baselines3.common.logger import configure
 from stable_baselines3.common.callbacks import EvalCallback, CheckpointCallback
 
-from options import get_args
 from utils import (
     set_seed, configure_cudnn, load_json, get_logger,
     get_env, get_model, set_data_path, clean_data_path, FLAG_FILE_NAME
 )
+from utils.options import get_args
 from utils.sb3_callbacks import TqdmCallback
 
 
