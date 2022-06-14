@@ -1,12 +1,12 @@
 # Custom
 .DS_Store
+.vscode
 *.zip
 *.ipynb
+log/
 data/
+optuna/
 todo.md
-log/*
-data*/
-.vscode
 *.mp4
 
 # Byte-compiled / optimized / DLL files

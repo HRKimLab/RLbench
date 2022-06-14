@@ -101,7 +101,7 @@ def get_env(env_name, n_env, save_path, seed):
             raise ValueError(f"Given environment name [{env_name}] does not exist.")
     return env, eval_env
 
-def get_model(algo_name, env, hp, action_noise, seed):
+def get_algo(algo_name, env, hp, action_noise, seed):
     ALGO_LIST = {
         "a2c": A2C, "ddpg": DDPG, "dqn": DQN,
         "ppo": PPO, "sac": SAC, "td3": TD3,
