@@ -121,7 +121,10 @@ class HPOptimizer:
         """ Search best hyperparams """
 
         sampler = TPESampler()
-        pruner =  MedianPruner(n_warmup_steps=self.n_evaluations // 3)
+        pruner =  MedianPruner(
+            n_startup_trials=self.n_trials // 10,
+            n_warmup_steps=self.n_evaluations // 3
+        )
 
         try:
             study = optuna.create_study(

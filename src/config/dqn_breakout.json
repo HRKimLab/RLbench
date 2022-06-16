@@ -1,0 +1,20 @@
+{
+    "policy": "CnnPolicy",
+    "learning_rate": 1.0356621420763416e-05,
+    "buffer_size": 1000000,
+    "learning_starts": 0,
+    "batch_size": 16,
+    "tau": 1.0,
+    "gamma": 0.9,
+    "train_freq": 4,
+
+    "gradient_steps": 4,
+    "target_update_interval": 15000,
+    "exploration_fraction": 0.06430062802946426,
+    "exploration_initial_eps": 1.0,
+    "exploration_final_eps": 0.0002808907318322465,
+    "max_grad_norm": 10,
+    "policy_kwargs": {
+        "net_arch": [256, 256]
+    }
+}
