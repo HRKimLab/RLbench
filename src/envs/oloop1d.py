@@ -35,18 +35,15 @@ class OpenLoopStandard1DTrack(gym.Env):
             self.cws.append(140.)
             self.alphas.append(1.)
             if self.time >= 335:
-                reward = 5
+                reward = 10
             else:
                 reward = -3
         
         done = False
-        next_state = None
         if self.time == self.last_time - 1:
             done = True
-        else:
-            next_state = self.data[self.time, :, :, :]
-            self.state = next_state
-
+        next_state = self.data[self.time, :, :, :]
+        self.state = next_state
         info = {}
 
         return next_state, reward, done, info

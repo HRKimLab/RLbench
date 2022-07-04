@@ -17,6 +17,9 @@ from stable_baselines3 import A2C, DDPG, DQN, PPO, SAC, TD3
 from stable_baselines3.common.vec_env import VecFrameStack
 from stable_baselines3.common.env_util import make_vec_env, make_atari_env
 
+from envs import OpenLoopStandard1DTrack
+
+
 FLAG_FILE_NAME = "NOT_FINISHED"
 
 def set_seed(seed):
@@ -96,7 +99,10 @@ def get_env(env_name, n_env, save_path, seed):
         # env = DummyVecEnv([lambda: env])
     else:
         try:
-            env = import_module(f"envs.{env_name}")
+            if env_name == "OpenLoopStandard1DTrack":
+                env = OpenLoopStandard1DTrack()
+                eval_env = OpenLoopStandard1DTrack()
+            # env = import_module(f"envs.{env_name}")
         except ImportError:
             raise ValueError(f"Given environment name [{env_name}] does not exist.")
     return env, eval_env
