@@ -1,10 +1,11 @@
 import os
 import os.path as p
-import shutil
 import json
 import random
 import logging
+from shutil import rmtree
 from importlib import import_module
+from pathlib import Path
 from datetime import date
 
 import numpy as np
@@ -16,6 +17,8 @@ from stable_baselines3 import A2C, DDPG, DQN, PPO, SAC, TD3
 from stable_baselines3.common.vec_env import VecFrameStack
 from stable_baselines3.common.env_util import make_vec_env, make_atari_env
 
+FLAG_FILE_NAME = "NOT_FINISHED"
+
 def set_seed(seed):
     os.environ['PYTHONHASHSEED'] = str(seed)
     random.seed(seed)
@@ -23,7 +26,7 @@ def set_seed(seed):
     torch.manual_seed(seed)
     torch.cuda.manual_seed(seed)
 
-def configure_cudnn(debug):
+def configure_cudnn(debug=False):
     cudnn.enabled = True
     cudnn.benchmark = True
     if debug:
@@ -72,7 +75,7 @@ def get_env(env_name, n_env, save_path, seed):
                 env_name, n_envs=n_env,
                 seed=seed, monitor_dir=save_path
             )
-            env = VecFrameStack(env, n_stack=4) #TODO: set as a hyperparameter
+            env = VecFrameStack(env, n_stack=4)
             eval_env = make_atari_env(
                 env_name, n_envs=1,
                 seed=np.random.randint(0, 1000), monitor_dir=None
@@ -98,7 +101,7 @@ def get_env(env_name, n_env, save_path, seed):
             raise ValueError(f"Given environment name [{env_name}] does not exist.")
     return env, eval_env
 
-def get_model(algo_name, env, hp, action_noise, seed):
+def get_algo(algo_name, env, hp, action_noise, seed):
     ALGO_LIST = {
         "a2c": A2C, "ddpg": DDPG, "dqn": DQN,
         "ppo": PPO, "sac": SAC, "td3": TD3,
@@ -190,8 +193,12 @@ def set_data_path(algo_name, env_name, hp, seed):
 
     already_run = False
     if seed in seed_list.keys(): # Given setting had already been run
-        already_run = True
         data_path = p.join(data_path, seed_list[seed])
+        if not p.isfile(p.join(data_path, FLAG_FILE_NAME)):
+            already_run = True
+        else:
+            rmtree(data_path)
+            os.mkdir(data_path)
     else:
         seed_id = f"r{len(seed_list) + 1}"
         data_path = p.join(
@@ -203,17 +210,19 @@ def set_data_path(algo_name, env_name, hp, seed):
     return data_path, already_run
 
 def clean_data_path(target_path):
-    #TODO
-    # a1s1r1-0에 FLAG 있는지부터 확인 (있겠지만 사전체크)
-    #   있으면 a1s1r1-0 폴더 전체 삭제, 없으면 예외처리
-    # a1s1에 a1s1r1-* 가 있는지 확인
-    #   있으면 return
-    #   없으면 아래 과정
-    #       a1s1을 삭제
-    #       a1에 a1s*이 있는지 확인
-    #           있으면 return
-    #           없으면 아래 과정
-    #               a1을 삭제
-    # ENV까지 삭제하지는 않음.
+    target_path = Path(target_path)
+    flag_path = target_path / FLAG_FILE_NAME
 
-    pass
+    if (not p.isdir(target_path)) or (not p.isfile(flag_path)):
+        return
+
+    # Level-1
+    rmtree(target_path)
+
+    # Level-2, 3, 4
+    for _ in range(3):
+        target_path = target_path.parent
+        other_exists = [p.isdir(fd) for fd in target_path.iterdir()]
+        if any(other_exists):
+            return
+        rmtree(target_path)

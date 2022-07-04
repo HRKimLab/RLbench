@@ -10,7 +10,7 @@ import json
 from options import MAPPER_Y, get_args_envs
 
 def plot_algo(args):
-    """ Plot the data of different environments on y-axis
+    """ Plot the data of different algorithms with bar plot
     args: user arguments
     """
     with open('plot/BASELINE.json') as json_file:

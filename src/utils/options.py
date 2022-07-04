@@ -3,6 +3,7 @@
 import os
 import argparse
 from argparse import ArgumentTypeError
+from datetime import datetime
 
 # Pre-defined random seed
 # We won't generate random seeds with random generator in order to
@@ -22,7 +23,7 @@ def validate_args(args):
         raise ArgumentTypeError("Given configuration file name does not exist.")
 
 def get_args():
-    parser = argparse.ArgumentParser(description="Visualize the training/evaluation process")
+    parser = argparse.ArgumentParser(description="Arguments for training")
 
     # Required
     parser.add_argument(
@@ -35,7 +36,7 @@ def get_args():
         help="Algorithm name"
     )
     parser.add_argument(
-        '--hp', '-H', type=str,
+        '--hp', '-H', type=str, default=None,
         help="Hyperparameter configuration file name (./config/[FILE].json)"
     )
 
@@ -68,6 +69,10 @@ def get_args():
         default=None,
         help="Std. value of action noise"
     )
+    parser.add_argument(
+        '--save-freq', type=int, default=-1,
+        help="Per timesteps to save checkpoint (default:-1; Do not save checkpoint)"
+    )
 
     # Evaluation
     parser.add_argument(
@@ -87,18 +92,70 @@ def get_args():
         help="Path to save the data"
     )
 
-    # Debugging mode
-    parser.add_argument('--debug', dest='debug', action='store_true')
-    parser.add_argument('--no-debug', dest='debug', action='store_false')
-    parser.set_defaults(debug=False)
+    # Debug mode (not used now)
+    # parser.add_argument('--debug', dest='debug', action='store_true')
+    # parser.add_argument('--no-debug', dest='debug', action='store_false')
+    # parser.set_defaults(debug=False)
 
     args = parser.parse_args()
 
     # Post-processing for arguments
     args.algo == args.algo.lower()
     args.seed = SEEDS[:args.nseed]
-    args.hp = os.path.join(os.getcwd(), f"config/{args.hp}.json")
+    if args.hp is None:
+        args.hp = os.path.join(
+            os.getcwd(), 
+            "config", "default", f"{args.algo}.json"
+        )
+    else:
+        args.hp = os.path.join(
+            os.getcwd(),
+            "config", f"{args.hp}.json"
+        )
     validate_args(args)
+
+    return args
+
+def get_search_args():
+    parser = argparse.ArgumentParser(description="Arguments for hyperparameter tuning")
+
+    # Required
+    parser.add_argument(
+        '--env', '-E', type=str,
+        help="Environment name"
+    )
+    parser.add_argument(
+        '--algo', '-A', type=str,
+        choices=["a2c", "ddpg", "dqn", "ppo", "sac", "td3", "trpo"],
+        help="Algorithm name"
+    )
+    parser.add_argument(
+        '--nenv', type=int, default=1,
+        help="Number of processes for parallel execution (vectorized envs)"
+    )
+
+    # Optuna
+    parser.add_argument(
+        '--name', type=str, default=str(datetime.now()),
+        help="Study name"
+    )
+    parser.add_argument(
+        '--nstep', type=int, default=-1,
+        help="Number of timesteps to train"
+    )
+    parser.add_argument(
+        '--n-trials', type=int, default=1,
+        help="Number of trials for finding the best hyperparameters"
+    )
+    parser.add_argument(
+        '--save-path', '-S', type=str, default='../optuna',
+        help="Path to save the data"
+    )
+
+    args = parser.parse_args()
+
+    # Post-processing for arguments
+    args.algo == args.algo.lower()
 
     return args
 
