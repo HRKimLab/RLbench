@@ -3,6 +3,7 @@ import pickle
 import cv2
 import numpy as np
 
+RESULT_FILE_NAME = "frames"
 VIDEO_PATH = "VR_standard.mp4"
 RESIZED_WIDTH = 210
 RESIZED_HEIGHT = 160
@@ -26,5 +27,5 @@ capture.release()
 cv2.destroyAllWindows()
 
 frames = np.stack(frames, axis=0)
-with open("frames.pkl", "wb") as f:
+with open(f"{RESULT_FILE_NAME}.pkl", "wb") as f:
     pickle.dump(frames, f)

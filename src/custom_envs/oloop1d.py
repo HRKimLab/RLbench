@@ -81,26 +81,22 @@ class OpenLoopStandard1DTrack(gym.Env):
         rgb_array = self.state.copy()
         for _ in range(len(self.cws)):
             cw, alpha = self.cws.pop(0), self.alphas.pop(0)
-            cw, alpha, rgb_array = self._render_licking(rgb_array, ch, cw, alpha)
+            cw, alpha, rgb_array = self._render_single_lick(rgb_array, ch, cw, alpha)
             if alpha > 0:
                 self.cws.append(cw)
                 self.alphas.append(alpha)
         
         resized = cv2.resize(rgb_array, (600, 360), interpolation=cv2.INTER_CUBIC)
-        cv2.imshow("marked_img", resized)
+        cv2.imshow("licking", resized)
         cv2.waitKey(1)
-
-    def _load_data(self):
-        with open('custom_envs/frames.pkl','rb') as f:
-            data = pickle.load(f)
-        return data
 
     def _licking(self):
         self.licking_cnt += 1
         self.cws.append(140.)
         self.alphas.append(1.)
 
-    def _render_licking(self, img, ch, cw, alpha):
+    @staticmethod
+    def _render_single_lick(img, ch, cw, alpha):
         org = img.copy()
         cv2.line(img, (ch - 25, int(cw)), (ch + 25, int(cw)), (255, 255, 255), 2)
         overlay_img = cv2.addWeighted(img, alpha, org, 1 - alpha, 0)
@@ -108,3 +104,9 @@ class OpenLoopStandard1DTrack(gym.Env):
         alpha -= 0.01
 
         return cw, alpha, overlay_img
+
+    @staticmethod
+    def _load_data():
+        with open(f"custom_envs/track/oloop_standard_1d.pkl",'rb') as f:
+            data = pickle.load(f)
+        return data

@@ -5,6 +5,7 @@ import optuna
 from stable_baselines3.common.callbacks import BaseCallback, EvalCallback
 from stable_baselines3.common.vec_env import VecEnv
 
+
 class TqdmCallback(BaseCallback):
     """ Callback for utilizing tqdm
     ref: https://github.com/hill-a/stable-baselines/issues/297#issuecomment-877789711
@@ -23,6 +24,7 @@ class TqdmCallback(BaseCallback):
     def _on_training_end(self):
         self.progress_bar.close()
         self.progress_bar = None
+
 
 class TrialEvalCallback(EvalCallback):
     """
