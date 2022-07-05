@@ -38,14 +38,14 @@ def train(args):
 
         # Get env, model
         try:
+            env, eval_env = get_env(args.env, args.nenv, save_path, seed)
             action_noise = None
             if args.noise == "Normal":
-                assert model.action_space.__dict__.get('n') is None, \
+                assert env.action_space.__dict__.get('n') is None, \
                     "Cannot apply an action noise to the environment with a discrete action space."
                 action_noise = NormalActionNoise(args.noise_mean, args.noise_std)
                 if args.nenv != 1:
                     action_noise = VectorizedActionNoise(action_noise, args.nenv)
-            env, eval_env = get_env(args.env, args.nenv, save_path, seed)
             model = get_algo(args.algo, env, hp, action_noise, seed)
         except KeyboardInterrupt:
             clean_data_path(save_path)

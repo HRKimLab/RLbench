@@ -43,13 +43,10 @@ class OpenLoopStandard1DTrack(gym.Env):
         reward = 0
         if action == 1:
             self._licking()
-            if self.cur_time >= 335:
-                self.licking_cnt += 1
+            if self.cur_time >= 335 and self.licking_cnt <= 20:
                 reward = 10
-                if self.licking_cnt > 10:
-                    reward = -3
             else:
-                reward = -3
+                reward = -5
 
         # Done
         done = (self.cur_time == self.end_time)
@@ -99,6 +96,7 @@ class OpenLoopStandard1DTrack(gym.Env):
         return data
 
     def _licking(self):
+        self.licking_cnt += 1
         self.cws.append(140.)
         self.alphas.append(1.)
 
