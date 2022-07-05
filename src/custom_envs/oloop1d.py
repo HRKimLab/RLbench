@@ -7,18 +7,19 @@ from gym import spaces
 from random import randrange
 
 
-class OpenLoopStandard1DTrack(gym.Env):
+class OpenLoop1DTrack(gym.Env):
     """ Licking task in 1D open-loop track with mouse agent """
 
     metadata = {'render.modes': ['human']}
 
-    def __init__(self, visual_noise=False):
-        super(OpenLoopStandard1DTrack, self).__init__()
+    def __init__(self, water_spout, visual_noise=False):
+        super().__init__()
         self.action_space = spaces.Discrete(2)
         self.observation_space = spaces.Box(
             low=0, high=255, shape=(160, 210, 3), dtype=np.uint8
         )
 
+        self.water_spout = water_spout
         self.visual_noise = visual_noise #TODO
 
         self.data = self._load_data()
@@ -49,7 +50,7 @@ class OpenLoopStandard1DTrack(gym.Env):
         reward = 0
         if action == 1:
             self._licking()
-            if self.cur_time >= 335 and self.licking_cnt <= 20:
+            if (self.cur_time >= self.water_spout) and (self.licking_cnt <= 20):
                 reward = 10
             else:
                 reward = -5
@@ -118,6 +119,40 @@ class OpenLoopStandard1DTrack(gym.Env):
 
     @staticmethod
     def _load_data():
-        with open(f"custom_envs/track/oloop_standard_1d.pkl",'rb') as f:
+        raise NotImplementedError
+
+
+class OpenLoopStandard1DTrack(OpenLoop1DTrack):
+    """ Licking task in 1D open-loop track with mouse agent """
+
+    metadata = {'render.modes': ['human']}
+
+    def __init__(self, visual_noise=False):
+        super().__init__(
+            water_spout=335,
+            visual_noise=visual_noise
+        )
+
+    @staticmethod
+    def _load_data():
+        with open(f"custom_envs/track/oloop_standard_1d.pkl", "rb") as f:
+            data = pickle.load(f)
+        return data
+
+
+class OpenLoopTeleportLong1DTrack(OpenLoop1DTrack):
+    """ Licking task in 1D open-loop track with mouse agent """
+
+    metadata = {'render.modes': ['human']}
+
+    def __init__(self, visual_noise=False):
+        super().__init__(
+            water_spout=227,
+            visual_noise=visual_noise
+        )
+
+    @staticmethod
+    def _load_data():
+        with open("custom_envs/track/oloop_teleport_long_1d.pkl", "rb") as f:
             data = pickle.load(f)
         return data

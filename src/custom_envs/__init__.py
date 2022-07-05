@@ -1,4 +1,4 @@
-from .oloop1d import OpenLoopStandard1DTrack
+from .oloop1d import OpenLoopStandard1DTrack, OpenLoopTeleportLong1DTrack
 
 import gym
 import numpy as np
