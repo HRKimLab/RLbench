@@ -4,7 +4,7 @@ import time
 from stable_baselines3 import DQN
 from custom_envs import OpenLoopStandard1DTrack
 
-model_path = "../data/OpenLoopStandard1DTrack/a1/a1s1/a1s1r1-0/best_model.zip"
+model_path = "../data/OpenLoopStandard1DTrack/a1/a1s1/a1s1r2-42/best_model.zip"
 env = OpenLoopStandard1DTrack()
 
 model = DQN.load(model_path)

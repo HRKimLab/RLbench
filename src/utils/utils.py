@@ -4,7 +4,6 @@ import json
 import random
 import logging
 from shutil import rmtree
-from importlib import import_module
 from pathlib import Path
 from datetime import date
 
@@ -15,7 +14,7 @@ from gym import envs
 from sb3_contrib import ARS, QRDQN, TQC, TRPO
 from stable_baselines3 import A2C, DDPG, DQN, PPO, SAC, TD3
 from stable_baselines3.common.monitor import Monitor
-from stable_baselines3.common.vec_env import VecFrameStack, DummyVecEnv
+from stable_baselines3.common.vec_env import VecFrameStack
 from stable_baselines3.common.env_util import make_vec_env, make_atari_env
 
 from custom_envs import MaxAndSkipEnv, OpenLoopStandard1DTrack
@@ -101,9 +100,9 @@ def get_env(env_name, n_env, save_path, seed):
                 eval_env = OpenLoopStandard1DTrack()
             else:
                 raise ImportError
-            env = MaxAndSkipEnv(env, skip=8)
+            env = MaxAndSkipEnv(env, skip=4)
             env = Monitor(env, save_path)
-            eval_env = MaxAndSkipEnv(env, skip=8)
+            eval_env = MaxAndSkipEnv(env, skip=4)
         except ImportError:
             raise ValueError(f"Given environment name [{env_name}] does not exist.")
     return env, eval_env

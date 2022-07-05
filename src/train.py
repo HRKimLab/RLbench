@@ -10,14 +10,16 @@ from stable_baselines3.common.noise import (
     VectorizedActionNoise
 )
 from stable_baselines3.common.logger import configure
-from stable_baselines3.common.callbacks import EvalCallback, CheckpointCallback
+from stable_baselines3.common.callbacks import (
+    EvalCallback, CheckpointCallback
+)
 
 from utils import (
     set_seed, configure_cudnn, load_json, get_logger,
     get_env, get_algo, set_data_path, clean_data_path, FLAG_FILE_NAME
 )
 from utils.options import get_args
-from utils.sb3_callbacks import TqdmCallback
+from utils.sb3_callbacks import TqdmCallback, LickingTrackerCallback
 
 
 def train(args):
@@ -63,8 +65,9 @@ def train(args):
                 Path(os.path.join(save_path, FLAG_FILE_NAME)).touch()
 
                 print(f"[{i + 1}/{args.nseed}] Ready to train {i + 1}th agent - RANDOM SEED: {seed}")
+                is_licking_task = (args.env in ["OpenLoopStandard1DTrack"])
                 _train(
-                    model, args.nstep,
+                    model, args.nstep, is_licking_task,
                     eval_env, args.eval_freq, args.eval_eps, args.save_freq, save_path
                 )
                 del env, model
@@ -77,7 +80,7 @@ def train(args):
 
 
 def _train(
-    model, nstep,
+    model, nstep, is_licking_task,
     eval_env, eval_freq, eval_eps, save_freq, save_path
 ):
     """ Train with single seed """
@@ -105,6 +108,12 @@ def _train(
             name_prefix='rl_model'
         )
         callbacks.append(checkpoint_callback)
+    if is_licking_task:
+        licking_tracker_callback = LickingTrackerCallback(
+            env=model.env,
+            save_path=save_path
+        )
+        callbacks.append(licking_tracker_callback)
 
     # Training
     model.learn(

@@ -31,6 +31,10 @@ class OpenLoopStandard1DTrack(gym.Env):
         self.cws = []
         self.alphas = []
 
+        # For plotting
+        self.lick_timing = []
+        self.lick_timing_eps = []
+
     def step(self, action):
         # Execute one time step within the environment
         self.cur_time += 1
@@ -53,10 +57,11 @@ class OpenLoopStandard1DTrack(gym.Env):
 
         # Info
         info = {
-            "start_time": self.start_time,
             "cur_time": self.cur_time,
+            "start_time": self.start_time,
             "end_time": self.end_time,
-            "licking_cnt": self.licking_cnt
+            "licking_cnt": self.licking_cnt,
+            "lick_timing_eps": self.lick_timing_eps
         }
 
         return next_state, reward, done, info
@@ -71,6 +76,9 @@ class OpenLoopStandard1DTrack(gym.Env):
 
         self.cws = []
         self.alphas = []
+
+        self.lick_timing.append(self.lick_timing_eps)
+        self.lick_timing_eps = []
 
         return self.state
 
@@ -94,6 +102,7 @@ class OpenLoopStandard1DTrack(gym.Env):
         self.licking_cnt += 1
         self.cws.append(140.)
         self.alphas.append(1.)
+        self.lick_timing_eps.append(self.cur_time)
 
     @staticmethod
     def _render_single_lick(img, ch, cw, alpha):

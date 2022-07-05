@@ -1,7 +1,9 @@
+import os
+import pickle
 from typing import Optional
 
-from tqdm import tqdm
 import optuna
+from tqdm import tqdm
 from stable_baselines3.common.callbacks import BaseCallback, EvalCallback
 from stable_baselines3.common.vec_env import VecEnv
 
@@ -16,7 +18,7 @@ class TqdmCallback(BaseCallback):
     
     def _on_training_start(self):
         self.progress_bar = tqdm(total=self.locals['total_timesteps'])
-    
+
     def _on_step(self):
         self.progress_bar.update(1)
         return True
@@ -68,3 +70,18 @@ class TrialEvalCallback(EvalCallback):
                 self.is_pruned = True
                 return False
         return True
+
+
+class LickingTrackerCallback(BaseCallback):
+    """ Callback for tracking a licking behavior """
+    def __init__(self, env, save_path):
+        super().__init__()
+        self.env = env
+        self.save_path = save_path
+
+    def _on_step(self):
+        return True
+
+    def _on_training_end(self):
+        with open(os.path.join(self.save_path, "lick_timing.pkl"), "wb") as f:
+            pickle.dump(self.env.get_attr("lick_timing")[0], f)
