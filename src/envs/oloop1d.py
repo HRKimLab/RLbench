@@ -24,6 +24,7 @@ class OpenLoopStandard1DTrack(gym.Env):
         self.last_time = self.data.shape[0]
         self.time = randrange(50)
         self.state = self.data[self.time, :, :, :]
+        self.count = 0
         self.cws = []
         self.alphas = []
 
@@ -35,7 +36,10 @@ class OpenLoopStandard1DTrack(gym.Env):
             self.cws.append(140.)
             self.alphas.append(1.)
             if self.time >= 335:
+                self.count += 1
                 reward = 10
+                if self.count > 10:
+                    reward = -3
             else:
                 reward = -3
         
