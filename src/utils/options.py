@@ -32,7 +32,7 @@ def get_args():
     )
     parser.add_argument(
         '--algo', '-A', type=str,
-        choices=["a2c", "ddpg", "dqn", "ppo", "sac", "td3", "trpo"],
+        choices=["a2c", "ddpg", "dqn", "ppo", "sac", "td3", "trpo", "qrdqn"],
         help="Algorithm name"
     )
     parser.add_argument(
@@ -126,7 +126,7 @@ def get_search_args():
     )
     parser.add_argument(
         '--algo', '-A', type=str,
-        choices=["a2c", "ddpg", "dqn", "ppo", "sac", "td3", "trpo"],
+        choices=["a2c", "ddpg", "dqn", "ppo", "sac", "td3", "trpo", "qrdqn"],
         help="Algorithm name"
     )
     parser.add_argument(

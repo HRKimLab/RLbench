@@ -1,5 +1,4 @@
 import pickle
-from tkinter.filedialog import Open
 
 import cv2
 import numpy as np
@@ -13,12 +12,14 @@ class OpenLoopStandard1DTrack(gym.Env):
 
     metadata = {'render.modes': ['human']}
 
-    def __init__(self):
+    def __init__(self, visual_noise=False):
         super(OpenLoopStandard1DTrack, self).__init__()
         self.action_space = spaces.Discrete(2)
         self.observation_space = spaces.Box(
             low=0, high=255, shape=(160, 210, 3), dtype=np.uint8
         )
+
+        self.visual_noise = visual_noise #TODO
 
         self.data = self._load_data()
         self.cur_time = randrange(50) # Remove time-bias
@@ -41,6 +42,7 @@ class OpenLoopStandard1DTrack(gym.Env):
 
         # Next state
         next_state = self.data[self.cur_time, :, :, :]
+        # if self.visual_noise: #TODO
         self.state = next_state
 
         # Reward
