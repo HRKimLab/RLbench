@@ -17,7 +17,7 @@ from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.vec_env import VecFrameStack
 from stable_baselines3.common.env_util import make_vec_env, make_atari_env
 
-from custom_envs import MaxAndSkipEnv, OpenLoopStandard1DTrack
+from custom_envs import MaxAndSkipEnv, OpenLoopStandard1DTrack, OpenLoopTeleportLong1DTrack
 
 
 FLAG_FILE_NAME = "NOT_FINISHED"
@@ -98,6 +98,9 @@ def get_env(env_name, n_env, save_path, seed):
             if env_name == "OpenLoopStandard1DTrack":
                 env = OpenLoopStandard1DTrack()
                 eval_env = OpenLoopStandard1DTrack()
+            elif env_name == "OpenLoopTeleportLong1DTrack":
+                env = OpenLoopTeleportLong1DTrack()
+                eval_env = OpenLoopTeleportLong1DTrack()
             else:
                 raise ImportError
             env = MaxAndSkipEnv(env, skip=4)
