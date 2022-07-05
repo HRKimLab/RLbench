@@ -14,10 +14,11 @@ from torch.backends import cudnn
 from gym import envs
 from sb3_contrib import ARS, QRDQN, TQC, TRPO
 from stable_baselines3 import A2C, DDPG, DQN, PPO, SAC, TD3
-from stable_baselines3.common.vec_env import VecFrameStack
+from stable_baselines3.common.monitor import Monitor
+from stable_baselines3.common.vec_env import VecFrameStack, DummyVecEnv
 from stable_baselines3.common.env_util import make_vec_env, make_atari_env
 
-from envs import OpenLoopStandard1DTrack
+from custom_envs import OpenLoopStandard1DTrack
 
 
 FLAG_FILE_NAME = "NOT_FINISHED"
@@ -93,16 +94,17 @@ def get_env(env_name, n_env, save_path, seed):
                 env_name, n_envs=1,
                 seed=np.random.randint(0, 1000), monitor_dir=None
             )
-        # Legacy
-        ## env = gym.make(env_name)
-        # env = Monitor(env, save_path)
-        # env = DummyVecEnv([lambda: env])
     else:
         try:
             if env_name == "OpenLoopStandard1DTrack":
                 env = OpenLoopStandard1DTrack()
                 eval_env = OpenLoopStandard1DTrack()
-            # env = import_module(f"envs.{env_name}")
+            else:
+                raise ImportError
+            env = DummyVecEnv([lambda: Monitor(env, save_path)])
+            env = VecFrameStack(env, n_stack=8)
+            eval_env = DummyVecEnv([lambda: Monitor(eval_env, save_path)])
+            eval_env = VecFrameStack(env, n_stack=8)
         except ImportError:
             raise ValueError(f"Given environment name [{env_name}] does not exist.")
     return env, eval_env
