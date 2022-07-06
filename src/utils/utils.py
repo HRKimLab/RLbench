@@ -103,9 +103,9 @@ def get_env(env_name, n_env, save_path, seed):
                 eval_env = OpenLoopTeleportLong1DTrack()
             else:
                 raise ImportError
-            env = MaxAndSkipEnv(env, skip=4)
+            env = MaxAndSkipEnv(env, skip=5) # Mouse can lick about 8 times per second, 40 (frames) / 5 (skipping).
             env = Monitor(env, save_path)
-            eval_env = MaxAndSkipEnv(env, skip=4)
+            eval_env = MaxAndSkipEnv(env, skip=5)
         except ImportError:
             raise ValueError(f"Given environment name [{env_name}] does not exist.")
     return env, eval_env

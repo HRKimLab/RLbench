@@ -1,49 +1,84 @@
+import os
+from pathlib import Path
+from datetime import date
+
+import numpy as np
 import pandas as pd 
 import matplotlib.pyplot as plt
-import numpy as np
-import os
 
-from options import get_args
+from options import get_args_licking
 
+LICK_PER_SEC = 8
 WINDOW_SIZE = 5
+TRACK_LEN = {
+    "OpenLoopStandard1DTrack": 459,
+    "OpenLoopTeleportLong1DTrack": 388
+}
+SPOUT_TIME = {
+    "OpenLoopStandard1DTrack": 335,
+    "OpenLoopTeleportLong1DTrack": 227
+}
 
 def plot_licking(args):
-    file_paths = []
-    data_path = args.data_path
-    data_path = os.path.abspath(os.path.join(os.getcwd(), os.pardir, 'data' if data_path is None else data_path))
-    for (root_dir, _, files) in os.walk(os.path.join(data_path, args.env)):
-        for file in files:
-            if "lick_timing.pkl" in file:
-                file_path = os.path.join(root_dir, file)
-                file_paths.append(file_path)
+    """ Plot the behavior (licking) data of mouse agent """
 
-    agent = args.agents[0]
-    for file in file_paths:
-        if agent in file:
-            obj = pd.read_pickle(file)
-            data = np.zeros((len(obj), 459))
+    date_today = date.today().isoformat()
+    track_len = TRACK_LEN[args.env]
+    spout_time = SPOUT_TIME[args.env]
 
-            fig, axs = plt.subplots(2, 1)
-            for i, l in enumerate(obj):
-                x = l[::5]
-                y = [i] * len(x)
+    data_path = Path(os.path.abspath(os.path.join(os.getcwd(), os.pardir, 'data')))
+    data_path = data_path / args.env
 
-                axs[0].scatter(x, y, color='black', s=1)
-                data[i, x] = 1
+    try:
+        for _ in range(2):
+            dir_list = os.listdir(data_path)
+            for dir_name in dir_list:
+                if dir_name in args.agent:
+                    data_path /= dir_name
+                    break
 
-            line_y = []
-            for i in range(459 - WINDOW_SIZE):
-                    # print(data[:, i:i+WINDOW_SIZE])
-                line_y.append(data[:, i:i+WINDOW_SIZE].sum().sum() / WINDOW_SIZE)
-            axs[1].plot(line_y)
+        dir_list = os.listdir(data_path)
+        for dir_name in dir_list:
+            if args.agent in dir_name:
+                data_path /= dir_name
+                break
+    except:
+        raise FileNotFoundError("Given agent name is not found.")
 
-            axs[0].axvline(x=335, color='r', linestyle='-')
-            axs[0].invert_yaxis()
-            plt.show()
+    data_path /= "lick_timing.pkl"
 
+    licking_data = pd.read_pickle(data_path)
+    data = np.zeros((len(licking_data), track_len))
+
+    # Dotplot
+    fig, (ax1, ax2) = plt.subplots(nrows=2, sharex=True)
+    for i, l in enumerate(licking_data):
+        x = l[::5]
+        y = [i] * len(x)
+
+        ax1.scatter(x, y, color='black', s=1)
+        data[i, x] = 1
+    ax1.set_title("Lick")
+    ax1.axvline(x=spout_time, color='r', linestyle='-')
+    ax1.get_xaxis().set_visible(False)
+    ax1.invert_yaxis()
+
+    # Lineplot
+    line_y = []
+    for i in range(track_len - LICK_PER_SEC):
+        half_window = LICK_PER_SEC // 2
+        line_y.append(data[:, i-half_window:i+half_window].sum() // LICK_PER_SEC)
+    ax2.plot(line_y)
+    ax2.set_xlabel("Time (40fps)", fontsize=10)
+    ax2.set_ylabel("Lick (licks/s)", fontsize=10)
+    ax2.axvline(x=spout_time, color='r', linestyle='-')
+
+    fig.suptitle(f"{args.agent} / {args.env} / {date_today}")
+    plt.subplots_adjust(wspace=0, hspace=0)
+    plt.show()
 
 if __name__ == "__main__":
-    args = get_args()
+    args = get_args_licking()
     print(args)
+
     plot_licking(args)
-    plt.show()

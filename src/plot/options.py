@@ -18,11 +18,10 @@ def str2list(s):
     return list(map(lambda x: x.strip(), s[1:-1].split(',')))
 
 def get_args():
-    parser = argparse.ArgumentParser(description="Visualize the training/evaluation process")
+    parser = argparse.ArgumentParser(description="Plot the target data")
     parser.add_argument(
         '--env', '-E', type=str,
-        #choices=['LunarLanderContinuous-v2'],
-        help="Environment name; Available: (LunarLanderContinuous-v2)"
+        help="Environment name"
     )
     parser.add_argument(
         '--agents', '-A', type=str2list,
@@ -62,14 +61,14 @@ def get_args():
     return args
 
 def get_args_envs():
-    parser = argparse.ArgumentParser(description="Visualize the training/evaluation process")
+    parser = argparse.ArgumentParser(description="Plot the target data")
     parser.add_argument(
         '--env', '-E', type=str2list,
         default = [],
         help="Environment name"
     )
     parser.add_argument(
-        '--agent', '-A', type=str2list,
+        '--agent', '-A', type=str,
         help="Agent to plot (specify the agent numbers)"
     )
     parser.add_argument(
@@ -93,7 +92,21 @@ def get_args_envs():
     args = parser.parse_args()
 
     return args
-    
+
+def get_args_licking():
+    parser = argparse.ArgumentParser(description="Plot the target data")
+    parser.add_argument(
+        '--env', '-E', type=str,
+        help="Environment name"
+    )
+    parser.add_argument(
+        '--agent', '-A', type=str,
+        help="Agent to plot (specify the agent numbers)"
+    )
+
+    args = parser.parse_args()
+
+    return args
 
 if __name__ == "__main__":
     args = get_args()

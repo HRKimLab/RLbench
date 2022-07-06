@@ -1,23 +1,83 @@
 """ Rendering """
+import os
 import time
+import argparse
+from pathlib import Path
 
+from sb3_contrib import QRDQN
 from stable_baselines3 import DQN
-from custom_envs import OpenLoopStandard1DTrack
+from custom_envs import OpenLoopStandard1DTrack, OpenLoopTeleportLong1DTrack
 
-model_path = "../data/OpenLoopStandard1DTrack/a1/a1s1/a1s1r2-42/best_model.zip"
-env = OpenLoopStandard1DTrack()
+ENV = {
+    "OpenLoopStandard1DTrack": OpenLoopStandard1DTrack,
+    "OpenLoopTeleportLong1DTrack": OpenLoopTeleportLong1DTrack
+}
+ALGO = {
+    "dqn": DQN,
+    "qrdqn": QRDQN
+}
 
-model = DQN.load(model_path)
+def get_render_args():
+    parser = argparse.ArgumentParser(description="Required for rendering")
+    parser.add_argument(
+        '--env', '-E', type=str,
+        choices=['OpenLoopStandard1DTrack', 'OpenLoopTeleportLong1DTrack']
+    )
+    parser.add_argument(
+        '--agent', '-A', type=str
+    )
+    parser.add_argument(
+        '--algo', type=str,
+        choices=['dqn', 'qrdqn']
+    )
+    args = parser.parse_args()
 
-for _ in range(1):
-    total_reward = 0
-    state = env.reset()
-    while True:
-        action, _ = model.predict(state)
-        state, reward, done, _ = env.step(action)
-        total_reward += reward
-        if done:
-            break
-        time.sleep(.005)
-        env.render()
-    print(f"Total reward: {total_reward}")
+    return args
+
+def get_model_path(args):
+    model_path = Path(os.path.abspath(os.path.join(os.getcwd(), os.pardir, 'data')))
+    model_path = model_path / args.env
+
+    try:
+        for _ in range(2):
+            dir_list = os.listdir(model_path)
+            for dir_name in dir_list:
+                if dir_name in args.agent:
+                    model_path /= dir_name
+                    break
+
+        dir_list = os.listdir(model_path)
+        for dir_name in dir_list:
+            if args.agent in dir_name:
+                model_path /= dir_name
+                break
+    except:
+        raise FileNotFoundError("Given agent name is not found.")
+
+    model_path /= "best_model.zip"
+
+    return model_path
+
+def render_single(args):
+    model_path = get_model_path(args)
+    env = ENV[args.env]()
+    model = ALGO[args.algo].load(model_path)
+
+    for _ in range(1):
+        total_reward = 0
+        state = env.reset()
+        while True:
+            action, _ = model.predict(state)
+            state, reward, done, _ = env.step(action)
+            total_reward += reward
+            if done:
+                break
+            time.sleep(.005)
+            env.render()
+        print(f"Total reward: {total_reward}")
+
+if __name__ == "__main__":
+    args = get_render_args()
+    print(args)
+
+    render_single(args)
