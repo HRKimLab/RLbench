@@ -15,11 +15,19 @@ ENV = {
 def get_render_args():
     parser = argparse.ArgumentParser(description="Required for rendering")
     parser.add_argument(
-        '--env', '-E', type=str,
+        '--src-env', '-S', type=str,
+        choices=['OpenLoopStandard1DTrack', 'OpenLoopTeleportLong1DTrack']
+    )
+    parser.add_argument(
+        '--dst-env', '-D', type=str,
         choices=['OpenLoopStandard1DTrack', 'OpenLoopTeleportLong1DTrack']
     )
     parser.add_argument(
         '--agent', '-A', type=str
+    )
+    parser.add_argument(
+        '--mode', '-M', type=str,
+        choices=['human', 'gif']
     )
     args = parser.parse_args()
 
@@ -27,7 +35,7 @@ def get_render_args():
 
 def get_model_path(args):
     model_path = Path(os.path.abspath(os.path.join(os.getcwd(), os.pardir, 'data')))
-    model_path = model_path / args.env
+    model_path = model_path / args.src_env
 
     try:
         for _ in range(2):
@@ -51,7 +59,7 @@ def get_model_path(args):
 
 def render_single(args):
     model_path = get_model_path(args)
-    env = ENV[args.env]()
+    env = ENV[args.dst_env]()
     _, model_class = get_algo_from_agent(args.agent, model_path.parent)
     model = model_class.load(model_path)
 
@@ -65,8 +73,12 @@ def render_single(args):
             if done:
                 break
             time.sleep(.005)
-            env.render()
+            env.render(mode=args.mode)
         print(f"Total reward: {total_reward}")
+
+    if args.mode == 'gif':
+        env.save_gif()
+    env.close()
 
 if __name__ == "__main__":
     args = get_render_args()

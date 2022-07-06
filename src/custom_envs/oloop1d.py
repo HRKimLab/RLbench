@@ -3,6 +3,7 @@ import pickle
 import cv2
 import numpy as np
 import gym
+import imageio
 from gym import spaces
 from random import randrange
 
@@ -10,7 +11,7 @@ from random import randrange
 class OpenLoop1DTrack(gym.Env):
     """ Licking task in 1D open-loop track with mouse agent """
 
-    metadata = {'render.modes': ['human']}
+    metadata = {'render.modes': ['human', 'gif']}
 
     def __init__(self, water_spout, visual_noise=False):
         super().__init__()
@@ -30,8 +31,8 @@ class OpenLoop1DTrack(gym.Env):
         self.licking_cnt = 0
 
         # For rendering
-        self.cws = []
-        self.alphas = []
+        self.bar_states = []
+        self.frames = []
 
         # For plotting
         self.lick_timing = []
@@ -67,6 +68,10 @@ class OpenLoop1DTrack(gym.Env):
             "lick_timing_eps": self.lick_timing_eps
         }
 
+        # Water Spout rendering
+        if self.cur_time == self.water_spout:
+            self.bar_states.append((140., 1., True))
+
         return next_state, reward, done, info
 
     def reset(self):
@@ -77,8 +82,7 @@ class OpenLoop1DTrack(gym.Env):
         self.state = self.data[self.cur_time, :, :, :]
         self.licking_cnt = 0
 
-        self.cws = []
-        self.alphas = []
+        self.bar_states = []
 
         self.lick_timing.append(self.lick_timing_eps)
         self.lick_timing_eps = []
@@ -90,27 +94,37 @@ class OpenLoop1DTrack(gym.Env):
         ch = 160
 
         rgb_array = self.state.copy()
-        for _ in range(len(self.cws)):
-            cw, alpha = self.cws.pop(0), self.alphas.pop(0)
-            cw, alpha, rgb_array = self._render_single_lick(rgb_array, ch, cw, alpha)
+        for _ in range(len(self.bar_states)):
+            cw, alpha, is_spout = self.bar_states.pop(0)
+            cw, alpha, rgb_array = self._render_single_bar(
+                rgb_array, ch, cw, alpha, 
+                color='red' if is_spout else 'white'
+            )
             if alpha > 0:
-                self.cws.append(cw)
-                self.alphas.append(alpha)
+                self.bar_states.append((cw, alpha, is_spout))
         
         resized = cv2.resize(rgb_array, (600, 360), interpolation=cv2.INTER_CUBIC)
-        cv2.imshow("licking", resized)
-        cv2.waitKey(1)
+        if mode == 'human':
+            cv2.imshow("licking", resized)
+            cv2.waitKey(1)
+        elif mode == 'gif':
+            self.frames.append(cv2.cvtColor(resized, cv2.COLOR_BGR2RGB))
+
+    def save_gif(self):
+        imageio.mimsave('video.gif', self.frames, fps=60)
 
     def _licking(self):
         self.licking_cnt += 1
-        self.cws.append(140.)
-        self.alphas.append(1.)
+        self.bar_states.append((140., 1., False))
         self.lick_timing_eps.append(self.cur_time)
 
     @staticmethod
-    def _render_single_lick(img, ch, cw, alpha):
+    def _render_single_bar(img, ch, cw, alpha, color):
         org = img.copy()
-        cv2.line(img, (ch - 25, int(cw)), (ch + 25, int(cw)), (255, 255, 255), 2)
+        cv2.line(
+            img, (ch - 25, int(cw)), (ch + 25, int(cw)), 
+            (255, 255, 255) if color == 'white' else (0, 0, 255), 1
+        )
         overlay_img = cv2.addWeighted(img, alpha, org, 1 - alpha, 0)
         cw -= 0.25
         alpha -= 0.01
