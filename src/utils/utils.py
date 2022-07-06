@@ -19,8 +19,12 @@ from stable_baselines3.common.env_util import make_vec_env, make_atari_env
 
 from custom_envs import MaxAndSkipEnv, OpenLoopStandard1DTrack, OpenLoopTeleportLong1DTrack
 
-
 FLAG_FILE_NAME = "NOT_FINISHED"
+ALGO_LIST = {
+    "a2c": A2C, "ddpg": DDPG, "dqn": DQN,
+    "ppo": PPO, "sac": SAC, "td3": TD3,
+    "ars": ARS, "qrdqn": QRDQN, "tqc": TQC, "trpo": TRPO,
+}
 
 def set_seed(seed):
     os.environ['PYTHONHASHSEED'] = str(seed)
@@ -111,12 +115,6 @@ def get_env(env_name, n_env, save_path, seed):
     return env, eval_env
 
 def get_algo(algo_name, env, hp, action_noise, seed):
-    ALGO_LIST = {
-        "a2c": A2C, "ddpg": DDPG, "dqn": DQN,
-        "ppo": PPO, "sac": SAC, "td3": TD3,
-        "ars": ARS, "qrdqn": QRDQN, "tqc": TQC, "trpo": TRPO,
-    }
-
     if algo_name not in ALGO_LIST:
         raise ValueError(f"Given algorithm name [{algo_name}] does not exist.")
 
@@ -235,3 +233,12 @@ def clean_data_path(target_path):
         if any(other_exists):
             return
         rmtree(target_path)
+
+def get_algo_from_agent(agent_name, agent_path):
+    policy_cfg_path = Path(agent_path).parent.parent / "policy.json"
+    with open(policy_cfg_path, "r") as f:
+        policy_cfg = json.load(f)
+    algo_name = policy_cfg["algorithm"]
+    model = ALGO_LIST[algo_name]
+
+    return algo_name, model

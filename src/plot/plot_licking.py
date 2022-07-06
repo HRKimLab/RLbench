@@ -1,4 +1,7 @@
 import os
+import sys
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from pathlib import Path
 from datetime import date
 
@@ -6,8 +9,10 @@ import numpy as np
 import pandas as pd 
 import matplotlib.pyplot as plt
 
+from utils import get_algo_from_agent
 from options import get_args_licking
 
+FPS = 39.214 
 LICK_PER_SEC = 8
 WINDOW_SIZE = 5
 TRACK_LEN = {
@@ -73,7 +78,8 @@ def plot_licking(args):
     ax2.set_ylabel("Lick (licks/s)", fontsize=10)
     ax2.axvline(x=spout_time, color='r', linestyle='-')
 
-    fig.suptitle(f"{args.agent} / {args.env} / {date_today}")
+    algo_name, _ = get_algo_from_agent(args.agent, data_path.parent)
+    fig.suptitle(f"{args.agent} ({algo_name.upper()}) / {args.env} / {date_today}")
     plt.subplots_adjust(wspace=0, hspace=0)
     plt.show()
 

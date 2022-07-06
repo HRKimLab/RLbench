@@ -7,5 +7,6 @@ from .utils import (
     get_algo,
     set_data_path,
     clean_data_path,
+    get_algo_from_agent,
     FLAG_FILE_NAME
 )

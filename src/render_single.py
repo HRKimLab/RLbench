@@ -6,15 +6,13 @@ from pathlib import Path
 
 from sb3_contrib import QRDQN
 from stable_baselines3 import DQN
+
+from utils import get_algo_from_agent
 from custom_envs import OpenLoopStandard1DTrack, OpenLoopTeleportLong1DTrack
 
 ENV = {
     "OpenLoopStandard1DTrack": OpenLoopStandard1DTrack,
     "OpenLoopTeleportLong1DTrack": OpenLoopTeleportLong1DTrack
-}
-ALGO = {
-    "dqn": DQN,
-    "qrdqn": QRDQN
 }
 
 def get_render_args():
@@ -25,10 +23,6 @@ def get_render_args():
     )
     parser.add_argument(
         '--agent', '-A', type=str
-    )
-    parser.add_argument(
-        '--algo', type=str,
-        choices=['dqn', 'qrdqn']
     )
     args = parser.parse_args()
 
@@ -61,7 +55,8 @@ def get_model_path(args):
 def render_single(args):
     model_path = get_model_path(args)
     env = ENV[args.env]()
-    model = ALGO[args.algo].load(model_path)
+    _, model_class = get_algo_from_agent(args.agent, model_path.parent)
+    model = model_class.load(model_path)
 
     for _ in range(1):
         total_reward = 0
