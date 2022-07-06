@@ -4,9 +4,6 @@ import time
 import argparse
 from pathlib import Path
 
-from sb3_contrib import QRDQN
-from stable_baselines3 import DQN
-
 from utils import get_algo_from_agent
 from custom_envs import OpenLoopStandard1DTrack, OpenLoopTeleportLong1DTrack
 
