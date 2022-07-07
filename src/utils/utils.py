@@ -156,7 +156,7 @@ def set_data_path(algo_name, env_name, hp, seed):
 
     if agent_id is None: # Not found
         agent_id = "a1" if len(agent_list) == 0 \
-            else f"a{max(map(lambda x: int(x.lstrip('a')), agent_list)) + 1}"
+            else f"a{max(map(lambda x: int(x.split('a')[-1]), agent_list)) + 1}"
         data_path = p.join(data_path, agent_id)
         if p.exists(data_path):
             raise FileExistsError(
@@ -180,7 +180,7 @@ def set_data_path(algo_name, env_name, hp, seed):
 
     if session_id is None: # Not found
         session_id = "s1" if len(session_list) == 0 \
-            else f"{max(map(lambda x: int(x.lstrip(agent_id + 's')), session_list)) + 1}"
+            else f"s{max(map(lambda x: int(x.split('s')[-1]), session_list)) + 1}"
         data_path = p.join(data_path, agent_id + session_id)
         if p.exists(data_path):
             raise FileExistsError(
