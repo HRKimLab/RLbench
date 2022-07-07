@@ -59,7 +59,7 @@ def get_model_path(args):
 
 def render_single(args):
     model_path = get_model_path(args)
-    env = ENV[args.dst_env]()
+    env = ENV[args.dst_env if (args.dst_env is not None) else args.src_env]()
     _, model_class = get_algo_from_agent(args.agent, model_path.parent)
     model = model_class.load(model_path)
 

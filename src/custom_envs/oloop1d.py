@@ -126,7 +126,7 @@ class OpenLoop1DTrack(gym.Env):
             (255, 255, 255) if color == 'white' else (0, 0, 255), 1
         )
         overlay_img = cv2.addWeighted(img, alpha, org, 1 - alpha, 0)
-        cw -= 0.25
+        cw -= 0.7
         alpha -= 0.01
 
         return cw, alpha, overlay_img
