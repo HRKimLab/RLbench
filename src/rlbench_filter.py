@@ -143,10 +143,9 @@ from stable_baselines3 import DQN, A2C, PPO
 import matplotlib.pyplot as plt
 import torch.nn as nn
 
-#model = DQN.load("/home/neurlab-dl1/workspace/RLbench/data/ALE/Breakout-v5/a3/a3s1/a3s1r1-0/rl_model_1000000_steps.zip")
-model = DQN.load("/home/neurlab-dl1/workspace/RLbench/data/ALE/Breakout-v5/a3/a3s1/a3s1r1-0/best_model.zip")
+model = DQN.load("/home/neurlab/yw/RLbench/data/ALE/Breakout-v5/a3/a3s1/a3s1r1-0/rl_model_1000000_steps.zip")
+#model = DQN.load("/home/neurlab/yw/RLbench/data/ALE/Breakout-v5/a3/a3s1/a3s1r1-0/best_model.zip")
 q_values = model.q_net_target
-print(q_values)
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 model = q_values.to(device)
 #print(model)
@@ -155,29 +154,30 @@ conv_layers = []
 list_model_children = []
 counter = 0
 model_children = list(model.children())
-for c in model_children:
-    model_children_2 = list(c.children())
-    for i in range(len(model_children_2)):
-        if type(model_children_2[i]) == nn.Conv2d:
-            counter+=1
-            model_weights.append(model_children_2[i].weight)
-            conv_layers.append(model_children_2[i])
-        elif type(model_children_2[i]) == torch.nn.modules.container.Sequential:
-            for j in range(len(model_children_2[i])):
-                if type(model_children_2[i][j]) == torch.nn.modules.conv.Conv2d:
-                    counter+=1
-                    model_weights.append(model_children_2[i][j].weight)
-                    conv_layers.append(model_children_2[i][j])
-    print(f"Total convolution layers: {counter}")
-    print(conv_layers)
-    
-    for weights in model_weights:
-        plt.figure(figsize=(20, 17))
-        for i, filter in enumerate(weights):
-            plt.subplot(8, 8, i+1) 
-            plt.imshow(filter[0, :, :].cpu().detach(), cmap='gray')
-            plt.axis('off')
-        plt.show()
+# for c in model_children:
+#     model_children_2 = list(c.children())
+model_children_2 = list(model_children[0].children())
+for i in range(len(model_children_2)):
+    if type(model_children_2[i]) == nn.Conv2d:
+        counter+=1
+        model_weights.append(model_children_2[i].weight)
+        conv_layers.append(model_children_2[i])
+    elif type(model_children_2[i]) == torch.nn.modules.container.Sequential:
+        for j in range(len(model_children_2[i])):
+            if type(model_children_2[i][j]) == torch.nn.modules.conv.Conv2d:
+                counter+=1
+                model_weights.append(model_children_2[i][j].weight)
+                conv_layers.append(model_children_2[i][j])
+print(f"Total convolution layers: {counter}")
+print(conv_layers)
+
+for weights in model_weights:
+    plt.figure(figsize=(20, 17))
+    for i, filter in enumerate(weights):
+        plt.subplot(8, 8, i+1) 
+        plt.imshow(filter[0, :, :].cpu().detach(), cmap='gray')
+        plt.axis('off')
+    plt.show()
 
 
 
