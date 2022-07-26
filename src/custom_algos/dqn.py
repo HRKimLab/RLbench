@@ -11,8 +11,7 @@ from stable_baselines3.common.policies import BasePolicy
 from stable_baselines3.common.preprocessing import maybe_transpose
 from stable_baselines3.common.type_aliases import GymEnv, MaybeCallback, Schedule
 from stable_baselines3.common.utils import get_linear_fn, is_vectorized_observation, polyak_update
-
-from .policies import CnnPolicy, DQNPolicy, MlpPolicy, MultiInputPolicy
+from stable_baselines3.dqn.policies import CnnPolicy, DQNPolicy, MlpPolicy, MultiInputPolicy
 
 
 class CustomDQN(OffPolicyAlgorithm):

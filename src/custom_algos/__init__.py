@@ -1,1 +1,1 @@
-from .dqn.dqn import CustomDQN
+from .dqn import CustomDQN
