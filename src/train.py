@@ -30,6 +30,7 @@ def train(args):
     hp = load_json(args.hp)
 
     for i, seed in enumerate(args.seed):
+    # for i, seed in enumerate(args.nseed):
         set_seed(seed)
 
         # Get appropriate path by model info
@@ -48,7 +49,7 @@ def train(args):
                 action_noise = NormalActionNoise(args.noise_mean, args.noise_std)
                 if args.nenv != 1:
                     action_noise = VectorizedActionNoise(action_noise, args.nenv)
-            model = get_algo(args.algo, env, hp, action_noise, seed)
+            model = get_algo(args.algo, env, hp, action_noise, seed, args.nstep)
         except KeyboardInterrupt:
             clean_data_path(save_path)
         except Exception as e:
@@ -115,12 +116,14 @@ def _train(
         )
         callbacks.append(licking_tracker_callback)
 
-    # Training
-    model.learn(
-        total_timesteps=nstep,
-        callback=callbacks,
-        eval_log_path=save_path
-    )
+    # # Training
+    # model.learn(
+    #     total_timesteps=nstep,
+    #     callback=callbacks,
+    #     eval_log_path=save_path
+    # )
+
+    model.process()
 
     os.remove(os.path.join(save_path, FLAG_FILE_NAME))
     model.save(os.path.join(save_path, "info.zip"))
