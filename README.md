@@ -2,7 +2,24 @@
 
 A simple reinforcement learning benchmark framework (under development)
 
-## (Mandatory) Directory structure of data files
+
+## Setup
+
+(Tested on Ubuntu 20.04 LTS)  
+
+Create the conda environment, then execute `setup.sh` with sudo (otherwise, you have to type a sudo password during the installation)
+
+For example, 
+```
+conda create -n rlbench python=3.9.7
+conda activate rlbench
+sh setup.sh
+```
+
+**If you want to utilize your GPU when training, please install an appropriate cuda toolkit which corresponds to your own GPU**
+
+
+## Directory structure of data files
 ### Overall structure 
 ```
 LunarLanderContinuous-v2/
@@ -75,22 +92,20 @@ Then type the following command at the `src/` directory
 At `src/` directory,
 
 ```
-python plot/plot_numeric --env [ENV_NAME] \
+python plot/plot_mean_combined --env [ENV_NAME] \
     --agents [AGENT_LIST] \ 
     --x [X-AXIS] \
-    --y [Y-AXIS] \
-    --data-path [PATH]
+    --y [Y-AXIS]
 ```
 
 *example*
 
 ```
-python plot/plot_numeric.py --env LunarLanderContinuous-v2 \
+python plot/plot_mean_combined.py --env LunarLanderContinuous-v2 \
     --agents "[a1s1r1,a2s1r1,a3s1r1,a4s1r1,a5s1r1,a6s1r1,a7s1r1,a8s1r1]" \
-    --x episode \
-    --y t \
-    --data-path /home/neurlab-dl1/workspace/sb3-practice
+    --x timesteps \
+    --y rew
 ```
 
 For more information, please type the following command.  
-`python plot/plot_numeric.py --help`
+`python plot/plot_mean_combined.py --help`
