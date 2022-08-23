@@ -32,8 +32,7 @@ for env_id in ENVS:
         "--nseed", N_SEEDS,
         "--nstep", N_TIMESTEPS,
         "--eval-freq", EVAL_FREQ,
-        "--eval-eps", N_EVAL_EPISODES,
-        "--no-debug"
+        "--eval-eps", N_EVAL_EPISODES
     ]
     args = list(map(str, args))
     ok = subprocess.call(["python", "train.py"] + args)
