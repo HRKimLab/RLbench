@@ -10,13 +10,17 @@ A simple reinforcement learning benchmark framework
 
 ## Setup
 
-(Only tested on Ubuntu 20.04 LTS)  
+Tested on Ubuntu 20.04 LTS only.
 
-Create the conda environment, then execute `setup.sh` with sudo (otherwise, you should type the sudo password during the installation)
+Create the conda environment, then execute `setup.sh`. This may require a sudo authority. You should type the sudo password during the installation.
 
 ```
 conda create -n rlbench python=3.9.7
 conda activate rlbench
+
+git clone https://github.com/HRKimLab/RLbench.git
+cd RLbench/
+
 sh setup.sh
 ```
 
@@ -25,7 +29,7 @@ sh setup.sh
 ## Quick start
 After finishing the [setup](#Setup), change your directory path to `src/` and use the pre-defined script with the following command.
 ```
-python ../scripts/train_and_plot.sh
+sh ../scripts/train_and_plot.sh
 ```
 
 
