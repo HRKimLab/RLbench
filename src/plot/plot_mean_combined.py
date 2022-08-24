@@ -91,6 +91,7 @@ def plot_mean_combined(args):
                
             if args.mean == 'line':
                 plt.plot(y_var_mean, label=str(agent)+'-mean', color=color)
+            
                 
     plt.xlabel(args.x)
     plt.ylabel(y_name)
@@ -106,5 +107,5 @@ if __name__ == "__main__":
     print(args)
 
     plot_mean_combined(args)
-    plot_evaluation.plot_eval(args)
+    #plot_evaluation.plot_eval(args)
     plt.show()
