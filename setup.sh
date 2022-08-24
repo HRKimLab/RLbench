@@ -9,7 +9,7 @@ pip install stable-baselines3[extra]
 pip install sb3_contrib
 
 # custom
-conda install optuna -c conda-forge
+conda install optuna -c conda-forge -y
 pip install imageio
 
 # render
