@@ -13,7 +13,7 @@ class OpenLoop1DTrack(gym.Env):
 
     metadata = {'render.modes': ['human', 'gif']}
 
-    def __init__(self, water_spout, visual_noise=False):
+    def __init__(self, water_spout, video_path, visual_noise=False):
         super().__init__()
         self.action_space = spaces.Discrete(2)
         self.observation_space = spaces.Box(
@@ -21,6 +21,7 @@ class OpenLoop1DTrack(gym.Env):
         )
 
         self.water_spout = water_spout
+        self.video_path = video_path
         self.visual_noise = visual_noise #TODO
 
         self.data = self._load_data()
@@ -31,8 +32,8 @@ class OpenLoop1DTrack(gym.Env):
         self.licking_cnt = 0
 
         # For rendering
-        self.bar_states = []
         self.frames = []
+        self.original_frames = self._get_original_video_frames() # (682, 1288)
 
         # For plotting
         self.lick_timing = []
@@ -91,45 +92,73 @@ class OpenLoop1DTrack(gym.Env):
 
     def render(self, mode='human', close=False):
         # Render the environment to the screen
-        ch = 160
+        rgb_array = self.original_frames[self.cur_time, :, :, :].copy()
+        height, width, _ = rgb_array.shape
 
-        rgb_array = self.state.copy()
-        for _ in range(len(self.bar_states)):
-            cw, alpha, is_spout = self.bar_states.pop(0)
-            cw, alpha, rgb_array = self._render_single_bar(
-                rgb_array, ch, cw, alpha, 
-                color='red' if is_spout else 'white'
-            )
-            if alpha > 0:
-                self.bar_states.append((cw, alpha, is_spout))
+        pos_template = (width - 40) / (self.end_time - self.start_time)
+
+        # Upper padding
+        padding_height = height // 8
+        rgb_array = cv2.copyMakeBorder(rgb_array, padding_height, 0, 0, 0, cv2.BORDER_CONSTANT, value=(255, 255, 255))
+
+        # Base line
+        base_height = padding_height // 2
+        cv2.line(rgb_array, (20, base_height), (width - 20, base_height), (0, 0, 0), 2)
         
-        resized = cv2.resize(rgb_array, (600, 360), interpolation=cv2.INTER_CUBIC)
+        # Current position
+        cv2.circle(rgb_array, (20 + int((self.cur_time - self.start_time) * pos_template), base_height), 10, (0, 0, 255), -1)
+
+        # Licking
+        for lick_timing in self.lick_timing_eps:
+            lick_x_pos = 20 + int((lick_timing - self.start_time) * pos_template)
+            cv2.line(rgb_array, (lick_x_pos, base_height - 30), (lick_x_pos, base_height + 30), (0, 0, 0), 1)
+
+        # Water spout
+        spout_x_pos = 20 + int((self.water_spout - self.start_time) * pos_template)
+        cv2.line(rgb_array, (spout_x_pos, base_height - 30), (spout_x_pos, base_height + 30), (0, 0, 255), 3)
+
         if mode == 'human':
-            cv2.imshow("licking", resized)
+            cv2.imshow("licking", rgb_array)
             cv2.waitKey(1)
         elif mode == 'gif':
-            self.frames.append(cv2.cvtColor(resized, cv2.COLOR_BGR2RGB))
+            self.frames.append(cv2.cvtColor(rgb_array, cv2.COLOR_BGR2RGB))
+        elif mode == 'mp4':
+            self.frames.append(rgb_array)
 
     def save_gif(self):
-        imageio.mimsave('video.gif', self.frames, fps=60)
+        imageio.mimsave('video.gif', self.frames, duration=0.005)
+
+    def save_mp4(self):
+        height, width, _ = self.frames[0].shape
+        fps = 60
+
+        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+        video = cv2.VideoWriter('test.mp4', fourcc, float(fps), (width, height))
+        for frame in self.frames:
+            video.write(frame)
+        video.release()
 
     def _licking(self):
         self.licking_cnt += 1
-        self.bar_states.append((140., 1., False))
         self.lick_timing_eps.append(self.cur_time)
 
-    @staticmethod
-    def _render_single_bar(img, ch, cw, alpha, color):
-        org = img.copy()
-        cv2.line(
-            img, (ch - 25, int(cw)), (ch + 25, int(cw)), 
-            (255, 255, 255) if color == 'white' else (0, 0, 255), 1
-        )
-        overlay_img = cv2.addWeighted(img, alpha, org, 1 - alpha, 0)
-        cw -= 0.7
-        alpha -= 0.01
+    def _get_original_video_frames(self):
+        capture = cv2.VideoCapture(self.video_path)
 
-        return cw, alpha, overlay_img
+        frames = []
+        while True:
+            ret, frame = capture.read()
+            if not ret:
+                break
+
+            frames.append(frame)
+            if cv2.waitKey(1) & 0xFF == ord("q"):
+                break
+
+        capture.release()
+        frames = np.stack(frames, axis=0)
+
+        return frames
 
     @staticmethod
     def _load_data():
@@ -144,7 +173,8 @@ class OpenLoopStandard1DTrack(OpenLoop1DTrack):
     def __init__(self, visual_noise=False):
         super().__init__(
             water_spout=335,
-            visual_noise=visual_noise
+            video_path="custom_envs/track/VR_standard.mp4",
+            visual_noise=visual_noise,
         )
 
     @staticmethod
@@ -162,7 +192,8 @@ class OpenLoopTeleportLong1DTrack(OpenLoop1DTrack):
     def __init__(self, visual_noise=False):
         super().__init__(
             water_spout=227,
-            visual_noise=visual_noise
+            video_path="custom_envs/track/VR_tele_1dest_long.mp4",
+            visual_noise=visual_noise,
         )
 
     @staticmethod

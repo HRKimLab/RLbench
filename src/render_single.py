@@ -27,7 +27,7 @@ def get_render_args():
     )
     parser.add_argument(
         '--mode', '-M', type=str,
-        choices=['human', 'gif']
+        choices=['human', 'gif', 'mp4']
     )
     args = parser.parse_args()
 
@@ -63,21 +63,23 @@ def render_single(args):
     _, model_class = get_algo_from_agent(args.agent, model_path.parent)
     model = model_class.load(model_path)
 
-    for _ in range(1):
-        total_reward = 0
-        state = env.reset()
-        while True:
-            action, _ = model.predict(state)
-            state, reward, done, _ = env.step(action)
-            total_reward += reward
-            if done:
-                break
-            time.sleep(.005)
-            env.render(mode=args.mode)
-        print(f"Total reward: {total_reward}")
+    total_reward = 0
+    state = env.reset()
+    while True:
+        action, _ = model.predict(state)
+        state, reward, done, _ = env.step(action)
+        total_reward += reward
+        if done:
+            break
+        time.sleep(.005)
+        env.render(mode=args.mode)
+    print(f"Total reward: {total_reward}")
 
     if args.mode == 'gif':
         env.save_gif()
+    elif args.mode == 'mp4':
+        env.save_mp4()
+
     env.close()
 
 if __name__ == "__main__":
