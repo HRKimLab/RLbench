@@ -34,6 +34,7 @@ class OpenLoop1DTrack(gym.Env):
         # For rendering
         self.frames = []
         self.original_frames = self._get_original_video_frames() # (682, 1288)
+        self.mice_pic = self._load_mice_image()
 
         # For plotting
         self.lick_timing = []
@@ -106,7 +107,9 @@ class OpenLoop1DTrack(gym.Env):
         cv2.line(rgb_array, (20, base_height), (width - 20, base_height), (0, 0, 0), 2)
         
         # Current position
-        cv2.circle(rgb_array, (20 + int((self.cur_time - self.start_time) * pos_template), base_height), 10, (0, 0, 255), -1)
+        x_offset = int((self.cur_time - self.start_time) * pos_template)
+        y_offset = base_height - 20
+        rgb_array[y_offset:y_offset+self.mice_pic.shape[0], x_offset:x_offset+self.mice_pic.shape[1], :] = self.mice_pic
 
         # Licking
         for lick_timing in self.lick_timing_eps:
@@ -115,7 +118,7 @@ class OpenLoop1DTrack(gym.Env):
 
         # Water spout
         spout_x_pos = 20 + int((self.water_spout - self.start_time) * pos_template)
-        cv2.line(rgb_array, (spout_x_pos, base_height - 30), (spout_x_pos, base_height + 30), (0, 0, 255), 3)
+        cv2.line(rgb_array, (spout_x_pos, base_height - 30), (spout_x_pos, base_height + 30), (255, 0, 0), 3)
 
         if mode == 'human':
             cv2.imshow("licking", rgb_array)
@@ -159,6 +162,13 @@ class OpenLoop1DTrack(gym.Env):
         frames = np.stack(frames, axis=0)
 
         return frames
+
+    @staticmethod
+    def _load_mice_image():
+        mice_pic = cv2.imread("../assets/mice.png", cv2.IMREAD_UNCHANGED)
+        mice_pic = cv2.resize(mice_pic, (40, 40))
+        mice_pic = np.repeat((mice_pic[:, :, 3] < 50).reshape(40, 40, 1), repeats=3, axis=2) * 255
+        return mice_pic
 
     @staticmethod
     def _load_data():
