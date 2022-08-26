@@ -56,16 +56,17 @@ CartPole-v1/
 
 ### Internal files
 ```
-LunarLanderContinuous-v2/
-├── a1
-│   ├── a1s1
-│   │   ├── a1s1r1-0
-│   │   │   ├── 0.monitor.csv
-│   │   │   ├── best_model.zip
-│   │   │   ├── evaluations.npz
-│   │   │   ├── info.zip
-│   │   │   └── progress.csv
+...
+├── a1s1
+│   ├── a1s1r1-0
+│   │   ├── 0.monitor.csv   - Training stats (for plotting)
+│   │   ├── best_model.zip  - Best model parameters
+│   │   ├── evaluations.npz - Evaluation stats
+│   │   ├── info.zip        - Other info related to learning
+│   │   └── progress.csv    - Training stats
 ```
+
+We are supposed to use `*.monitor.csv` to draw plots.
 
 ## How to use
 
