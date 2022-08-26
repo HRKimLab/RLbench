@@ -59,14 +59,14 @@ CartPole-v1/
 ...
 ├── a1s1
 │   ├── a1s1r1-0
-│   │   ├── 0.monitor.csv   - Training stats (for plotting)
+│   │   ├── 0.monitor.csv   - Learning stats (raw)
+│   │   └── progress.csv    - Learning stats
 │   │   ├── best_model.zip  - Best model parameters
 │   │   ├── evaluations.npz - Evaluation stats
 │   │   ├── info.zip        - Other info related to learning
-│   │   └── progress.csv    - Training stats
 ```
 
-We are supposed to use `*.monitor.csv` to draw plots.
+We are supposed to use `*.monitor.csv` to draw plots. `*.monitor.csv` contains reward, episode length, and time elapsed, while `progress.csv` is in charge of more detailed information such as current exploration rate, learning rate, mean of episode reward, and so on.
 
 ## How to use
 
