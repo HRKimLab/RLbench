@@ -11,25 +11,28 @@ import matplotlib.pyplot as plt
 
 from utils import get_algo_from_agent
 from options import get_args_licking
+from custom_envs import OpenLoopStandard1DTrack, OpenLoopTeleportLong1DTrack
 
+TEMP_STD_ENV = OpenLoopStandard1DTrack()
+TEMP_TEL_ENV = OpenLoopTeleportLong1DTrack()
 FPS = 39.214 
 LICK_PER_SEC = 8
 WINDOW_SIZE = 5
 TRACK_LEN = {
-    "OpenLoopStandard1DTrack": 459,
-    "OpenLoopTeleportLong1DTrack": 388
+    "OpenLoopStandard1DTrack": TEMP_STD_ENV.data.shape[0],
+    "OpenLoopTeleportLong1DTrack": TEMP_TEL_ENV.data.shape[0]
 }
 SPOUT_TIME = {
-    "OpenLoopStandard1DTrack": 335,
-    "OpenLoopTeleportLong1DTrack": 227
+    "OpenLoopStandard1DTrack": TEMP_STD_ENV.water_spout,
+    "OpenLoopTeleportLong1DTrack": TEMP_TEL_ENV.water_spout
 }
 
 def plot_licking(args):
     """ Plot the behavior (licking) data of mouse agent """
 
     date_today = date.today().isoformat()
-    track_len = TRACK_LEN[args.env]
-    spout_time = SPOUT_TIME[args.env]
+    track_len = TRACK_LEN[args.env.split('_')[0]]
+    spout_time = SPOUT_TIME[args.env.split('_')[0]]
 
     data_path = Path(os.path.abspath(os.path.join(os.getcwd(), os.pardir, 'data')))
     data_path = data_path / args.env
