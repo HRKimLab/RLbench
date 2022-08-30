@@ -81,7 +81,14 @@ def plot_licking(args):
     algo_name, _ = get_algo_from_agent(args.agent, data_path.parent)
     fig.suptitle(f"{args.agent} ({algo_name.upper()}) / {args.env} / {date_today}")
     plt.subplots_adjust(wspace=0, hspace=0)
-    plt.show()
+
+    if args.name is not None:
+        plt.show(block=False)
+        plt.pause(3)
+        plt.close()
+        plt.savefig(f"{args.env}-{args.agent}.png")
+    else:
+        plt.show()
 
 if __name__ == "__main__":
     args = get_args_licking()

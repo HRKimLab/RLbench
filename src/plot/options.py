@@ -103,6 +103,10 @@ def get_args_licking():
         '--agent', '-A', type=str,
         help="Agent to plot (specify the agent numbers)"
     )
+    parser.add_argument(
+        '--name', '-N', type=str, default=None,
+        help="Name of save file (Default: Not save)"
+    )
 
     args = parser.parse_args()
 

@@ -13,7 +13,7 @@ class OpenLoop1DTrack(gym.Env):
 
     metadata = {'render.modes': ['human', 'gif']}
 
-    def __init__(self, water_spout, video_path, visual_noise=False):
+    def __init__(self, water_spout, video_path, visual_noise=False, pos_rew=10, neg_rew=-5):
         super().__init__()
         self.action_space = spaces.Discrete(2)
         self.observation_space = spaces.Box(
@@ -40,6 +40,10 @@ class OpenLoop1DTrack(gym.Env):
         self.lick_timing = []
         self.lick_timing_eps = []
 
+        # Temporal variables (for experiments)
+        self.pos_rew = pos_rew
+        self.neg_rew = neg_rew
+
     def step(self, action):
         # Execute one time step within the environment
         self.cur_time += 1
@@ -54,9 +58,9 @@ class OpenLoop1DTrack(gym.Env):
         if action == 1:
             self._licking()
             if (self.cur_time >= self.water_spout) and (self.licking_cnt <= 20):
-                reward = 10
+                reward = self.pos_rew
             else:
-                reward = -5
+                reward = self.neg_rew
 
         # Done
         done = (self.cur_time == self.end_time)
@@ -180,11 +184,13 @@ class OpenLoopStandard1DTrack(OpenLoop1DTrack):
 
     metadata = {'render.modes': ['human']}
 
-    def __init__(self, visual_noise=False):
+    def __init__(self, visual_noise=False, pos_rew=10, neg_rew=-5):
         super().__init__(
             water_spout=335,
             video_path="custom_envs/track/VR_standard.mp4",
             visual_noise=visual_noise,
+            pos_rew=pos_rew,
+            neg_rew=neg_rew
         )
 
     @staticmethod
@@ -199,11 +205,13 @@ class OpenLoopTeleportLong1DTrack(OpenLoop1DTrack):
 
     metadata = {'render.modes': ['human']}
 
-    def __init__(self, visual_noise=False):
+    def __init__(self, visual_noise=False, pos_rew=10, neg_rew=-5):
         super().__init__(
             water_spout=227,
             video_path="custom_envs/track/VR_tele_1dest_long.mp4",
             visual_noise=visual_noise,
+            pos_rew=pos_rew,
+            neg_rew=neg_rew
         )
 
     @staticmethod
