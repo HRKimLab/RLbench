@@ -85,3 +85,17 @@ class LickingTrackerCallback(BaseCallback):
     def _on_training_end(self):
         with open(os.path.join(self.save_path, "lick_timing.pkl"), "wb") as f:
             pickle.dump(self.env.get_attr("lick_timing")[0], f)
+
+class RewardTrackerCallback(BaseCallback):
+    """ Callback for tracking a licking behavior """
+    def __init__(self, env, save_path):
+        super().__init__()
+        self.env = env
+        self.save_path = save_path
+
+    def _on_step(self):
+        return True
+
+    def _on_training_end(self):
+        with open(os.path.join(self.save_path, "reward_history.pkl"), "wb") as f:
+            pickle.dump(self.env.get_attr("reward_set")[0], f)

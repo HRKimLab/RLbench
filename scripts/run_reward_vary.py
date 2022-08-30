@@ -9,7 +9,7 @@ N_TIMESTEPS = int(5e4)
 EVAL_FREQ = 1000
 N_EVAL_EPISODES = 3
 
-for pos_rew in range(0, 100, 5):
+for pos_rew in range(5, 100, 5):
     for neg_rew in range(-100, 0, 5):
         args = [
             "--env", ENV,

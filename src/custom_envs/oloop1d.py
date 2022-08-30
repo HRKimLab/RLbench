@@ -43,6 +43,8 @@ class OpenLoop1DTrack(gym.Env):
         # Temporal variables (for experiments)
         self.pos_rew = pos_rew
         self.neg_rew = neg_rew
+        self.reward_set = []
+        self.reward_set_eps = []
 
     def step(self, action):
         # Execute one time step within the environment
@@ -61,7 +63,7 @@ class OpenLoop1DTrack(gym.Env):
                 reward = self.pos_rew
             else:
                 reward = self.neg_rew
-
+        self.reward_set_eps.append(reward)
         # Done
         done = (self.cur_time == self.end_time)
 
@@ -92,6 +94,9 @@ class OpenLoop1DTrack(gym.Env):
 
         self.lick_timing.append(self.lick_timing_eps)
         self.lick_timing_eps = []
+
+        self.reward_set.append(self.reward_set_eps)
+        self.reward_set_eps = []
 
         return self.state
 

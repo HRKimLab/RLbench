@@ -19,7 +19,7 @@ from utils import (
     get_env, get_algo, set_data_path, clean_data_path, FLAG_FILE_NAME
 )
 from utils.options import get_args
-from utils.sb3_callbacks import TqdmCallback, LickingTrackerCallback
+from utils.sb3_callbacks import TqdmCallback, LickingTrackerCallback, RewardTrackerCallback
 
 
 def train(args):
@@ -119,7 +119,11 @@ def _train(
             env=model.env,
             save_path=save_path
         )
-        callbacks.append(licking_tracker_callback)
+        reward_history_callback = RewardTrackerCallback(
+            env=model.env,
+            save_path=save_path
+        )
+        callbacks.extend([licking_tracker_callback, reward_history_callback])
 
     # Training
     model.learn(
