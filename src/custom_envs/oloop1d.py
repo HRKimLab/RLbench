@@ -131,12 +131,12 @@ class OpenLoop1DTrack(gym.Env):
     def save_gif(self):
         imageio.mimsave('video.gif', self.frames, duration=0.005)
 
-    def save_mp4(self):
+    def save_mp4(self, name="test.mp4"):
         height, width, _ = self.frames[0].shape
         fps = 60
 
         fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-        video = cv2.VideoWriter('test.mp4', fourcc, float(fps), (width, height))
+        video = cv2.VideoWriter(name, fourcc, float(fps), (width, height))
         for frame in self.frames:
             video.write(frame)
         video.release()
