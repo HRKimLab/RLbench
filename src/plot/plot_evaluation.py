@@ -1,6 +1,7 @@
 # plot evaluation (HyeIn)
 import os
 from datetime import date
+import datetime
 
 import numpy as np
 import pandas as pd
@@ -59,14 +60,19 @@ def plot_eval(args):
         plt.title(f"{args.env} [{args.x}-reward] evaluation data {date_today}")
 
     # Sort legends by name
-    handles, labels = plt.gca().get_legend_handles_labels()
-    labels, handles = zip(*sorted(zip(labels, handles), key=lambda t: t[0]))
-    plt.legend(handles, labels)
+    #handles, labels = plt.gca().get_legend_handles_labels()
+    #labels, handles = zip(*sorted(zip(labels, handles), key=lambda t: t[0]))
+    #plt.legend(handles, labels)
+    plt.legend()
+
+    if args.savefig is None:
+        plt.savefig('/nfs/share/figure_repository/result_'+datetime.datetime.now().strftime('%y%m%d_%H%M%S')+'-eval')
+    else:
+        plt.savefig(args.savefig+'-eval')
 
 
 if __name__ == "__main__":
     args = get_args()
     print(args)
-
     plot_eval(args)
     plt.show()
