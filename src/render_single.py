@@ -29,6 +29,10 @@ def get_render_args():
         '--mode', '-M', type=str,
         choices=['human', 'gif', 'mp4']
     )
+    parser.add_argument(
+        '--step', type=int,
+        default=None
+    )
     args = parser.parse_args()
 
     return args
@@ -53,7 +57,10 @@ def get_model_path(args):
     except:
         raise FileNotFoundError("Given agent name is not found.")
 
-    model_path /= "best_model.zip"
+    if args.step is not None:
+        model_path /= f"rl_model_{args.step}_steps.zip"
+    else:
+        model_path /= "best_model.zip"
 
     return model_path
 
@@ -78,7 +85,7 @@ def render_single(args):
     if args.mode == 'gif':
         env.save_gif()
     elif args.mode == 'mp4':
-        env.save_mp4()
+        env.save_mp4(name=f"{args.src_env}-{args.dst_env}-{args.agent}.mp4")
 
     env.close()
 
