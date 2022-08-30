@@ -74,7 +74,7 @@ def get_logger():
 
     return info_logger, error_logger
 
-def get_env(env_name, n_env, save_path, seed):
+def get_env(env_name, n_env, save_path, seed, rewards):
     ENV_LIST = [env_spec.id for env_spec in envs.registry.all()]
 
     env, eval_env = None, None
@@ -101,12 +101,13 @@ def get_env(env_name, n_env, save_path, seed):
             )
     else:
         try:
+            pos_rew, neg_rew = rewards
             if env_name == "OpenLoopStandard1DTrack":
-                env = OpenLoopStandard1DTrack()
-                eval_env = OpenLoopStandard1DTrack()
+                env = OpenLoopStandard1DTrack(pos_rew=pos_rew, neg_rew=neg_rew)
+                eval_env = OpenLoopStandard1DTrack(pos_rew=pos_rew, neg_rew=neg_rew)
             elif env_name == "OpenLoopTeleportLong1DTrack":
-                env = OpenLoopTeleportLong1DTrack()
-                eval_env = OpenLoopTeleportLong1DTrack()
+                env = OpenLoopTeleportLong1DTrack(pos_rew=pos_rew, neg_rew=neg_rew)
+                eval_env = OpenLoopTeleportLong1DTrack(pos_rew=pos_rew, neg_rew=neg_rew)
             else:
                 raise ImportError
             env = MaxAndSkipEnv(env, skip=5) # Mouse can lick about 8 times per second, 40 (frames) / 5 (skipping).
@@ -128,7 +129,7 @@ def get_algo(algo_name, env, hp, action_noise, seed):
 
     return model
 
-def set_data_path(algo_name, env_name, hp, seed):
+def set_data_path(algo_name, env_name, hp, seed, reward=(10,-5)):
     DEP2_CONFIG = "policy.json"
     DEP3_CONFIG = "hyperparams.json"
 
@@ -143,7 +144,7 @@ def set_data_path(algo_name, env_name, hp, seed):
     agent_id, session_id = None, None
 
     # Environment (Depth-1)
-    data_path = p.join(data_path, env_name)
+    data_path = p.join(data_path, f"{env_name}_P{reward[0]}_N{reward[1]}")
     os.makedirs(data_path, exist_ok=True)
 
     # Agent (Depth-2) - Algorithm, Policy

@@ -28,6 +28,7 @@ def train(args):
     info_logger, error_logger = get_logger()
 
     hp = load_json(args.hp)
+    rewards = (args.pos_rew, args.neg_rew)
 
     for i, seed in enumerate(args.seed):
     # for i, seed in enumerate(args.nseed):
@@ -37,7 +38,7 @@ def train(args):
         save_path = args.save_path
         already_run = False
         if save_path is None:
-            save_path, already_run = set_data_path(args.algo, args.env, hp, seed)
+            save_path, already_run = set_data_path(args.algo, args.env, hp, seed, rewards)
 
         # If the given setting has already been executed, save_path will be given as None
         if already_run:
@@ -46,7 +47,7 @@ def train(args):
 
         # Get env, model
         try:
-            env, eval_env = get_env(args.env, args.nenv, save_path, seed)
+            env, eval_env = get_env(args.env, args.nenv, save_path, seed, rewards)
             action_noise = None
             if args.noise == "Normal":
                 assert env.action_space.__dict__.get('n') is None, \

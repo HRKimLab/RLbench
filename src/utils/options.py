@@ -92,6 +92,16 @@ def get_args():
         help="Path to save the data"
     )
 
+    # For experiments
+    parser.add_argument(
+        '--pos-rew', type=int, default=10,
+        help="Positive reward"
+    )
+    parser.add_argument(
+        '--neg-rew', type=int, default=-5,
+        help="Negative reward"
+    )
+
     # Debug mode (not used now)
     # parser.add_argument('--debug', dest='debug', action='store_true')
     # parser.add_argument('--no-debug', dest='debug', action='store_false')
