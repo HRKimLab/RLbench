@@ -1,6 +1,6 @@
 import os
 from datetime import date
-
+import datetime
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -28,8 +28,8 @@ def plot_mean_combined(args):
 
     data_path = args.data_path
     data_path = os.path.abspath(os.path.join(os.getcwd(), os.pardir, 'data' if data_path is None else data_path))
-
     file_paths = []
+
     for (root_dir, _, files) in os.walk(os.path.join(data_path, args.env)):
         for file in files:
             if "monitor.csv" in file:
@@ -42,7 +42,6 @@ def plot_mean_combined(args):
     _, y_name = MAPPER_Y[args.y]
     y_var_list = []
     window_size = args.window_size
-    
     for color, agent in zip(colors, agent_list):
         bundle = []
         for file in file_paths:
@@ -101,11 +100,15 @@ def plot_mean_combined(args):
     labels, handles = zip(*sorted(zip(labels, handles), key=lambda t: t[0]))
     plt.legend(handles, labels)
 
+    if args.savefig is None:
+        plt.savefig('/nfs/share/figure_repository/result_'+datetime.datetime.now().strftime('%y%m%d_%H%M%S'))
+    else:
+        plt.savefig(args.savefig)
+
 
 if __name__ == "__main__":
     args = get_args()
     print(args)
-
     plot_mean_combined(args)
-    #plot_evaluation.plot_eval(args)
+    plot_evaluation.plot_eval(args)
     plt.show()

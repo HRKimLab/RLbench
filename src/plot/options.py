@@ -55,7 +55,10 @@ def get_args():
         choices = ['y','n'],
         default = 'n',
     )
-
+    parser.add_argument(
+        '--savefig', type = str,
+        #default = '/nfs/share/figure_repository/result_'
+    )
     args = parser.parse_args()
 
     return args
