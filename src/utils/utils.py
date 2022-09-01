@@ -18,14 +18,12 @@ from stable_baselines3.common.vec_env import VecFrameStack
 from stable_baselines3.common.env_util import make_vec_env, make_atari_env
 
 from custom_envs import MaxAndSkipEnv, OpenLoopStandard1DTrack, OpenLoopTeleportLong1DTrack
-from custom_algos import CustomDQN
 
 FLAG_FILE_NAME = "NOT_FINISHED"
 ALGO_LIST = {
     "a2c": A2C, "ddpg": DDPG, "dqn": DQN,
     "ppo": PPO, "sac": SAC, "td3": TD3,
-    "ars": ARS, "qrdqn": QRDQN, "tqc": TQC, "trpo": TRPO,
-    "custom_dqn": CustomDQN
+    "ars": ARS, "qrdqn": QRDQN, "tqc": TQC, "trpo": TRPO
 }
 
 def set_seed(seed):
