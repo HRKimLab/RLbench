@@ -1,26 +1,25 @@
 """ Multi-screen rendering & saving for comparing multiple agents """
-import os.path as p
-from celluloid import Camera
 import torch
-import gym
 import numpy as np
 import matplotlib.pyplot as plt
-from stable_baselines3 import DQN, A2C, PPO
+from stable_baselines3 import DQN
 from stable_baselines3.common.vec_env import VecFrameStack
 from stable_baselines3.common.env_util import make_atari_env, make_vec_env
 from tqdm import tqdm
 from PIL import Image
-import PIL.ImageDraw as ImageDraw
 import imageio
 BASE_PATH = "../data/"
+
 def get_atari_env(env_name, n_stack=4):
     env = make_atari_env(env_name, n_envs=1)
     env = VecFrameStack(env, n_stack=n_stack)
     return env
+
 def get_vec_env(env_name, n_stack=4):
     env = make_vec_env(env_name, n_envs = 1)
     env = VecFrameStack(env, n_stack= n_stack)
     return env
+
 def take_snap(env, ax, name, step=0):
     frame = env.render(mode='rgb_array')
     ax.imshow(env.render(mode='rgb_array'))
@@ -28,6 +27,7 @@ def take_snap(env, ax, name, step=0):
     # ax.set_title(f"{name} | Step: {step}")
     ax.axis('off')
     return frame
+
 def snap_finish(ax, name, step):
     ax.text(0.0, 1.01, f"{name} | Step: {step}", transform=ax.transAxes)
     ax.text(
@@ -37,6 +37,7 @@ def snap_finish(ax, name, step):
         transform=ax.transAxes
     )
     ax.axis('off')
+
 def mk_fig(q_values, y_max, q_value_history, nstep, steps):
     bar_plot = plt.bar(list(range(len(q_values))), list(q_values[x] for x in range(len(q_values))))
     if np.isnan(y_max):
@@ -59,6 +60,7 @@ def mk_fig(q_values, y_max, q_value_history, nstep, steps):
     plt.savefig(fig2_path)
     plt.clf()
     return fig_path, fig2_path, y_max
+
 def concat_h_resize(im1, im2, resample=Image.BICUBIC, resize_big_image=True):
     if im1.height == im2.height:
         _im1 = im1
@@ -74,6 +76,7 @@ def concat_h_resize(im1, im2, resample=Image.BICUBIC, resize_big_image=True):
     dst.paste(_im1, (0, 0))
     dst.paste(_im2, (_im1.width, 0))
     return dst
+
 def concat_v_resize(im1, im2, resample=Image.BICUBIC, resize_big_image=True):
     if im1.width == im2.width:
         _im1 = im1
@@ -89,23 +92,18 @@ def concat_v_resize(im1, im2, resample=Image.BICUBIC, resize_big_image=True):
     dst.paste(_im1, (0, 0))
     dst.paste(_im2, (0, _im1.height))
     return dst
-def render(env_name, model, name, nstep):
+
+def render(env_name, model, nstep):
     """ Render how agent interact with environment"""
-    # fig_num = len(models)
-    # fig, axs = plt.subplots(nrows=2, ncols=4, figsize=(12, 6))
-    # plt.subplots_adjust(wspace=0.5)
-    # camera = Camera(fig)
     env = get_vec_env(env_name)
     env = env.envs[0]
     obs = env.reset()
-    # done = [False] * fig_num
-    # final_steps = [0] * fig_num
+
     done = False
     final_steps = [0]
     model = model[0]
     frames = []
-    q_value_history_0 =[]
-    q_value_history_1 = []
+
     q_value_history = [[] for i in range(env.action_space.n)]
     y_max = np.NaN
     steps = 0
@@ -137,9 +135,10 @@ def render(env_name, model, name, nstep):
             obs = env.reset()
             done = False
     imageio.mimwrite('/home/neurlab-dl1/workspace/RLbench/src/' + str(env_name) + str(model) + '.gif', frames, fps=15)
+
+
 if __name__ == "__main__":
-    # GAME = "ALE/Breakout-v5"
-    GAME = "CartPole-v1"
+    GAME = "OpenLoopStandard1DTrack"
     agent_paths = [
         # "a1/a1s1/a1s1r1-0/rl_model_50000_steps",
         # "a1/a1s1/a1s1r1-0/rl_model_100000_steps",
@@ -149,7 +148,6 @@ if __name__ == "__main__":
         # "a1/a1s1/a1s1r2-42/rl_model_700000_steps",
         # "a1/a1s1/a1s1r4-7/rl_model_800000_steps",
         # "a1/a1s1/a1s1r4-7/best_model",
-        "a1/a1s1/a1s1r1-0/best_model"
     ]
     # agent_paths = ["a1/a1s1/a1s1r1-0/best_model", "a2/a2s1/a2s1r1-0/best_model"]
     names = [
@@ -164,7 +162,7 @@ if __name__ == "__main__":
     ]
     model = [
         # DQN.load("/home/neurlab-dl1/workspace/RLbench/data/ALE/Breakout-v5/a3/a3s1/a3s1r1-0/best_model.zip")
-        DQN.load("/home/neurlab-dl1/workspace/RLbench/data/CartPole-v1/a1/a1s1/a1s1r1-0/best_model.zip")
+        DQN.load("/home/neurlab-dl1/workspace/RLbench/data/Archive/OpenLoopStandard1DTrack/a1/a1s1/a1s1r3-53/rl_model_50000_steps.zip")
         # PPO.load(p.join(BASE_PATH, GAME, agent_path)) for agent_path in agent_paths
     ]
     # agents = [
