@@ -25,26 +25,34 @@ class CustomCNN(BaseFeaturesExtractor):
         super(CustomCNN, self).__init__(observation_space, features_dim)
         # We assume CxHxW images (channels first)
         # Re-ordering will be done by pre-preprocessing or wrapper
-        n_input_channels = observation_space.shape[0]
+        # n_input_channels = observation_space.shape[0]
+
+        # input_channel => color image : 3, blak : 1
         self.cnn = nn.Sequential(
-            nn.Conv2d(n_input_channels, 32, kernel_size=8, stride=4, padding=0),
+            # nn.Conv2d(3, 32, kernel_size=5, stride=4, padding=0),
+            nn.Conv2d(3, 32, kernel_size=5, stride=1, padding=1),
             nn.ReLU(),
-            nn.Conv2d(32, 64, kernel_size=4, stride=2, padding=0),
+            # nn.Conv2d(32, 64, kernel_size=5, stride=2, padding=0),
+            nn.Conv2d(32, 64, kernel_size=5, stride=1, padding=1),
             nn.ReLU(),
-            nn.Flatten(),
+            nn.Flatten()
         )
 
-        # Compute shape by doing one forward pass
-        with torch.no_grad():
-            n_flatten = self.cnn(
-                torch.as_tensor(observation_space.sample()[None]).float()
-            ).shape[1]
+        # # Compute shape by doing one forward pass
+        # with torch.no_grad():
+        #     n_flatten = self.cnn(
+        #         torch.as_tensor(observation_space.sample()[None]).float()
+        #     ).shape[1]
+
+        # self.n_flatten
 
         # self.linear = nn.Sequential(nn.Linear(n_flatten, features_dim), nn.ReLU())
         self.linear = nn.Sequential(
-            nn.Linear(n_flatten, 256),
+            # nn.Linear(self.n_flatten, 256),
+            nn.Linear(64, 256),
             nn.ReLU(),
-            nn.Linear(256,output_num)
+            # nn.Linear(256,output_num)
+            nn.Linear(256,2)
         )
 
     def forward(self, observations: torch.Tensor) -> torch.Tensor:
@@ -82,7 +90,8 @@ class CustomDQN:
         exploration_final_eps = 0.05,
         max_grad_norm = 10
     ):
-        self.env = gym.make('CartPole-v1')
+        self.env = gym.make(env)
+        self.timesteps = timesteps
         self.memory = deque([],maxlen=10000)
 
         self.network = CustomCNN(
@@ -139,13 +148,13 @@ class CustomDQN:
         eps_threshold = self.eps_end + (self.eps_start - self.eps_end) * math.exp(-1. * self.steps_done / self.eps_decay)
         self.steps_done += 1
         if random.random() > eps_threshold:
-            return self.q_net(obs).data.max(1)[1].view(1,1)
+            return self.network.forward(torch.Tensor(obs))
         else: #무작위 값 (왼,오) >>> tensor([[0]]) 이런 꼴로 나옴
             return torch.LongTensor([[random.randrange(2)]])
 
 
     def learn(self):
-        agent = CustomDQN()
+        agent = CustomDQN('CartPole-v1')
         done = False
 
 
@@ -153,11 +162,11 @@ class CustomDQN:
             if not done:
                 obs = self.env.render(mode = 'rgb_array')
 
-                q_values = self.network.forward(torch.Tensor(obs))
+                q_values = self.network.forward(torch.Tensor(obs).permute(3,0,1,2))
 
                 action = agent.act(obs)
 
-                
+
 
 
 
