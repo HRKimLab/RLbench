@@ -5,9 +5,12 @@ import matplotlib.pyplot as plt
 from stable_baselines3 import DQN
 from stable_baselines3.common.vec_env import VecFrameStack
 from stable_baselines3.common.env_util import make_atari_env, make_vec_env
-from tqdm import tqdm
-from PIL import Image
 import imageio
+from PIL import Image
+from tqdm import tqdm
+
+from custom_envs import OpenLoopStandard1DTrack, MaxAndSkipEnv
+
 BASE_PATH = "../data/"
 
 def get_atari_env(env_name, n_stack=4):
@@ -18,6 +21,11 @@ def get_atari_env(env_name, n_stack=4):
 def get_vec_env(env_name, n_stack=4):
     env = make_vec_env(env_name, n_envs = 1)
     env = VecFrameStack(env, n_stack= n_stack)
+    return env
+
+def get_mouse_env(n_skip=5):
+    env = OpenLoopStandard1DTrack()
+    env = MaxAndSkipEnv(env, skip=n_skip)
     return env
 
 def take_snap(env, ax, name, step=0):
@@ -80,11 +88,11 @@ def concat_h_resize(im1, im2, resample=Image.BICUBIC, resize_big_image=True):
 def concat_v_resize(im1, im2, resample=Image.BICUBIC, resize_big_image=True):
     if im1.width == im2.width:
         _im1 = im1
-        _im2 = im2.resize(im2.width, int(im1.height/ 2), resample = resample)
+        _im2 = im2.resize(im2.width, int(im1.height/ 2), resample=resample)
     elif (((im1.width > im2.width) and resize_big_image) or
           ((im1.width < im2.width) and not resize_big_image)):
         _im1 = im1.resize((im2.width, int(im1.height * im2.width / im1.width)), resample=resample)
-        _im2 = im2.resize(im2.width, int(im1.height/2), resample = resample)
+        _im2 = im2.resize((im2.width, int(im1.height/2)), resample=resample)
     else:
         _im1 = im1
         _im2 = im2.resize((im1.width, int(im2.height * im1.width / im2.width / 2)), resample=resample)
@@ -95,12 +103,12 @@ def concat_v_resize(im1, im2, resample=Image.BICUBIC, resize_big_image=True):
 
 def render(env_name, model, nstep):
     """ Render how agent interact with environment"""
-    env = get_vec_env(env_name)
-    env = env.envs[0]
+    # env = get_vec_env(env_name)
+    # env = env.envs[0]
+    env = get_mouse_env()
     obs = env.reset()
 
     done = False
-    final_steps = [0]
     model = model[0]
     frames = []
 
@@ -162,11 +170,11 @@ if __name__ == "__main__":
     ]
     model = [
         # DQN.load("/home/neurlab-dl1/workspace/RLbench/data/ALE/Breakout-v5/a3/a3s1/a3s1r1-0/best_model.zip")
-        DQN.load("/home/neurlab-dl1/workspace/RLbench/data/Archive/OpenLoopStandard1DTrack/a1/a1s1/a1s1r3-53/rl_model_50000_steps.zip")
+        DQN.load("/home/neurlab-dl1/workspace/RLbench/data/OpenLoopStandard1DTrack/a1/a1s1/a1s1r1-0/best_model.zip")
         # PPO.load(p.join(BASE_PATH, GAME, agent_path)) for agent_path in agent_paths
     ]
     # agents = [
     #     PPO.load(p.join(BASE_PATH, GAME, agent_paths[0])),
     #     A2C.load(p.join(BASE_PATH, GAME, agent_paths[1]))
     # ]
-    render(GAME, model, names, 1000)
+    render(GAME, model, 1000)
