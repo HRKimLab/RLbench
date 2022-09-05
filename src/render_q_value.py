@@ -46,15 +46,20 @@ def snap_finish(ax, name, step):
     )
     ax.axis('off')
 
-def mk_fig(q_values, y_max, q_value_history, nstep, steps):
+def mk_fig(q_values, y_max, y_min, q_value_history, nstep, steps, final_steps):
     bar_plot = plt.bar(list(range(len(q_values))), list(q_values[x] for x in range(len(q_values))))
     if np.isnan(y_max):
             y_max = max(q_values)
     else:
         if max(q_values) > y_max:
             y_max = max(q_values)
+    if np.isnan(y_min):
+            y_min = min(q_values)
+    else:
+        if min(q_values) < y_min:
+            y_min = min(q_values)
     plt.xticks(list(range(len(q_values))))
-    plt.ylim(top=y_max)
+    plt.ylim(top=y_max, bottom=y_min)
     plt.title('instant q values of actions')
     fig_path = 'q_value_bar_plot.png'
     plt.savefig(fig_path)
@@ -63,11 +68,13 @@ def mk_fig(q_values, y_max, q_value_history, nstep, steps):
     for i in range(len(q_value_history)):
         plt.plot(list(range(1,steps+1)), q_value_history[i])
     plt.xlim([0,nstep])
-    plt.ylim(top = y_max)
+    plt.ylim(top = y_max, bottom = y_min)
+    # plt.axvline(final_steps, 0,1, linestyle = '--')
+    # plt.legend(loc='upper right')
     fig2_path = 'q_value_line_plot.png'
     plt.savefig(fig2_path)
     plt.clf()
-    return fig_path, fig2_path, y_max
+    return fig_path, fig2_path, y_max, y_min
 
 def concat_h_resize(im1, im2, resample=Image.BICUBIC, resize_big_image=True):
     if im1.height == im2.height:
@@ -114,7 +121,9 @@ def render(env_name, model, nstep):
 
     q_value_history = [[] for i in range(env.action_space.n)]
     y_max = np.NaN
+    y_min = np.NaN
     steps = 0
+    final_steps = []
     for step in tqdm(range(nstep)):
         if not done:
             steps += 1
@@ -131,7 +140,7 @@ def render(env_name, model, nstep):
             # q_value_history_0.append(model.q_net_target(observation)[0].detach().cpu().numpy()[0])
             # q_value_history_1.append(model.q_net_target(observation)[0].detach().cpu().numpy()[1])
             #make figures and frames
-            fig_path, fig2_path, y_max = mk_fig(q_values, y_max, q_value_history, nstep, steps)
+            fig_path, fig2_path, y_max, y_min = mk_fig(q_values, y_max, y_min, q_value_history, nstep, steps, final_steps)
             frame = Image.fromarray(frame)
             plot_figure = Image.open(fig_path)
             frame = concat_h_resize(frame, plot_figure)
@@ -139,7 +148,7 @@ def render(env_name, model, nstep):
             frame = concat_v_resize(frame, plot2_figure)
             frames.append(frame)
         else:
-            # final_steps = step
+            final_steps.append(steps)
             obs = env.reset()
             done = False
     imageio.mimwrite('/home/neurlab-dl1/workspace/RLbench/src/' + str(env_name) + str(model) + '.gif', frames, fps=15)
@@ -171,6 +180,8 @@ if __name__ == "__main__":
     model = [
         # DQN.load("/home/neurlab-dl1/workspace/RLbench/data/ALE/Breakout-v5/a3/a3s1/a3s1r1-0/best_model.zip")
         DQN.load("/home/neurlab-dl1/workspace/RLbench/data/OpenLoopStandard1DTrack/a1/a1s1/a1s1r1-0/best_model.zip")
+        # DQN.load("/home/hyein/RLbench/OpenLoopStandard1DTrack/a1/a1s1/a1s1r1-0/best_model")
+        
         # PPO.load(p.join(BASE_PATH, GAME, agent_path)) for agent_path in agent_paths
     ]
     # agents = [
