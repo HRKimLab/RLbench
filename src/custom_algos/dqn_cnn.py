@@ -29,11 +29,15 @@ class CustomCNN(BaseFeaturesExtractor):
 
         # input_channel => color image : 3, blak : 1
         self.cnn = nn.Sequential(
-            # nn.Conv2d(3, 32, kernel_size=5, stride=4, padding=0),
-            nn.Conv2d(3, 32, kernel_size=5, stride=1, padding=1),
+            # nn.Conv2d(3, 32, kernel_size=8, stride=4, padding=0),
+            nn.Conv2d(3, 16, kernel_size=8, stride=4, padding=0),
             nn.ReLU(),
-            # nn.Conv2d(32, 64, kernel_size=5, stride=2, padding=0),
-            nn.Conv2d(32, 64, kernel_size=5, stride=1, padding=1),
+            nn.AvgPool2d(2,2),
+            # nn.Conv2d(32, 64, kernel_size=4, stride=2, padding=0),
+            nn.Conv2d(16, 32, kernel_size=4, stride=2, padding=0),
+            nn.ReLU(),
+            nn.AvgPool2d(2,2),
+            nn.Conv2d(32, 64, kernel_size = 2, stride = 1, padding=0),
             nn.ReLU(),
             nn.Flatten()
         )
@@ -49,14 +53,16 @@ class CustomCNN(BaseFeaturesExtractor):
         # self.linear = nn.Sequential(nn.Linear(n_flatten, features_dim), nn.ReLU())
         self.linear = nn.Sequential(
             # nn.Linear(self.n_flatten, 256),
-            nn.Linear(64, 256),
+            nn.Linear(64*170, 256),
             nn.ReLU(),
             # nn.Linear(256,output_num)
             nn.Linear(256,2)
         )
 
     def forward(self, observations: torch.Tensor) -> torch.Tensor:
-        return self.linear(self.cnn(observations))
+        x = self.cnn(observations)
+        x = x.view(-1)
+        return self.linear(x)
 
 class CustomDQN:
     def __init__(
@@ -148,13 +154,14 @@ class CustomDQN:
         eps_threshold = self.eps_end + (self.eps_start - self.eps_end) * math.exp(-1. * self.steps_done / self.eps_decay)
         self.steps_done += 1
         if random.random() > eps_threshold:
-            return self.network.forward(torch.Tensor(obs))
-        else: #무작위 값 (왼,오) >>> tensor([[0]]) 이런 꼴로 나옴
-            return torch.LongTensor([[random.randrange(2)]])
+            return self.network.forward(torch.Tensor(obs.copy()).permute(2,0,1))
+        else: #무작위value (왼,오) >>> tensor([[0]]) 이런 꼴로 나옴
+            return torch.LongTensor([random.randrange(2)])
 
 
     def learn(self):
         agent = CustomDQN('CartPole-v1')
+        self.env.reset()
         done = False
 
 
@@ -162,9 +169,9 @@ class CustomDQN:
             if not done:
                 obs = self.env.render(mode = 'rgb_array')
 
-                q_values = self.network.forward(torch.Tensor(obs).permute(3,0,1,2))
-
                 action = agent.act(obs)
+
+                
 
 
 
