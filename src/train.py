@@ -39,6 +39,11 @@ def train(args):
         if save_path is None:
             save_path, already_run = set_data_path(args.algo, args.env, hp, seed)
 
+        # If the given setting has already been executed, save_path will be given as None
+        if already_run:
+            print(f"[{i + 1}/{args.nseed}] Already exists: '{save_path}', skip to run")
+            continue
+
         # Get env, model
         try:
             env, eval_env = get_env(args.env, args.nenv, save_path, seed)
@@ -49,35 +54,34 @@ def train(args):
                 action_noise = NormalActionNoise(args.noise_mean, args.noise_std)
                 if args.nenv != 1:
                     action_noise = VectorizedActionNoise(action_noise, args.nenv)
-            model = get_algo(args.algo, env, hp, action_noise, seed, args.nstep)
+            model = get_algo(args.algo, env, hp, action_noise, seed)
         except KeyboardInterrupt:
             clean_data_path(save_path)
         except Exception as e:
             clean_data_path(save_path)
             info_logger.info("Loading error [ENV: %s] | [ALGO: %s]", args.env, args.algo)
             error_logger.error("Loading error with [%s / %s] at %s", args.env, args.algo, datetime.now(), exc_info=e)
+            print(e)
             exit()
 
-        # If given setting had already been run, save_path will be given as None
-        if already_run:
-            print(f"[{i + 1}/{args.nseed}] Already exists: '{save_path}', skip to run")
-        else: # Train with single seed
-            try:
-                Path(os.path.join(save_path, FLAG_FILE_NAME)).touch()
+        # Train with single seed
+        try:
+            Path(os.path.join(save_path, FLAG_FILE_NAME)).touch()
 
-                print(f"[{i + 1}/{args.nseed}] Ready to train {i + 1}th agent - RANDOM SEED: {seed}")
-                is_licking_task = (args.env in ["OpenLoopStandard1DTrack", "OpenLoopTeleportLong1DTrack"])
-                _train(
-                    model, args.nstep, is_licking_task,
-                    eval_env, args.eval_freq, args.eval_eps, args.save_freq, save_path
-                )
-                del env, model
-            except KeyboardInterrupt:
-                clean_data_path(save_path)
-            except Exception as e:
-                clean_data_path(save_path)
-                info_logger.info("Train error [ENV: %s] | [ALGO: %s]", args.env, args.algo)
-                error_logger.error("Train error with [%s / %s] at %s", args.env, args.algo, datetime.now(), exc_info=e)
+            print(f"[{i + 1}/{args.nseed}] Ready to train {i + 1}th agent - RANDOM SEED: {seed}")
+            is_licking_task = (args.env in ["OpenLoopStandard1DTrack", "OpenLoopTeleportLong1DTrack"])
+            _train(
+                model, args.nstep, is_licking_task,
+                eval_env, args.eval_freq, args.eval_eps, args.save_freq, save_path
+            )
+            del env, model
+        except KeyboardInterrupt:
+            clean_data_path(save_path)
+        except Exception as e:
+            clean_data_path(save_path)
+            info_logger.info("Train error [ENV: %s] | [ALGO: %s]", args.env, args.algo)
+            error_logger.error("Train error with [%s / %s] at %s", args.env, args.algo, datetime.now(), exc_info=e)
+            print(e)
 
 
 def _train(
@@ -116,14 +120,12 @@ def _train(
         )
         callbacks.append(licking_tracker_callback)
 
-    # # Training
-    # model.learn(
-    #     total_timesteps=nstep,
-    #     callback=callbacks,
-    #     eval_log_path=save_path
-    # )
-
-    model.process()
+    # Training
+    model.learn(
+        total_timesteps=nstep,
+        callback=callbacks,
+        eval_log_path=save_path
+    )
 
     os.remove(os.path.join(save_path, FLAG_FILE_NAME))
     model.save(os.path.join(save_path, "info.zip"))
