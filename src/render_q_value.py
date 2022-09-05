@@ -56,7 +56,7 @@ def mk_fig(q_values, y_max, q_value_history, nstep, steps):
     plt.xticks(list(range(len(q_values))))
     plt.ylim(top=y_max)
     plt.title('instant q values of actions')
-    fig_path = '/home/neurlab-dl1/workspace/RLbench/src/q_value_bar_plot.png'
+    fig_path = 'q_value_bar_plot.png'
     plt.savefig(fig_path)
     plt.clf()
     line_plot = plt.figure()
@@ -64,7 +64,7 @@ def mk_fig(q_values, y_max, q_value_history, nstep, steps):
         plt.plot(list(range(1,steps+1)), q_value_history[i])
     plt.xlim([0,nstep])
     plt.ylim(top = y_max)
-    fig2_path = '/home/neurlab-dl1/hyein/python_study_notes/Hyeeiin/reinforcement_learning/DQN_pytorch/q_value_line_plot.png'
+    fig2_path = 'q_value_line_plot.png'
     plt.savefig(fig2_path)
     plt.clf()
     return fig_path, fig2_path, y_max
