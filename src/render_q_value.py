@@ -180,8 +180,8 @@ if __name__ == "__main__":
     model = [
         # DQN.load("/home/neurlab-dl1/workspace/RLbench/data/ALE/Breakout-v5/a3/a3s1/a3s1r1-0/best_model.zip")
         # DQN.load("/home/neurlab-dl1/workspace/RLbench/data/OpenLoopStandard1DTrack/a1/a1s1/a1s1r1-0/best_model.zip")
-        DQN.load("/home/hyein/RLbench/OpenLoopStandard1DTrack/a1/a1s1/a1s1r1-0/best_model")
-        
+        DQN.load("/home/neurlab/hyein/RLbench/OpenLoopStandard1DTrack/a1/a1s1/a1s1r1-0/best_model")
+
         # PPO.load(p.join(BASE_PATH, GAME, agent_path)) for agent_path in agent_paths
     ]
     # agents = [
