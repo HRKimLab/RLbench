@@ -1,12 +1,14 @@
 import gym
 from stable_baselines3.common.vec_env import DummyVecEnv
 from stable_baselines3.common.torch_layers import BaseFeaturesExtractor
+from stable_baselines3.common.monitor import Monitor
 
 import torch
 import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 from collections import deque
+from tqdm import tqdm
 
 import random
 import numpy as np
@@ -96,7 +98,10 @@ class CustomDQN:
         exploration_final_eps = 0.05,
         max_grad_norm = 10
     ):
-        self.env = gym.make(env)
+        self.env = gym.make('CartPole-v1')
+        # self.monitor_kwargs = {}
+        # self.monitor_path = '/home/neurlab/yw/RLbench/data/CartPole-v1/a1/a1s1/a1s1r1-0/0.monitor.csv'
+        # self.env = Monitor(self.env, filename=self.monitor_path, **self.monitor_kwargs)
         self.timesteps = timesteps
         self.memory = deque([],maxlen=10000)
 
@@ -154,36 +159,83 @@ class CustomDQN:
         eps_threshold = self.eps_end + (self.eps_start - self.eps_end) * math.exp(-1. * self.steps_done / self.eps_decay)
         self.steps_done += 1
         if random.random() > eps_threshold:
-            return self.network.forward(torch.Tensor(obs.copy()).permute(2,0,1))
+            return self.network.forward(torch.Tensor(obs.copy()).permute(2,0,1)).argmax()
         else: #무작위value (왼,오) >>> tensor([[0]]) 이런 꼴로 나옴
             return torch.LongTensor([random.randrange(2)])
 
+    def memorize(self, state, action, reward, next_state):
+        self.memory.append((
+            state,
+            action,
+            torch.FloatTensor([reward]),
+            torch.FloatTensor([next_state])
+        ))
 
-    def learn(self):
+    def learn(self):   
+        if len(self.memory) < self.batch_size:
+            return
+        #경험이 충분히 쌓일 때부터 학습 진행
+        batch = random.sample(self.memory, self.batch_size)
+        states, actions, rewards, next_states = zip(*batch)
+
+
+
+        #list to Tensor
+        states = torch.cat(states)
+        actions = torch.cat(actions)
+        rewards = torch.cat(rewards)
+        next_states = torch.cat(next_states)
+
+        #모델의 입력으로 states를 제공, 현 상태에서 했던 행동의 가치(q 값)
+        current_q = self.network.forward(states).gather(1,actions)
+
+        #에이전트가 보는 행동의 미래 가치
+        #datach는 기존 tensor를 복사하지만, gradient 전파가 안되는 tensor가 됨
+        #dim=1에서 가장 큰 값을 가져옴
+
+        max_next_q = self.network.forward(next_states).detach().max(1)[0]
+        # max_next_q = self.q_net_target(next_states).detach().max(1)[0]
+        expected_q = rewards + (self.gamma * max_next_q)
+
+        #행동은 expected_q 따라감, MSE_loss로 오차 계산, 역전파, 신경망 학습
+        loss = F.mse_loss(current_q.squeeze(), expected_q)
+        self.optimizer.zero_grad()
+        loss.backward()
+        self.optimizer.step()
+
+    def process(self):
         agent = CustomDQN('CartPole-v1')
+        # self.env = gym.make('CartPole-v1')
         self.env.reset()
         done = False
+        episode = 0
+        nsteps = 0
 
 
-        for step in range(1, self.timesteps):
+        for step in tqdm(range(1, self.timesteps)):
             if not done:
+                nsteps +=1
                 obs = self.env.render(mode = 'rgb_array')
 
                 action = agent.act(obs)
 
-                
+                next_state, reward, done, info = self.env.step(action.item())
 
+                next_obs = self.env.render(mode='rgb_array')
 
+                agent.memorize(obs, action, reward, next_obs)
 
+                agent.learn()
+            else:
+                self.env.reset()
+                episode +=1 
+                print("episode = {}, score = {}".format(episode, nsteps))
+                nsteps = 0
+                done = False
 
+            
+# model = CustomDQN('CartPole-v1')
+# model.train()
 
-                
-                
-
-
-
-
-
-model = CustomDQN("CartPole-v1")
-model.learn()
-
+    def set_logger(error_log, info_log):
+        return 

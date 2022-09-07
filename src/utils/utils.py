@@ -16,6 +16,7 @@ from stable_baselines3 import A2C, DDPG, DQN, PPO, SAC, TD3
 from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.vec_env import VecFrameStack
 from stable_baselines3.common.env_util import make_vec_env, make_atari_env
+from custom_algos.dqn_cnn import CustomDQN
 
 from custom_envs import MaxAndSkipEnv, OpenLoopStandard1DTrack, OpenLoopTeleportLong1DTrack
 
@@ -23,7 +24,7 @@ FLAG_FILE_NAME = "NOT_FINISHED"
 ALGO_LIST = {
     "a2c": A2C, "ddpg": DDPG, "dqn": DQN,
     "ppo": PPO, "sac": SAC, "td3": TD3,
-    "ars": ARS, "qrdqn": QRDQN, "tqc": TQC, "trpo": TRPO
+    "ars": ARS, "qrdqn": QRDQN, "tqc": TQC, "trpo": TRPO, "custom_dqn":CustomDQN
 }
 
 def set_seed(seed):
@@ -114,15 +115,15 @@ def get_env(env_name, n_env, save_path, seed):
             raise ValueError(f"Given environment name [{env_name}] does not exist.")
     return env, eval_env
 
-def get_algo(algo_name, env, hp, action_noise, seed):
+def get_algo(algo_name, env, hp, action_noise, seed, nstep):
     if algo_name not in ALGO_LIST:
         raise ValueError(f"Given algorithm name [{algo_name}] does not exist.")
 
     # Get model
     if action_noise is None:
-        model = ALGO_LIST[algo_name](env=env, seed=seed, verbose=0, **hp)
+        model = ALGO_LIST[algo_name](env=env, seed=seed, verbose=0, timesteps=nstep, **hp)
     else:
-        model = ALGO_LIST[algo_name](env=env, seed=seed, action_noise=action_noise, verbose=0, **hp)
+        model = ALGO_LIST[algo_name](env=env, seed=seed, action_noise=action_noise, verbose=0, timesteps=nstep, **hp)
 
     return model
 
