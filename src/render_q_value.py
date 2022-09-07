@@ -47,7 +47,8 @@ def snap_finish(ax, name, step):
     ax.axis('off')
 
 def mk_fig(q_values, y_max, y_min, q_value_history, nstep, steps, final_steps):
-    bar_plot = plt.bar(list(range(len(q_values))), list(q_values[x] for x in range(len(q_values))))
+    bar_plot = plt.figure(figsize=(6,8))
+    plt.bar(list(range(len(q_values))), list(q_values[x] for x in range(len(q_values))), width = 0.25)
     if np.isnan(y_max):
             y_max = max(q_values)
     else:
@@ -61,6 +62,7 @@ def mk_fig(q_values, y_max, y_min, q_value_history, nstep, steps, final_steps):
     plt.xticks(list(range(len(q_values))))
     plt.ylim(top=y_max, bottom=y_min)
     plt.title('instant q values of actions')
+    bar_plot.tight_layout(pad=0)
     fig_path = 'q_value_bar_plot.png'
     plt.savefig(fig_path)
     plt.clf()
@@ -71,6 +73,7 @@ def mk_fig(q_values, y_max, y_min, q_value_history, nstep, steps, final_steps):
     plt.ylim(top = y_max, bottom = y_min)
     # plt.axvline(final_steps, 0,1, linestyle = '--')
     # plt.legend(loc='upper right')
+    line_plot.tight_layout(pad=0)
     fig2_path = 'q_value_line_plot.png'
     plt.savefig(fig2_path)
     plt.clf()
@@ -92,14 +95,26 @@ def concat_h_resize(im1, im2, resample=Image.BICUBIC, resize_big_image=True):
     dst.paste(_im2, (_im1.width, 0))
     return dst
 
-def concat_v_resize(im1, im2, resample=Image.BICUBIC, resize_big_image=True):
+# def concat_v_resize(im1, im2, resample=Image.BICUBIC, resize_big_image=True):
+#     if im1.width == im2.width:
+#         _im1 = im1
+#         _im2 = im2.resize(im2.width, int(im1.height/ 2), resample=resample)
+#     elif (((im1.width > im2.width) and resize_big_image) or
+#           ((im1.width < im2.width) and not resize_big_image)):
+#         _im1 = im1.resize((im2.width, int(im1.height * im2.width / im1.width)), resample=resample)
+#         _im2 = im2.resize((im2.width, int(im1.height/2)), resample=resample)
+#     else:
+#         _im1 = im1
+#         _im2 = im2.resize((im1.width, int(im2.height * im1.width / im2.width / 2)), resample=resample)
+#     dst = Image.new('RGB', (_im1.width, _im1.height + _im2.height))
+#     dst.paste(_im1, (0, 0))
+#     dst.paste(_im2, (0, _im1.height))
+#     return dst
+
+def concat_v_resize(im1, im2, resample=Image.BICUBIC):
     if im1.width == im2.width:
         _im1 = im1
         _im2 = im2.resize(im2.width, int(im1.height/ 2), resample=resample)
-    elif (((im1.width > im2.width) and resize_big_image) or
-          ((im1.width < im2.width) and not resize_big_image)):
-        _im1 = im1.resize((im2.width, int(im1.height * im2.width / im1.width)), resample=resample)
-        _im2 = im2.resize((im2.width, int(im1.height/2)), resample=resample)
     else:
         _im1 = im1
         _im2 = im2.resize((im1.width, int(im2.height * im1.width / im2.width / 2)), resample=resample)
