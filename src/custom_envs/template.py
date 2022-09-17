@@ -21,6 +21,6 @@ class CustomEnv(gym.Env):
     # Reset the state of the environment to an initial state
         ...
 
-    def render(self, mode='human', close=False):
+    def render(self, mode='human'):
         # Render the environment to the screen
         ...

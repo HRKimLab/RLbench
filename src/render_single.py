@@ -5,22 +5,30 @@ import argparse
 from pathlib import Path
 
 from utils import get_algo_from_agent
-from custom_envs import OpenLoopStandard1DTrack, OpenLoopTeleportLong1DTrack
+from custom_envs import (
+    MaxAndSkipEnv,
+    OpenLoopStandard1DTrack,
+    OpenLoopTeleportLong1DTrack,
+    OpenLoopPause1DTrack,
+    ClosedLoopStandard1DTrack
+)
 
 ENV = {
     "OpenLoopStandard1DTrack": OpenLoopStandard1DTrack,
-    "OpenLoopTeleportLong1DTrack": OpenLoopTeleportLong1DTrack
+    "OpenLoopTeleportLong1DTrack": OpenLoopTeleportLong1DTrack,
+    "OpenLoopPause1DTrack": OpenLoopPause1DTrack,
+    "ClosedLoopStandard1DTrack": ClosedLoopStandard1DTrack
 }
 
 def get_render_args():
     parser = argparse.ArgumentParser(description="Required for rendering")
     parser.add_argument(
         '--src-env', '-S', type=str,
-        choices=['OpenLoopStandard1DTrack', 'OpenLoopTeleportLong1DTrack']
+        choices=ENV.keys()
     )
     parser.add_argument(
         '--dst-env', '-D', type=str,
-        choices=['OpenLoopStandard1DTrack', 'OpenLoopTeleportLong1DTrack']
+        choices=ENV.keys()
     )
     parser.add_argument(
         '--agent', '-A', type=str
@@ -67,11 +75,12 @@ def get_model_path(args):
 def render_single(args):
     model_path = get_model_path(args)
     env = ENV[args.dst_env if (args.dst_env is not None) else args.src_env]()
+    env = MaxAndSkipEnv(env, skip=5)
     _, model_class = get_algo_from_agent(args.agent, model_path.parent)
     model = model_class.load(model_path)
 
     total_reward = 0
-    state = env.reset()
+    state = env.reset(stochasticity=False)
     while True:
         action, _ = model.predict(state)
         state, reward, done, _ = env.step(action)

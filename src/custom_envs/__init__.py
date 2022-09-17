@@ -1,4 +1,5 @@
-from .oloop1d import OpenLoopStandard1DTrack, OpenLoopTeleportLong1DTrack
+from .oloop1d import OpenLoopStandard1DTrack, OpenLoopPause1DTrack, OpenLoopTeleportLong1DTrack
+from .cloop1d import ClosedLoopStandard1DTrack
 
 import gym
 import numpy as np
@@ -13,7 +14,6 @@ class MaxAndSkipEnv(gym.Wrapper):
         """
         gym.Wrapper.__init__(self, env)
         # most recent raw observations (for max pooling across time steps)
-        self._obs_buffer = np.zeros((2,) + env.observation_space.shape, dtype=env.observation_space.dtype)
         self._skip = skip
 
     def step(self, action):
@@ -27,21 +27,17 @@ class MaxAndSkipEnv(gym.Wrapper):
         done = None
         for i in range(self._skip):
             obs, reward, done, info = self.env.step(action)
-            if i == self._skip - 2:
-                self._obs_buffer[0] = obs
-            if i == self._skip - 1:
-                self._obs_buffer[1] = obs
+            self._obs_buffer = obs
             total_reward += reward
             if done:
                 break
         # Note that the observation on the done=True frame
         # doesn't matter
-        max_frame = self._obs_buffer.max(axis=0)
 
-        return max_frame, total_reward, done, info
+        return self._obs_buffer, total_reward, done, info
 
     def reset(self, **kwargs):
         return self.env.reset(**kwargs)
 
 
-__all__ = ['oloop1d']
+__all__ = ['oloop1d', 'cloop1d']

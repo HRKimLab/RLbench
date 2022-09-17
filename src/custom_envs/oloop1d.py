@@ -1,4 +1,5 @@
 import pickle
+from typing import overload
 
 import cv2
 import numpy as np
@@ -76,21 +77,15 @@ class OpenLoop1DTrack(gym.Env):
             "lick_timing_eps": self.lick_timing_eps
         }
 
-        # Water Spout rendering
-        if self.cur_time == self.water_spout:
-            self.bar_states.append((140., 1., True))
-
         return next_state, reward, done, info
 
-    def reset(self):
+    def reset(self, stochasticity=True):
         # Reset the state of the environment to an initial state
-        self.cur_time = randrange(50)
+        self.cur_time = randrange(50) if stochasticity else 0
         self.start_time = self.cur_time
-        self.end_time = self.data.shape[0] - randrange(1, 10)
+        self.end_time = self.data.shape[0] - (randrange(1, 10) if stochasticity else 5)
         self.state = self.data[self.cur_time, :, :, :]
         self.licking_cnt = 0
-
-        self.bar_states = []
 
         self.lick_timing.append(self.lick_timing_eps)
         self.lick_timing_eps = []
@@ -100,12 +95,12 @@ class OpenLoop1DTrack(gym.Env):
 
         return self.state
 
-    def render(self, mode='human', close=False):
+    def render(self, mode='human'):
         # Render the environment to the screen
         rgb_array = self.original_frames[self.cur_time, :, :, :].copy()
         height, width, _ = rgb_array.shape
 
-        pos_template = (width - 40) / (self.end_time - self.start_time)
+        unit_pos = (width - 40) / (self.end_time - self.start_time)
 
         # Upper padding
         padding_height = height // 8
@@ -116,17 +111,17 @@ class OpenLoop1DTrack(gym.Env):
         cv2.line(rgb_array, (20, base_height), (width - 20, base_height), (0, 0, 0), 2)
         
         # Current position
-        x_offset = int((self.cur_time - self.start_time) * pos_template)
+        x_offset = int((self.cur_time - self.start_time) * unit_pos)
         y_offset = base_height - 20
         rgb_array[y_offset:y_offset+self.mice_pic.shape[0], x_offset:x_offset+self.mice_pic.shape[1], :] = self.mice_pic
 
         # Licking
         for lick_timing in self.lick_timing_eps:
-            lick_x_pos = 20 + int((lick_timing - self.start_time) * pos_template)
+            lick_x_pos = 20 + int((lick_timing - self.start_time) * unit_pos)
             cv2.line(rgb_array, (lick_x_pos, base_height - 30), (lick_x_pos, base_height + 30), (0, 0, 0), 1)
 
         # Water spout
-        spout_x_pos = 20 + int((self.water_spout - self.start_time) * pos_template)
+        spout_x_pos = 20 + int((self.water_spout - self.start_time) * unit_pos)
         cv2.line(rgb_array, (spout_x_pos, base_height - 30), (spout_x_pos, base_height + 30), (255, 0, 0), 3)
 
         if mode == 'human':
@@ -187,7 +182,7 @@ class OpenLoop1DTrack(gym.Env):
 
 
 class OpenLoopStandard1DTrack(OpenLoop1DTrack):
-    """ Licking task in 1D open-loop track with mouse agent """
+    """ Standard Open-loop track """
 
     metadata = {'render.modes': ['human']}
 
@@ -208,7 +203,7 @@ class OpenLoopStandard1DTrack(OpenLoop1DTrack):
 
 
 class OpenLoopTeleportLong1DTrack(OpenLoop1DTrack):
-    """ Licking task in 1D open-loop track with mouse agent """
+    """ Long teleport condition, Open-loop track """
 
     metadata = {'render.modes': ['human']}
 
@@ -226,3 +221,79 @@ class OpenLoopTeleportLong1DTrack(OpenLoop1DTrack):
         with open("custom_envs/track/oloop_teleport_long_1d.pkl", "rb") as f:
             data = pickle.load(f)
         return data
+
+class OpenLoopPause1DTrack(OpenLoop1DTrack):
+    """ Pause condition, Open-loop track """
+
+    metadata = {'render.modes': ['human']}
+
+    def __init__(self, visual_noise=False, pos_rew=10, neg_rew=-5):
+        super().__init__(
+            water_spout=518,
+            video_path="custom_envs/track/VR_tele_1dest_pause.mp4",
+            visual_noise=visual_noise,
+            pos_rew=pos_rew,
+            neg_rew=neg_rew
+        )
+        self.pause = 208
+
+    @staticmethod
+    def _load_data():
+        with open("custom_envs/track/oloop_pause_1d.pkl", "rb") as f:
+            data = pickle.load(f)
+        return data
+
+    def render(self, mode='human'):
+        # Render the environment to the screen
+        rgb_array = self.original_frames[self.cur_time, :, :, :].copy()
+        height, width, _ = rgb_array.shape
+
+        unit_pos = (width - 40) / (self.end_time - self.start_time - (self.pause - 2))
+
+        # Upper padding
+        padding_height = height // 8
+        rgb_array = cv2.copyMakeBorder(rgb_array, padding_height, 0, 0, 0, cv2.BORDER_CONSTANT, value=(255, 255, 255))
+
+        # Base line
+        base_height = padding_height // 2
+        cv2.line(rgb_array, (20, base_height), (width - 20, base_height), (0, 0, 0), 2)
+        
+        # Current position
+        if (self.cur_time >= 254) and (self.cur_time < 462):
+            x_offset = int((254 + 2 / self.pause * (self.cur_time - self.pause)) * unit_pos)
+        elif self.cur_time >= 462:
+            x_offset = int((self.cur_time - self.start_time - (self.pause - 2)) * unit_pos)
+        else:
+            x_offset = int((self.cur_time - self.start_time) * unit_pos)
+        y_offset = base_height - 20
+        rgb_array[y_offset:y_offset+self.mice_pic.shape[0], x_offset:x_offset+self.mice_pic.shape[1], :] = \
+            self.mice_pic[:, :, :]
+
+        # Pause spout
+        pause_x_pos = 20 + int((254 - self.start_time) * unit_pos)
+        cv2.line(rgb_array, (pause_x_pos, base_height - 30), (pause_x_pos, base_height + 30), (0, 0, 255), 3)
+
+        # Water spout
+        spout_x_pos = 20 + int((self.water_spout - self.start_time - self.pause) * unit_pos)
+        cv2.line(rgb_array, (spout_x_pos, base_height - 30), (spout_x_pos, base_height + 30), (255, 0, 0), 3)
+
+        # Licking
+        for lick_timing in self.lick_timing_eps:
+            if (lick_timing > 254) and (lick_timing < 462):
+                lick_x_pos = int((254 + 2 / self.pause * (lick_timing - self.start_time)) * unit_pos)
+            elif lick_timing >= 462:
+                lick_x_pos = int((lick_timing - self.start_time - (self.pause - 2)) * unit_pos)
+            else:
+                lick_x_pos = int((lick_timing - self.start_time) * unit_pos)
+            lick_x_pos += 20
+            cv2.line(rgb_array, (lick_x_pos, base_height - 30), (lick_x_pos, base_height + 30), (0, 0, 0), 1)
+
+        if mode == 'human':
+            cv2.imshow("licking", rgb_array)
+            cv2.waitKey(1)
+        elif mode == 'gif':
+            self.frames.append(cv2.cvtColor(rgb_array, cv2.COLOR_BGR2RGB))
+        elif mode == 'mp4':
+            self.frames.append(rgb_array)
+        elif mode == 'rgb_array':
+            return cv2.cvtColor(rgb_array, cv2.COLOR_BGR2RGB)

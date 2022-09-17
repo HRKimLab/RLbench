@@ -17,7 +17,13 @@ from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.vec_env import VecFrameStack
 from stable_baselines3.common.env_util import make_vec_env, make_atari_env
 
-from custom_envs import MaxAndSkipEnv, OpenLoopStandard1DTrack, OpenLoopTeleportLong1DTrack
+from custom_envs import (
+    MaxAndSkipEnv,
+    OpenLoopStandard1DTrack, 
+    OpenLoopTeleportLong1DTrack,
+    OpenLoopPause1DTrack,
+    ClosedLoopStandard1DTrack
+)
 
 FLAG_FILE_NAME = "NOT_FINISHED"
 ALGO_LIST = {
@@ -106,6 +112,12 @@ def get_env(env_name, n_env, save_path, seed, rewards):
             elif env_name == "OpenLoopTeleportLong1DTrack":
                 env = OpenLoopTeleportLong1DTrack(pos_rew=pos_rew, neg_rew=neg_rew)
                 eval_env = OpenLoopTeleportLong1DTrack(pos_rew=pos_rew, neg_rew=neg_rew)
+            elif env_name == "OpenLoopPause1DTrack":
+                env = OpenLoopPause1DTrack(pos_rew=pos_rew, neg_rew=neg_rew)
+                eval_env = OpenLoopPause1DTrack(pos_rew=pos_rew, neg_rew=neg_rew)
+            elif env_name == "ClosedLoopStandard1DTrack":
+                env = ClosedLoopStandard1DTrack(pos_rew=pos_rew, neg_rew=neg_rew)
+                eval_env = ClosedLoopStandard1DTrack(pos_rew=pos_rew, neg_rew=neg_rew)
             else:
                 raise ImportError
             env = MaxAndSkipEnv(env, skip=5) # Mouse can lick about 8 times per second, 40 (frames) / 5 (skipping).
