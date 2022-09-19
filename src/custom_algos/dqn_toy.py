@@ -53,6 +53,7 @@ class CustomDQN:
         self.env = gym.make('CartPole-v1')
         self.monitor_kwargs = {}
         self.monitor_path = '/home/neurlab-dl1/workspace/RLbench/data/CartPole-v1/a1/a1s1/a1s1r1-0/0.monitor.csv'
+        self.monitor_path = '/home/neurlab/hyein/RLbench/data/CartPole-v1/a1/a1s1/a1s1r1-0/0.monitor.csv'
         self.env = Monitor(self.env, filename=self.monitor_path, **self.monitor_kwargs)
         self.q_net = nn.Sequential(
             #input layer=4, hidden layer=256, output layer=2
@@ -190,3 +191,6 @@ class CustomDQN:
         # torch.save(model, PATH + 'DQNAgent.pt')
     def set_logger(error_log, info_log):
         return 
+
+model = CustomDQN()
+model.process()

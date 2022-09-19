@@ -131,6 +131,13 @@ def _train(
 
 if __name__ == "__main__":
     args = get_args()
+    # args = [
+    #     "env", 'CartPole-v1',
+    #     "algo", 'custom_dqn',
+    #     "hp", "default/dqn",
+    #     "nseed", 1,
+    #     "nstep", 10000
+    # ]
     configure_cudnn()
 
     print(f"Using {'CUDA' if torch.cuda.is_available() else 'CPU'} device")

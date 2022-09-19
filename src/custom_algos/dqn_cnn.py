@@ -34,11 +34,11 @@ class CustomCNN(BaseFeaturesExtractor):
             # nn.Conv2d(3, 32, kernel_size=8, stride=4, padding=0),
             nn.Conv2d(3, 16, kernel_size=8, stride=4, padding=0),
             nn.ReLU(),
-            nn.AvgPool2d(2,2),
+            # nn.AvgPool2d(2,2),
             # nn.Conv2d(32, 64, kernel_size=4, stride=2, padding=0),
             nn.Conv2d(16, 32, kernel_size=4, stride=2, padding=0),
             nn.ReLU(),
-            nn.AvgPool2d(2,2),
+            # nn.AvgPool2d(2,2),
             nn.Conv2d(32, 64, kernel_size = 2, stride = 1, padding=0),
             nn.ReLU(),
             nn.Flatten()
@@ -55,7 +55,8 @@ class CustomCNN(BaseFeaturesExtractor):
         # self.linear = nn.Sequential(nn.Linear(n_flatten, features_dim), nn.ReLU())
         self.linear = nn.Sequential(
             # nn.Linear(self.n_flatten, 256),
-            nn.Linear(64*170, 256),
+            # nn.Linear(64*170, 256),
+            nn.Linear(64*3384,256),
             nn.ReLU(),
             # nn.Linear(256,output_num)
             nn.Linear(256,2)
@@ -159,16 +160,16 @@ class CustomDQN:
         eps_threshold = self.eps_end + (self.eps_start - self.eps_end) * math.exp(-1. * self.steps_done / self.eps_decay)
         self.steps_done += 1
         if random.random() > eps_threshold:
-            return self.network.forward(torch.Tensor(obs.copy()).permute(2,0,1)).argmax()
+            return torch.LongTensor([[self.network.forward(torch.FloatTensor(obs.copy()).permute(2,0,1)).argmax().item()]])
         else: #무작위value (왼,오) >>> tensor([[0]]) 이런 꼴로 나옴
-            return torch.LongTensor([random.randrange(2)])
+            return torch.LongTensor([[random.randrange(2)]])
 
-    def memorize(self, state, action, reward, next_state):
+    def memorize(self, obs, action, reward, next_obs):
         self.memory.append((
-            state,
+            torch.FloatTensor([obs]),
             action,
             torch.FloatTensor([reward]),
-            torch.FloatTensor([next_state])
+            torch.FloatTensor([next_obs])
         ))
 
     def learn(self):   
@@ -176,29 +177,38 @@ class CustomDQN:
             return
         #경험이 충분히 쌓일 때부터 학습 진행
         batch = random.sample(self.memory, self.batch_size)
-        states, actions, rewards, next_states = zip(*batch)
+        obss, actions, rewards, next_obss = zip(*batch)
 
 
 
         #list to Tensor
-        states = torch.cat(states)
+        obss = torch.cat(obss)
         actions = torch.cat(actions)
         rewards = torch.cat(rewards)
-        next_states = torch.cat(next_states)
+        next_obss = torch.cat(next_obss)
 
-        #모델의 입력으로 states를 제공, 현 상태에서 했던 행동의 가치(q 값)
-        current_q = self.network.forward(states).gather(1,actions)
+        #모델의 입력으로 obs를 제공, 현 상태에서 했던 행동의 가치(q 값)
+        current_q = []
+        max_next_q = []
+        for i in range(self.batch_size):
+            current_q.append(self.network.forward(obss[i].permute(2,0,1))[actions[i]])
+            max_next_q.append(self.network.forward(next_obss[i].permute(2,0,1)).max())
+        # current_q = self.network.forward(obss.permute(0,3,1,2)).gather(1,actions)
 
         #에이전트가 보는 행동의 미래 가치
         #datach는 기존 tensor를 복사하지만, gradient 전파가 안되는 tensor가 됨
         #dim=1에서 가장 큰 값을 가져옴
-
-        max_next_q = self.network.forward(next_states).detach().max(1)[0]
+        # max_next_q = self.network.forward(next_obss.permute(0,3,1,2)).detach().max(1)[0]
         # max_next_q = self.q_net_target(next_states).detach().max(1)[0]
+
+        current_q = torch.Tensor(current_q)
+        current_q.requires_grad_(True)
+        max_next_q = torch.Tensor(max_next_q)
+        max_next_q.requires_grad_(True)
         expected_q = rewards + (self.gamma * max_next_q)
 
         #행동은 expected_q 따라감, MSE_loss로 오차 계산, 역전파, 신경망 학습
-        loss = F.mse_loss(current_q.squeeze(), expected_q)
+        loss = F.mse_loss(current_q, expected_q)
         self.optimizer.zero_grad()
         loss.backward()
         self.optimizer.step()
@@ -233,9 +243,9 @@ class CustomDQN:
                 nsteps = 0
                 done = False
 
-            
-# model = CustomDQN('CartPole-v1')
-# model.train()
 
     def set_logger(error_log, info_log):
         return 
+
+model = CustomDQN('CartPole-v1')
+model.process()
