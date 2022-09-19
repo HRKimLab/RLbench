@@ -1,4 +1,0 @@
-{
-    "algorithm": "dqn",
-    "policy": "CnnPolicy"
-}

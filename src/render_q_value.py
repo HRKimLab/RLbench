@@ -47,7 +47,8 @@ def snap_finish(ax, name, step):
     ax.axis('off')
 
 def mk_fig(q_values, y_max, y_min, q_value_history, nstep, steps, final_steps):
-    bar_plot = plt.bar(list(range(len(q_values))), list(q_values[x] for x in range(len(q_values))))
+    bar_plot = plt.figure(figsize=(6,8))
+    plt.bar(list(range(len(q_values))), list(q_values[x] for x in range(len(q_values))), width = 0.25)
     if np.isnan(y_max):
             y_max = max(q_values)
     else:
@@ -61,7 +62,8 @@ def mk_fig(q_values, y_max, y_min, q_value_history, nstep, steps, final_steps):
     plt.xticks(list(range(len(q_values))))
     plt.ylim(top=y_max, bottom=y_min)
     plt.title('instant q values of actions')
-    fig_path = './src/q_value_bar_plot.png'
+    bar_plot.tight_layout(pad=0)
+    fig_path = 'q_value_bar_plot.png'
     plt.savefig(fig_path)
     plt.clf()
     line_plot = plt.figure()
@@ -69,9 +71,10 @@ def mk_fig(q_values, y_max, y_min, q_value_history, nstep, steps, final_steps):
         plt.plot(list(range(1,steps+1)), q_value_history[i])
     plt.xlim([0,nstep])
     plt.ylim(top = y_max, bottom = y_min)
-    plt.axvline(final_steps, 0,1, linestyle = '--')
-    plt.legend(1)
-    fig2_path = './src/q_value_line_plot.png'
+    # plt.axvline(final_steps, 0,1, linestyle = '--')
+    # plt.legend(loc='upper right')
+    line_plot.tight_layout(pad=0)
+    fig2_path = 'q_value_line_plot.png'
     plt.savefig(fig2_path)
     plt.clf()
     return fig_path, fig2_path, y_max, y_min
@@ -92,14 +95,26 @@ def concat_h_resize(im1, im2, resample=Image.BICUBIC, resize_big_image=True):
     dst.paste(_im2, (_im1.width, 0))
     return dst
 
-def concat_v_resize(im1, im2, resample=Image.BICUBIC, resize_big_image=True):
+# def concat_v_resize(im1, im2, resample=Image.BICUBIC, resize_big_image=True):
+#     if im1.width == im2.width:
+#         _im1 = im1
+#         _im2 = im2.resize(im2.width, int(im1.height/ 2), resample=resample)
+#     elif (((im1.width > im2.width) and resize_big_image) or
+#           ((im1.width < im2.width) and not resize_big_image)):
+#         _im1 = im1.resize((im2.width, int(im1.height * im2.width / im1.width)), resample=resample)
+#         _im2 = im2.resize((im2.width, int(im1.height/2)), resample=resample)
+#     else:
+#         _im1 = im1
+#         _im2 = im2.resize((im1.width, int(im2.height * im1.width / im2.width / 2)), resample=resample)
+#     dst = Image.new('RGB', (_im1.width, _im1.height + _im2.height))
+#     dst.paste(_im1, (0, 0))
+#     dst.paste(_im2, (0, _im1.height))
+#     return dst
+
+def concat_v_resize(im1, im2, resample=Image.BICUBIC):
     if im1.width == im2.width:
         _im1 = im1
         _im2 = im2.resize(im2.width, int(im1.height/ 2), resample=resample)
-    elif (((im1.width > im2.width) and resize_big_image) or
-          ((im1.width < im2.width) and not resize_big_image)):
-        _im1 = im1.resize((im2.width, int(im1.height * im2.width / im1.width)), resample=resample)
-        _im2 = im2.resize((im2.width, int(im1.height/2)), resample=resample)
     else:
         _im1 = im1
         _im2 = im2.resize((im1.width, int(im2.height * im1.width / im2.width / 2)), resample=resample)
@@ -124,33 +139,31 @@ def render(env_name, model, nstep):
     y_min = np.NaN
     steps = 0
     final_steps = []
-    for step in tqdm(range(nstep)):
-        if not done:
-            steps += 1
-            frame = env.render(mode='rgb_array')
-            action, _ = model.predict(obs, deterministic=True)
-            obs, _, done, info = env.step(action)
-            observation = obs.reshape((-1,) + model.observation_space.shape)
-            observation = torch.tensor(observation).cuda()
-            # get q_values
-            # q_values = tensor([[0.1247, -0.0102]])
-            q_values = model.q_net_target(observation)[0].detach().cpu().tolist()
-            for i in range(env.action_space.n):
-                q_value_history[i].append(model.q_net_target(observation)[0].detach().cpu().numpy()[i])
-            # q_value_history_0.append(model.q_net_target(observation)[0].detach().cpu().numpy()[0])
-            # q_value_history_1.append(model.q_net_target(observation)[0].detach().cpu().numpy()[1])
-            #make figures and frames
-            fig_path, fig2_path, y_max, y_min = mk_fig(q_values, y_max, y_min, q_value_history, nstep, steps, final_steps)
-            frame = Image.fromarray(frame)
-            plot_figure = Image.open(fig_path)
-            frame = concat_h_resize(frame, plot_figure)
-            plot2_figure = Image.open(fig2_path)
-            frame = concat_v_resize(frame, plot2_figure)
-            frames.append(frame)
-        else:
+
+    for _ in tqdm(range(nstep)):
+        if done:
             final_steps.append(steps)
             obs = env.reset()
             done = False
+
+        steps += 1
+        frame = env.render(mode='rgb_array')
+        action, _ = model.predict(obs, deterministic=True)
+        obs, _, done, _ = env.step(action)
+        obs_tensor = torch.tensor(obs).permute(2, 0, 1).unsqueeze(0).cuda()
+        q_values = model.q_net(obs_tensor)[0].detach().cpu().tolist()
+        for i in range(env.action_space.n):
+            q_value_history[i].append(q_values[i])
+        
+        # make figures and frames
+        fig_path, fig2_path, y_max, y_min = mk_fig(q_values, y_max, y_min, q_value_history, nstep, steps, final_steps)
+        frame = Image.fromarray(frame)
+        plot_figure = Image.open(fig_path)
+        frame = concat_h_resize(frame, plot_figure)
+        plot2_figure = Image.open(fig2_path)
+        frame = concat_v_resize(frame, plot2_figure)
+        frames.append(frame)
+
     imageio.mimwrite('/home/neurlab-dl1/workspace/RLbench/src/' + str(env_name) + str(model) + '.gif', frames, fps=15)
 
 
@@ -179,9 +192,15 @@ if __name__ == "__main__":
     ]
     model = [
         # DQN.load("/home/neurlab-dl1/workspace/RLbench/data/ALE/Breakout-v5/a3/a3s1/a3s1r1-0/best_model.zip")
+<<<<<<< HEAD
         # DQN.load("/home/neurlab-dl1/workspace/RLbench/data/OpenLoopStandard1DTrack/a1/a1s1/a1s1r1-0/best_model.zip")
         DQN.load("/home/neurlab/hyein/RLbench/OpenLoopStandard1DTrack/a1/a1s1/a1s1r1-0/best_model")
 
+=======
+        DQN.load("/home/neurlab-dl1/workspace/RLbench/data/OpenLoopStandard1DTrack/a1/a1s1/a1s1r1-0/best_model.zip")
+        # DQN.load("/home/hyein/RLbench/OpenLoopStandard1DTrack/a1/a1s1/a1s1r1-0/best_model")
+        
+>>>>>>> d6352b1aff0e28126f34f2951081249fda3d6f92
         # PPO.load(p.join(BASE_PATH, GAME, agent_path)) for agent_path in agent_paths
     ]
     # agents = [

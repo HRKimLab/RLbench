@@ -128,7 +128,7 @@ class OpenLoop1DTrack(gym.Env):
         elif mode == 'mp4':
             self.frames.append(rgb_array)
         elif mode == 'rgb_array':
-            return rgb_array
+            return cv2.cvtColor(rgb_array, cv2.COLOR_BGR2RGB)
 
     def save_gif(self):
         imageio.mimsave('video.gif', self.frames, duration=0.005)
