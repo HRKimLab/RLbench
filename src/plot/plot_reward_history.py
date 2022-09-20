@@ -5,26 +5,33 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from pathlib import Path
 from datetime import date
 
-import numpy as np
 import pandas as pd 
 import matplotlib.pyplot as plt
 
-from utils import get_algo_from_agent
 from options import get_args_licking
-from custom_envs import OpenLoopStandard1DTrack, OpenLoopTeleportLong1DTrack
+from custom_envs import (
+    OpenLoopStandard1DTrack, OpenLoopTeleportLong1DTrack, OpenLoopPause1DTrack,
+    ClosedLoopStandard1DTrack
+)
 
 TEMP_STD_ENV = OpenLoopStandard1DTrack()
 TEMP_TEL_ENV = OpenLoopTeleportLong1DTrack()
+TEMP_PAU_ENV = OpenLoopTeleportLong1DTrack()
+TEMP_CSTD_ENV = ClosedLoopStandard1DTrack()
 FPS = 39.214 
 LICK_PER_SEC = 8
 WINDOW_SIZE = 5
 TRACK_LEN = {
     "OpenLoopStandard1DTrack": TEMP_STD_ENV.data.shape[0],
-    "OpenLoopTeleportLong1DTrack": TEMP_TEL_ENV.data.shape[0]
+    "OpenLoopTeleportLong1DTrack": TEMP_TEL_ENV.data.shape[0],
+    "OpenLoopPause1DTrack": TEMP_PAU_ENV.data.shape[0],
+    "ClosedLoopStandard1DTrack": TEMP_CSTD_ENV.data.shape[0],
 }
 SPOUT_TIME = {
     "OpenLoopStandard1DTrack": TEMP_STD_ENV.water_spout,
-    "OpenLoopTeleportLong1DTrack": TEMP_TEL_ENV.water_spout
+    "OpenLoopTeleportLong1DTrack": TEMP_TEL_ENV.water_spout,
+    "OpenLoopPause1DTrack": TEMP_PAU_ENV.water_spout,
+    "ClosedLoopStandard1DTrack": TEMP_CSTD_ENV.water_spout
 }
 
 def plot_licking(args):

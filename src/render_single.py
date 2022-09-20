@@ -41,13 +41,20 @@ def get_render_args():
         '--step', type=int,
         default=None
     )
+    parser.add_argument(
+        '--reward', type=str,
+        default=None
+    )
     args = parser.parse_args()
 
     return args
 
 def get_model_path(args):
+    src_path = args.src_env
+    if args.reward is not None:
+        src_path = args.src_env + '_' + args.reward
     model_path = Path(os.path.abspath(os.path.join(os.getcwd(), os.pardir, 'data')))
-    model_path = model_path / args.src_env
+    model_path = model_path / src_path
 
     try:
         for _ in range(2):
@@ -87,7 +94,7 @@ def render_single(args):
         total_reward += reward
         if done:
             break
-        time.sleep(.005)
+        time.sleep(.1)
         env.render(mode=args.mode)
     print(f"Total reward: {total_reward}")
 

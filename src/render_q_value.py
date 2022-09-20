@@ -9,9 +9,29 @@ import imageio
 from PIL import Image
 from tqdm import tqdm
 
-from custom_envs import OpenLoopStandard1DTrack, MaxAndSkipEnv
+from custom_envs import (
+    OpenLoopStandard1DTrack,
+    OpenLoopTeleportLong1DTrack,
+    OpenLoopPause1DTrack,
+    ClosedLoopStandard1DTrack,
+    MaxAndSkipEnv
+)
 
 BASE_PATH = "../data/"
+
+def plt2image(fig, draw=True):
+    """
+    need to draw if figure is not drawn yet
+    """
+    if draw:
+        fig.canvas.draw()
+    rgba_buf = fig.canvas.buffer_rgba()
+    (w,h) = fig.canvas.get_width_height()
+    rgba_arr = np.frombuffer(rgba_buf, dtype=np.uint8).reshape((h,w,4))
+    image = Image.fromarray(rgba_arr)
+    # rgba_image = PIL.Image.open(path_to_image)
+    # rgb_image = rgba_image.convert('RGB')
+    return image
 
 def get_atari_env(env_name, n_stack=4):
     env = make_atari_env(env_name, n_envs=1)
@@ -63,21 +83,23 @@ def mk_fig(q_values, y_max, y_min, q_value_history, nstep, steps, final_steps):
     plt.ylim(top=y_max, bottom=y_min)
     plt.title('instant q values of actions')
     bar_plot.tight_layout(pad=0)
-    fig_path = 'q_value_bar_plot.png'
-    plt.savefig(fig_path)
+    fig1 = plt2image(bar_plot)
+    # fig_path = 'q_value_bar_plot.png'
+    # plt.savefig(fig_path)
     plt.clf()
     line_plot = plt.figure()
-    for i in range(len(q_value_history)):
-        plt.plot(list(range(1,steps+1)), q_value_history[i])
+    for q_value in q_value_history:
+        plt.plot(list(range(1,steps+1)), q_value)
     plt.xlim([0,nstep])
     plt.ylim(top = y_max, bottom = y_min)
     # plt.axvline(final_steps, 0,1, linestyle = '--')
     # plt.legend(loc='upper right')
     line_plot.tight_layout(pad=0)
-    fig2_path = 'q_value_line_plot.png'
-    plt.savefig(fig2_path)
+    fig2 = plt2image(line_plot)
+    # fig2_path = 'q_value_line_plot.png'
+    # plt.savefig(fig2_path)
     plt.clf()
-    return fig_path, fig2_path, y_max, y_min
+    return fig1, fig2, y_max, y_min
 
 def concat_h_resize(im1, im2, resample=Image.BICUBIC, resize_big_image=True):
     if im1.height == im2.height:
@@ -156,12 +178,10 @@ def render(env_name, model, nstep):
             q_value_history[i].append(q_values[i])
         
         # make figures and frames
-        fig_path, fig2_path, y_max, y_min = mk_fig(q_values, y_max, y_min, q_value_history, nstep, steps, final_steps)
+        fig1, fig2, y_max, y_min = mk_fig(q_values, y_max, y_min, q_value_history, nstep, steps, final_steps)
         frame = Image.fromarray(frame)
-        plot_figure = Image.open(fig_path)
-        frame = concat_h_resize(frame, plot_figure)
-        plot2_figure = Image.open(fig2_path)
-        frame = concat_v_resize(frame, plot2_figure)
+        frame = concat_h_resize(frame, fig1)
+        frame = concat_v_resize(frame, fig2)
         frames.append(frame)
 
     imageio.mimwrite('/home/neurlab-dl1/workspace/RLbench/src/' + str(env_name) + str(model) + '.gif', frames, fps=15)
@@ -192,7 +212,7 @@ if __name__ == "__main__":
     ]
     model = [
         # DQN.load("/home/neurlab-dl1/workspace/RLbench/data/ALE/Breakout-v5/a3/a3s1/a3s1r1-0/best_model.zip")
-        DQN.load("/home/neurlab-dl1/workspace/RLbench/data/OpenLoopStandard1DTrack/a1/a1s1/a1s1r1-0/best_model.zip")
+        DQN.load("/home/neurlab-dl1/workspace/RLbench/data/OpenLoopStandard1DTrack_P500_N-5/a1/a1s1/a1s1r1-0/best_model.zip")
         # DQN.load("/home/hyein/RLbench/OpenLoopStandard1DTrack/a1/a1s1/a1s1r1-0/best_model")
         
         # PPO.load(p.join(BASE_PATH, GAME, agent_path)) for agent_path in agent_paths

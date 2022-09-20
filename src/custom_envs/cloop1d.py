@@ -30,7 +30,7 @@ class ClosedLoop1DTrack(gym.Env):
 
         self.cur_pos = randrange(51, 100) # Remove time-bias
         self.start_pos = self.cur_pos
-        self.end_pos = randrange(350, 360) # Black screen
+        self.end_pos = randrange(414, 424) # Black screen
         self.state = self.data[self.cur_pos, :, :, :]
         self.licking_cnt = 0
 
@@ -97,9 +97,9 @@ class ClosedLoop1DTrack(gym.Env):
         self.cur_time = 0
         self.end_time = 3000
 
-        self.cur_pos = randrange(51, 100) if stochasticity else 52 # Remove time-bias
+        self.cur_pos = randrange(51, 100) if stochasticity else 51 # Remove time-bias
         self.start_pos = self.cur_pos
-        self.end_pos = randrange(350, 360) if stochasticity else 351 # Black screen
+        self.end_pos = randrange(414, 424) if stochasticity else 414 # Black screen
         self.state = self.data[self.cur_pos, :, :, :]
         self.licking_cnt = 0
 
