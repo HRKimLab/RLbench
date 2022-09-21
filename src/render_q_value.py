@@ -66,20 +66,21 @@ def mk_fig(q_values, y_max, y_min, q_value_history, nstep, steps, final_steps, t
     bar_plot.tight_layout(pad=0)
     fig_path = 'q_value_bar_plot.png'
     plt.savefig(fig_path)
-    plt.clf()
+    plt.close()
     line_plot, ax1 = plt.subplots()
     ax2 = ax1.twinx()
+    colors = ['blue', 'green', 'skyblue', 'magenta', 'purple']
     for i in range(len(q_value_history)):
-        ax1.plot(list(range(1,steps+1)), q_value_history[i])
-        ax2.plot(list(range(1,steps+1)), td_error)
+        ax1.plot(list(range(1,steps+1)), q_value_history[i], color = colors[i])
+        ax2.plot(list(range(1,steps+1)), td_error, color = 'orange')
     plt.xlim([0,nstep])
-    ax1.ylim(top = y_max + interval, bottom = y_min - interval)
+    ax1.set_ylim(top = y_max + interval, bottom = y_min - interval)
     # plt.axvline(final_steps, 0,1, linestyle = '--')
     # plt.legend(loc='upper right')
     line_plot.tight_layout(pad=0)
     fig2_path = 'q_value_line_plot.png'
     plt.savefig(fig2_path)
-    plt.clf()
+    plt.close()
     return fig_path, fig2_path, y_max, y_min
 
 def concat_h_resize(im1, im2, resample=Image.BICUBIC, resize_big_image=True):
