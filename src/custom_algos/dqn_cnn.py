@@ -2,6 +2,7 @@ import gym
 from stable_baselines3.common.vec_env import DummyVecEnv
 from stable_baselines3.common.torch_layers import BaseFeaturesExtractor
 from stable_baselines3.common.monitor import Monitor
+from stable_baselines3.common.utils import polyak_update
 
 import torch
 import torch.nn as nn
@@ -32,14 +33,14 @@ class CustomCNN(BaseFeaturesExtractor):
         # input_channel => color image : 3, blak : 1
         self.cnn = nn.Sequential(
             # nn.Conv2d(3, 32, kernel_size=8, stride=4, padding=0),
-            nn.Conv2d(3, 16, kernel_size=8, stride=4, padding=0),
+            nn.Conv2d(3, 16, kernel_size=16, stride=4, padding=0),
             nn.ReLU(),
             # nn.AvgPool2d(2,2),
             # nn.Conv2d(32, 64, kernel_size=4, stride=2, padding=0),
-            nn.Conv2d(16, 32, kernel_size=4, stride=2, padding=0),
+            nn.Conv2d(16, 32, kernel_size=8, stride=2, padding=0),
             nn.ReLU(),
             # nn.AvgPool2d(2,2),
-            nn.Conv2d(32, 64, kernel_size = 2, stride = 1, padding=0),
+            nn.Conv2d(32, 64, kernel_size = 4, stride = 1, padding=0),
             nn.ReLU(),
             nn.Flatten()
         )
@@ -56,7 +57,7 @@ class CustomCNN(BaseFeaturesExtractor):
         self.linear = nn.Sequential(
             # nn.Linear(self.n_flatten, 256),
             # nn.Linear(64*170, 256),
-            nn.Linear(64*3384,256),
+            nn.Linear(180096,256),
             nn.ReLU(),
             # nn.Linear(256,output_num)
             nn.Linear(256,2)
@@ -111,6 +112,11 @@ class CustomDQN:
             output_num = self.env.action_space
         )
 
+        self.network_target = CustomCNN(
+            observation_space = self.env.observation_space,
+            output_num = self.env.action_space
+        )
+
         self.optimizer = optim.Adam(self.network.parameters(), LR)
         self.steps_done = 0 #학습할 때마다 증가
         self.memory = deque(maxlen=10000)
@@ -123,7 +129,7 @@ class CustomDQN:
 
         self.gamma = GAMMA
         self._n_calls = 0
-        self.target_update_interval = 10
+        self.target_update_interval = 30
         self.tau = tau
         # self.q_net = nn.Sequential(
         #     nn.Conv2d(3,16, kernel_size = 5, stride = 2),
@@ -192,7 +198,7 @@ class CustomDQN:
         max_next_q = []
         for i in range(self.batch_size):
             current_q.append(self.network.forward(obss[i].permute(2,0,1))[actions[i]])
-            max_next_q.append(self.network.forward(next_obss[i].permute(2,0,1)).max())
+            max_next_q.append(self.network_target.forward(next_obss[i].permute(2,0,1)).max())
         # current_q = self.network.forward(obss.permute(0,3,1,2)).gather(1,actions)
 
         #에이전트가 보는 행동의 미래 가치
@@ -212,6 +218,22 @@ class CustomDQN:
         self.optimizer.zero_grad()
         loss.backward()
         self.optimizer.step()
+    
+    def learn_noreplay(self, obs, action, reward, next_obs):
+        current_q = self.network.forward(torch.Tensor(obs.copy()).permute(2,0,1))[action]
+        max_next_q = self.network.forward(torch.Tensor(next_obs.copy()).permute(2,0,1)).max()
+
+        expected_q = reward + (self.gamma * max_next_q)
+        expected_q = expected_q.reshape([1,1])
+       
+        loss = F.mse_loss(current_q, expected_q)
+        self.optimizer.zero_grad()
+        loss.backward()
+        self.optimizer.step()
+    
+    def target_update(self, step):
+        if step % self.target_update_interval == 0 :
+            polyak_update(self.network.parameters(), self.network_target.parameters(), self.tau)
 
     def process(self):
         agent = CustomDQN('CartPole-v1')
@@ -233,9 +255,15 @@ class CustomDQN:
 
                 next_obs = self.env.render(mode='rgb_array')
 
+                if done:
+                    reward = -1
+
                 agent.memorize(obs, action, reward, next_obs)
 
                 agent.learn()
+                # agent.learn_noreplay(obs, action, reward, next_obs)
+                agent.target_update(step)
+
             else:
                 self.env.reset()
                 episode +=1 
