@@ -14,7 +14,10 @@ https://kr.mathworks.com/help/matlab/matlab_external/table-of-mex-file-source-co
 (test1) neurlab@NeuRLab-DL4:/usr/local/MATLAB/R2018b/extern/engines/python$ sudo python setup.py install --prefix /home/neurlab-dl4/matlab_engine/matlab2018b
 
 ## test
+
+```
 python
 >>> import sys
 >>> sys.path.append("/home/neurlab-dl4/matlab_engine/matlab2018b/lib/python2.7/site-packages/")
 >>> import matlab # worked!
+```
