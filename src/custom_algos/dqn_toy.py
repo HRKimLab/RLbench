@@ -134,7 +134,8 @@ class CustomDQN:
         max_next_q = self.q_net(next_states).detach().max(1)[0]
         # max_next_q = self.q_net_target(next_states).detach().max(1)[0]
         expected_q = rewards + (self.gamma * max_next_q)
-
+        print(current_q.squeeze())
+        print(expected_q)
         #행동은 expected_q 따라감, MSE_loss로 오차 계산, 역전파, 신경망 학습
         loss = F.mse_loss(current_q.squeeze(), expected_q)
         self.optimizer.zero_grad()
@@ -169,7 +170,7 @@ class CustomDQN:
                 next_state, reward, done, _ = self.env.step(action.item())
 
                 if done:
-                    reward = -1
+                    reward = -100
                 
                 agent.memorize(state, action, reward, next_state)
                 # agent.target_update()
