@@ -1,5 +1,4 @@
 import pickle
-from typing import overload
 
 import cv2
 import numpy as np
@@ -48,6 +47,9 @@ class OpenLoop1DTrack(gym.Env):
         self.reward_set_eps = []
 
     def step(self, action):
+        raise NotImplementedError
+
+    def _step(self, action):
         # Execute one time step within the environment
         self.cur_time += 1
 
@@ -80,6 +82,9 @@ class OpenLoop1DTrack(gym.Env):
         return next_state, reward, done, info
 
     def reset(self, stochasticity=True):
+        raise NotImplementedError
+
+    def _reset(self, stochasticity=True):
         # Reset the state of the environment to an initial state
         self.cur_time = randrange(50) if stochasticity else 0
         self.start_time = self.cur_time
@@ -195,6 +200,12 @@ class OpenLoopStandard1DTrack(OpenLoop1DTrack):
             neg_rew=neg_rew
         )
 
+    def step(self, action):
+        return self._step(action)
+    
+    def reset(self, stochasticity=True):
+        return self._reset(stochasticity)
+ 
     @staticmethod
     def _load_data():
         with open(f"custom_envs/track/oloop_standard_1d.pkl", "rb") as f:
@@ -216,11 +227,18 @@ class OpenLoopTeleportLong1DTrack(OpenLoop1DTrack):
             neg_rew=neg_rew
         )
 
+    def step(self, action):
+        return self._step(action)
+    
+    def reset(self, stochasticity=True):
+        return self._reset(stochasticity)
+ 
     @staticmethod
     def _load_data():
         with open("custom_envs/track/oloop_teleport_long_1d.pkl", "rb") as f:
             data = pickle.load(f)
         return data
+
 
 class OpenLoopPause1DTrack(OpenLoop1DTrack):
     """ Pause condition, Open-loop track """
@@ -237,11 +255,11 @@ class OpenLoopPause1DTrack(OpenLoop1DTrack):
         )
         self.pause = 208
 
-    @staticmethod
-    def _load_data():
-        with open("custom_envs/track/oloop_pause_1d.pkl", "rb") as f:
-            data = pickle.load(f)
-        return data
+    def step(self, action):
+        return self._step(action)
+    
+    def reset(self, stochasticity=True):
+        return self._reset(stochasticity)
 
     def render(self, mode='human'):
         # Render the environment to the screen
@@ -297,3 +315,9 @@ class OpenLoopPause1DTrack(OpenLoop1DTrack):
             self.frames.append(rgb_array)
         elif mode == 'rgb_array':
             return cv2.cvtColor(rgb_array, cv2.COLOR_BGR2RGB)
+
+    @staticmethod
+    def _load_data():
+        with open("custom_envs/track/oloop_pause_1d.pkl", "rb") as f:
+            data = pickle.load(f)
+        return data
