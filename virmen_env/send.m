@@ -16,7 +16,7 @@ if ~exist(filename, 'file')
 end
 
 %Memory map the file
-%m = 
+%m =  
 %
 %     Filename: 'd:\matlab\records.dat'
 %     Writable: false
