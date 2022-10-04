@@ -31,5 +31,7 @@ python
 
 - Use memmapfile function; it makes mapped memory (shared memory) for a file
 - It can exchange array data types (ex.[4 1])
-- m = memmapfile(filename, 'Writable', true, 'Format', {'uint32' [4 1] name});
-- m.data(1).name
+```
+>>> m = memmapfile(filename, 'Writable', true, 'Format', {'uint32' [4 1] name});
+>>> m.data(1).name
+```
