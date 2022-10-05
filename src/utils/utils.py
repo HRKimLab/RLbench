@@ -22,6 +22,7 @@ from custom_envs import (
     OpenLoopStandard1DTrack, 
     OpenLoopTeleportLong1DTrack,
     OpenLoopPause1DTrack,
+    InterleavedOpenLoop1DTrack,
     ClosedLoopStandard1DTrack
 )
 
@@ -115,6 +116,11 @@ def get_env(env_name, n_env, save_path, seed, rewards):
             elif env_name == "OpenLoopPause1DTrack":
                 env = OpenLoopPause1DTrack(pos_rew=pos_rew, neg_rew=neg_rew)
                 eval_env = OpenLoopPause1DTrack(pos_rew=pos_rew, neg_rew=neg_rew)
+            elif env_name == "InterleavedOpenLoop1DTrack":
+                env = InterleavedOpenLoop1DTrack(pos_rew=pos_rew, neg_rew=neg_rew)
+                eval_env = InterleavedOpenLoop1DTrack(pos_rew=pos_rew, neg_rew=neg_rew)
+                env = Monitor(env, save_path)
+                return env, eval_env
             elif env_name == "ClosedLoopStandard1DTrack":
                 env = ClosedLoopStandard1DTrack(pos_rew=pos_rew, neg_rew=neg_rew)
                 eval_env = ClosedLoopStandard1DTrack(pos_rew=pos_rew, neg_rew=neg_rew)

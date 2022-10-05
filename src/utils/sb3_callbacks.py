@@ -72,7 +72,7 @@ class TrialEvalCallback(EvalCallback):
         return True
 
 
-class LickingTrackerCallback(BaseCallback):
+class OpenLoopLickingTrackerCallback(BaseCallback):
     """ Callback for tracking a licking behavior """
     def __init__(self, env, save_path):
         super().__init__()
@@ -85,8 +85,32 @@ class LickingTrackerCallback(BaseCallback):
     def _on_training_end(self):
         with open(os.path.join(self.save_path, "lick_timing.pkl"), "wb") as f:
             pickle.dump(self.env.get_attr("lick_timing")[0], f)
+        with open(os.path.join(self.save_path, "reward_history.pkl"), "wb") as f:
+            pickle.dump(self.env.get_attr("reward_set")[0], f)
 
-class RewardTrackerCallback(BaseCallback):
+
+class InterleavedLickingTrackerCallback(BaseCallback):
+    """ Callback for tracking a licking behavior """
+    def __init__(self, env, n_env, save_path):
+        super().__init__()
+        self.env = env
+        self.n_env = n_env
+        self.save_path = save_path
+
+    def _on_step(self):
+        return True
+
+    def _on_training_end(self):
+        with open(os.path.join(self.save_path, f"env_history.pkl"), "wb") as f:
+            pickle.dump(self.env.get_attr("env_history")[0], f)
+        with open(os.path.join(self.save_path, f"env_prog_time.pkl"), "wb") as f:
+            pickle.dump(self.env.get_attr("env_prog_time")[0], f)
+        for i in range(self.n_env):
+            with open(os.path.join(self.save_path, f"lick_timing_{i}.pkl"), "wb") as f:
+                pickle.dump(self.env.get_attr("env_set")[0][i].lick_timing, f)
+
+
+class ClosedLoopLickingTrackerCallback(BaseCallback):
     """ Callback for tracking a licking behavior """
     def __init__(self, env, save_path):
         super().__init__()
@@ -97,5 +121,7 @@ class RewardTrackerCallback(BaseCallback):
         return True
 
     def _on_training_end(self):
-        with open(os.path.join(self.save_path, "reward_history.pkl"), "wb") as f:
-            pickle.dump(self.env.get_attr("reward_set")[0], f)
+        with open(os.path.join(self.save_path, "move_timing.pkl"), "wb") as f:
+            pickle.dump(self.env.get_attr("move_timing")[0], f)
+        with open(os.path.join(self.save_path, "lick_pos.pkl"), "wb") as f:
+            pickle.dump(self.env.get_attr("lick_pos")[0], f)

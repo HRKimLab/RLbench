@@ -110,6 +110,10 @@ def get_args_licking():
         '--name', '-N', type=str, default=None,
         help="Name of save file (Default: Not save)"
     )
+    parser.add_argument(
+        '--nenv', type=int, default=2,
+        help="Number of environments (for interleaved environment)"
+    )
 
     args = parser.parse_args()
 

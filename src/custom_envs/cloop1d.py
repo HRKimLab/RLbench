@@ -42,7 +42,7 @@ class ClosedLoop1DTrack(gym.Env):
         # For plotting
         self.move_timing = []
         self.move_timing_eps = []
-        self.lick_timing = []
+        self.lick_pos = []
         self.lick_pos_eps = []
 
         # Temporal variables (for experiments)
@@ -105,7 +105,7 @@ class ClosedLoop1DTrack(gym.Env):
 
         self.move_timing.append(self.move_timing_eps)
         self.move_timing_eps = []
-        self.lick_timing.append(self.lick_pos_eps)
+        self.lick_pos.append(self.lick_pos_eps)
         self.lick_pos_eps = []
         self.reward_set.append(self.reward_set_eps)
         self.reward_set_eps = []

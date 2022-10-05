@@ -19,7 +19,10 @@ from utils import (
     get_env, get_algo, set_data_path, clean_data_path, FLAG_FILE_NAME
 )
 from utils.options import get_args
-from utils.sb3_callbacks import TqdmCallback, LickingTrackerCallback, RewardTrackerCallback
+from utils.sb3_callbacks import (
+    TqdmCallback, OpenLoopLickingTrackerCallback,
+    InterleavedLickingTrackerCallback, ClosedLoopLickingTrackerCallback
+)
 
 
 def train(args):
@@ -70,14 +73,9 @@ def train(args):
             Path(os.path.join(save_path, FLAG_FILE_NAME)).touch()
 
             print(f"[{i + 1}/{args.nseed}] Ready to train {i + 1}th agent - RANDOM SEED: {seed}")
-            is_licking_task = (args.env in [
-                "OpenLoopStandard1DTrack",
-                "OpenLoopTeleportLong1DTrack",
-                "OpenLoopPause1DTrack",
-                "ClosedLoopStandard1DTrack"
-            ])
+            print(f"Will be saved at ({save_path})")
             _train(
-                model, args.nstep, is_licking_task,
+                model, args.env, args.nstep, 
                 eval_env, args.eval_freq, args.eval_eps, args.save_freq, save_path
             )
             del env, model
@@ -91,7 +89,7 @@ def train(args):
 
 
 def _train(
-    model, nstep, is_licking_task,
+    model, env, nstep, 
     eval_env, eval_freq, eval_eps, save_freq, save_path
 ):
     """ Train with single seed """
@@ -119,16 +117,34 @@ def _train(
             name_prefix='rl_model'
         )
         callbacks.append(checkpoint_callback)
-    if is_licking_task:
-        licking_tracker_callback = LickingTrackerCallback(
+
+    env_candidates = [
+        "OpenLoopStandard1DTrack",
+        "OpenLoopTeleportLong1DTrack",
+        "OpenLoopPause1DTrack",
+        "InterleavedOpenLoop1DTrack",
+        "ClosedLoopStandard1DTrack"
+    ]
+
+    if env in env_candidates[:3]:
+        callback = OpenLoopLickingTrackerCallback(
             env=model.env,
             save_path=save_path
         )
-        reward_history_callback = RewardTrackerCallback(
+        callbacks.append(callback)
+    elif env == env_candidates[3]: # Interleaved
+        callback = InterleavedLickingTrackerCallback(
+            env=model.env,
+            n_env=3,
+            save_path=save_path
+        )
+        callbacks.append(callback)
+    elif env == env_candidates[4]: # Cloop standard
+        callback = ClosedLoopLickingTrackerCallback(
             env=model.env,
             save_path=save_path
         )
-        callbacks.extend([licking_tracker_callback, reward_history_callback])
+        callbacks.append(callback)
 
     # Training
     model.learn(
