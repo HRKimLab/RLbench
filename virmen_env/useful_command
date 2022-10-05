@@ -1,0 +1,5 @@
+matlab -nodisplay -r "send();exit"
+/usr/local/MATLAB/R2018b/extern/engines/python
+matlab -nodisplay -r '3*4, exit' >> 하나의 command line 실행되고 나서 matlab이 종료됨, exit를 써서 그런가
+https://kr.mathworks.com/help/matlab/import_export/map-a-file-to-memory.html -> array를 mapping
+

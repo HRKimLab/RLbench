@@ -72,7 +72,7 @@ def mk_fig(q_values, y_max, y_min, q_value_history, nstep, steps, final_steps, t
     colors = ['blue', 'green', 'skyblue', 'magenta', 'purple']
     for i in range(len(q_value_history)):
         ax1.plot(list(range(1,steps+1)), q_value_history[i], color = colors[i])
-        ax2.plot(list(range(1,steps+1)), td_error, color = 'orange')
+        ax2.plot(list(range(1,steps+1)), td_error, color = 'orange', alpha = 0.5)
     plt.xlim([0,nstep])
     ax1.set_ylim(top = y_max + interval, bottom = y_min - interval)
     # plt.axvline(final_steps, 0,1, linestyle = '--')
@@ -154,18 +154,20 @@ def render(env_name, model, nstep):
         steps += 1
         frame = env.render(mode='rgb_array')
         action, _ = model.predict(obs, deterministic=True)
-        obs, reward , done, _ = env.step(action)
         obs_tensor = torch.tensor(obs).permute(2, 0, 1).unsqueeze(0).cuda()
         q_values = model.q_net(obs_tensor)[0].detach().cpu().tolist()
+        next_obs, reward , done, _ = env.step(action)
+        next_obs_tensor = torch.tensor(obs).permute(2, 0, 1).unsqueeze(0).cuda()
         for i in range(env.action_space.n):
             q_value_history[i].append(q_values[i])
         #td_error
         q_value_predict = model.q_net(obs_tensor)[0].detach().cpu()[action]
-        q_value_target = model.q_net_target(obs_tensor)[0].detach().cpu().max()
+        q_value_target = model.q_net_target(next_obs_tensor)[0].detach().cpu().max()
         # reward = how to get S(t+1) reward... step 함수를 써야하는 거 같은데 
         # gamma = 얘도 몇으로..?
         gamma = 0.9
         td_error.append((reward + gamma * q_value_target) - (q_value_predict))
+        obs = next_obs
 
         # make figures and frames
         fig_path, fig2_path, y_max, y_min = mk_fig(q_values, y_max, y_min, q_value_history, nstep, steps, final_steps, td_error)
@@ -204,8 +206,8 @@ if __name__ == "__main__":
     ]
     model = [
 
-        DQN.load("/home/neurlab-dl1/workspace/RLbench/data/ClosedLoopStandard1DTrack_P5_N-100/a1/a1s1/a1s1r1-0/best_model.zip")
-        # DQN.load("/home/hyein/RLbench/OpenLoopStandard1DTrack/a1/a1s1/a1s1r1-0/best_model")
+        # DQN.load("/home/neurlab-dl1/workspace/RLbench/data/ClosedLoopStandard1DTrack_P5_N-100/a1/a1s1/a1s1r1-0/best_model.zip")
+        DQN.load("/home/neurlab/hyein/RLbench/data/OpenLoopStandard1DTrack/a1/a1s1/a1s1r1-0/best_model")
         
         # PPO.load(p.join(BASE_PATH, GAME, agent_path)) for agent_path in agent_paths
     ]
