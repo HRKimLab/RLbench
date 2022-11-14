@@ -90,6 +90,7 @@ class OpenLoopLickingTrackerCallback(BaseCallback):
         with open(os.path.join(self.save_path, "skip_history.pkl"), "wb") as f:
             pickle.dump(self.env.get_attr("skip_history")[0], f)
 
+
 class InterleavedLickingTrackerCallback(BaseCallback):
     """ Callback for tracking a licking behavior """
     def __init__(self, env, n_env, save_path):

@@ -63,17 +63,20 @@ def plot_licking(args):
     except:
         raise FileNotFoundError("Given agent name is not found.")
 
-    data_path /= "lick_timing.pkl"
+    timing_data_path = data_path / "lick_timing.pkl"
+    skip_data_path = data_path / "skip_history.pkl"
 
-    licking_data = pd.read_pickle(data_path)
+    licking_data = pd.read_pickle(timing_data_path)
+    skip_data = pd.read_pickle(skip_data_path)
     data = np.zeros((len(licking_data), track_len))
 
     # Dotplot
     fig, (ax1, ax2) = plt.subplots(nrows=2, sharex=True)
-    for i, l in enumerate(licking_data):
-        x = l[::5]
+    for i, (licks, skips) in enumerate(zip(licking_data, skip_data)):
+        if len(licks) == 0:
+            continue
+        x = np.array(licks)[np.cumsum([0] + skips[:-1])]
         y = [i] * len(x)
-
         ax1.scatter(x, y, color='black', s=1)
         data[i, x] = 1
     ax1.set_title("Lick")
@@ -91,7 +94,7 @@ def plot_licking(args):
     ax2.set_ylabel("Lick (licks/s)", fontsize=10)
     ax2.axvline(x=spout_time, color='r', linestyle='-')
 
-    algo_name, _ = get_algo_from_agent(args.agent, data_path.parent)
+    algo_name, _ = get_algo_from_agent(args.agent, timing_data_path.parent)
     fig.suptitle(f"{args.agent} ({algo_name.upper()}) / {args.env} / {date_today}")
     plt.subplots_adjust(wspace=0, hspace=0)
 
