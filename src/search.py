@@ -1,4 +1,4 @@
-# The following code refers
+# The following code referred
 # https://github.com/DLR-RM/rl-baselines3-zoo/blob/master/utils/exp_manager.py
 
 """ Search optimal hyperparamters using optuna """

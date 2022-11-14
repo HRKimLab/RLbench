@@ -67,6 +67,7 @@ class OpenLoop1DTrack(gym.Env):
             else:
                 reward = self.neg_rew
         self.reward_set_eps.append(reward)
+
         # Done
         done = (self.cur_time == self.end_time)
 

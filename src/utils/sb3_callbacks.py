@@ -87,7 +87,8 @@ class OpenLoopLickingTrackerCallback(BaseCallback):
             pickle.dump(self.env.get_attr("lick_timing")[0], f)
         with open(os.path.join(self.save_path, "reward_history.pkl"), "wb") as f:
             pickle.dump(self.env.get_attr("reward_set")[0], f)
-
+        with open(os.path.join(self.save_path, "skip_history.pkl"), "wb") as f:
+            pickle.dump(self.env.get_attr("skip_history")[0], f)
 
 class InterleavedLickingTrackerCallback(BaseCallback):
     """ Callback for tracking a licking behavior """
