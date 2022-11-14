@@ -192,8 +192,8 @@ def render(env_name, model, nstep):
         # make figures and frames
         fig_path, fig2_path, y_max, y_min = mk_fig(q_values, y_max, y_min, q_value_history, nstep, steps, final_steps, td_error)
         frame = Image.fromarray(frame)
-        frame = concat_h_resize(frame, fig1)
-        frame = concat_v_resize(frame, fig2)
+        frame = concat_h_resize(frame, fig_path)
+        frame = concat_v_resize(frame, fig2_path)
         frames.append(frame)
 
     imageio.mimwrite('/home/neurlab-dl1/workspace/RLbench/src/' + str(env_name) + str(model) + '.gif', frames, fps=15)

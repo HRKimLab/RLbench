@@ -1,10 +1,14 @@
 """ Multi-screen rendering & saving for comparing multiple agents """
+import os
+import os.path as p
+
 import torch
 import numpy as np
 import matplotlib.pyplot as plt
 from stable_baselines3 import DQN
 from stable_baselines3.common.vec_env import VecFrameStack
 from stable_baselines3.common.env_util import make_atari_env, make_vec_env
+from stable_baselines3 import DQN, A2C, PPO
 import imageio
 from PIL import Image
 from tqdm import tqdm
@@ -226,8 +230,8 @@ if __name__ == "__main__":
         
         # PPO.load(p.join(BASE_PATH, GAME, agent_path)) for agent_path in agent_paths
     ]
-    # agents = [
-    #     PPO.load(p.join(BASE_PATH, GAME, agent_paths[0])),
-    #     A2C.load(p.join(BASE_PATH, GAME, agent_paths[1]))
-    # ]
+    agents = [
+        PPO.load(p.join(BASE_PATH, GAME, agent_paths[0])),
+        A2C.load(p.join(BASE_PATH, GAME, agent_paths[1]))
+    ]
     render(GAME, model, 1000)
