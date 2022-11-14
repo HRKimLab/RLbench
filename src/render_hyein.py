@@ -1,5 +1,4 @@
 """ Multi-screen rendering & saving for comparing multiple agents """
-
 import torch
 import numpy as np
 import matplotlib.pyplot as plt
@@ -74,12 +73,12 @@ def mk_fig(q_values, y_max, y_min, q_value_history, nstep, steps, final_steps, t
     colors = ['blue', 'green', 'skyblue', 'magenta', 'purple']
     for i in range(len(q_value_history)):
         ax1.plot(list(range(1,steps+1)), q_value_history[i], color = colors[i])
-    ax2.plot(list(range(1,steps+1)), td_error, color = 'orange')
-    # for i in range(1, steps +1):
-    #     if steps <= 10:
-    #         ax2.plot(i, sum(td_error[:i+1])/i, color = 'orange')
-    #     else:
-    #         ax2.plot(i, sum(td_error[i-10:i+1])/10, color= 'orange')
+    # ax2.plot(list(range(1,steps+1)), td_error, color = 'orange', alpha = 0.5)
+    for i in range(1, steps +1):
+        if steps <= 10:
+            ax2.plot(i, sum(td_error[:i+1])/i)
+        else:
+            ax2.plot(i, sum(td_error[i-10:i+1])/10)
 
     plt.xlim([0,nstep])
     ax1.set_ylim(top = y_max + interval, bottom = y_min - interval)
