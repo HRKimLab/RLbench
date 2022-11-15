@@ -46,7 +46,7 @@ ind = 0
 while True:
     #wait until image_flag is 1(true)
     while (action_flag_mem != np.uint8([1])):
-        time.sleep(0.25)
+        time.sleep(0.1)
     
     #get action
     action = action_mem[:]

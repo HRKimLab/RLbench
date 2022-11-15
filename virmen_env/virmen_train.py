@@ -1,20 +1,21 @@
+# import gym
+# env = gym.make("CartPole-v0")
+
 import numpy as np
 from PIL import Image
 import time
 import pickle
+# from stable_baselines3 import DQN
+from agent_dqn import DQN
 
-#image to array
-image = Image.open('penguin.jpeg') #example image
-image_array = np.asarray(image)
-shape = image_array.shape #(131,200,3)
+from utils import (
+    set_seed, configure_cudnn, load_json, get_logger,
+    get_env, get_algo, set_data_path, clean_data_path, FLAG_FILE_NAME
+)
 
-# #array to image
-# image = Image.fromarray(image_array, 'RGB')
-# image.show()
 
-# #get image - reshape, permute
-# image_reshape = np.reshape(image_mem, (3,200,131))
-# image_permute = image_reshape.transpose((2,1,0))
+#custom part
+##############################################################################
 
 #flag
 image_flag = np.uint8([0]) # 0 for false (initialize)
@@ -48,23 +49,22 @@ with open('C:\\Users\\NeuRLab\\Desktop\\Lab\\RLbench\\src\\custom_envs\\track\\o
 
 env_mem[:] = oloop_standard_env[:]
 
+##############################################################################
+
+env, eval_env = get_env(args.env, args.nenv, save_path, seed)
+
+model = DQN("MlpPolicy", env, image_mem, image_flag_mem, action_mem, action_flag_mem, verbose=1)
+model.learn(total_timesteps=10000, log_interval=4)
+model.save("dqn_cartpole")
+
+del model # remove to demonstrate saving and loading
+
+model = DQN.load("dqn_cartpole")
+
+obs = env.reset()
 while True:
-    #wait until image_flag is 1(true)
-    while (image_flag_mem != np.uint8([1])):
-        time.sleep(0.1)
-    
-    #get image
-    image = image_mem
-    # image_reshape = np.reshape(image, (3,200 , 131))
-    image_reshape = np.reshape(image, (3,210,160))
-    image_permute = image_reshape.transpose((2,1,0))
-    image = Image.fromarray(image_permute, 'RGB')
-    image.show()
-
-    #send action
-    # action_mem[:] = np.uint8([1])
-    action_mem[:] = np.uint8([2])
-
-    #set flag
-    image_flag_mem[:] = np.uint8([0])
-    action_flag_mem[:] = np.uint8([1])
+    action, _states = model.predict(obs, deterministic=True)
+    obs, reward, done, info = env.step(action)
+    env.render()
+    if done:
+      obs = env.reset()

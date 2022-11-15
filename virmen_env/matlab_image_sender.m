@@ -1,6 +1,6 @@
 %image to array
-%image = imread('penguin.jpeg'); %example image
-%shape = size(image); %(131,200,3)
+%penguin_image = imread('penguin.jpeg'); %example image
+%shape = size(penguin_image); %(131,200,3)
 
 %wait for python's initialization
 pause(3);
@@ -29,27 +29,26 @@ oloop_permute = permute(oloop_reshape, [4,3,2,1]);
 while true
     %wait until action_flag is 1(true)
     while (action_flag_mem.data(1).action_flag ~= uint8(1))
-        pause(0.25);
+        pause(0.1);
     end
     
     %get action
     action = action_mem.data(1).action;
     
     %if (action == uint8(1))
-    %    image(50:100,:,:) = uint8(0);
+    %    penguin_image(50:100,:,:) = uint8(0);
     %end
     
     if (action == uint8(2))
         ind = ind +1;
     end
-    disp(ind);
+    %disp(ind);
     
     %send image
-    %image_mem.data(1).image(:,:,:) = image(:,:,:);
+    %image_mem.data(1).image(:,:,:) = penguin_image(:,:,:);
     env = squeeze(oloop_permute(ind,:,:,:));
     %image(env);
     image_mem.data(1).image(:,:,:) = env(:,:,:);
-    
     
     %set flag
     image_flag_mem.data(1).image_flag = uint8(1);
