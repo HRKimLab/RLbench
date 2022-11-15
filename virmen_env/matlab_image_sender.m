@@ -1,6 +1,6 @@
 %image to array
-image = imread('penguin.jpeg'); %example image
-shape = size(image); %(131,200,3)
+%image = imread('penguin.jpeg'); %example image
+%shape = size(image); %(131,200,3)
 
 %wait for python's initialization
 pause(3);
@@ -22,6 +22,8 @@ env_mem = memmapfile(env_filename, 'Writable', true, 'Format', {'uint8' [459 160
 
 ind = 1;
 oloop_standard_env = env_mem.data(1).env;
+oloop_reshape = reshape(oloop_standard_env, [3 210 160 459]);
+oloop_permute = permute(oloop_reshape, [4,3,2,1]);
 
 
 while true
@@ -40,13 +42,14 @@ while true
     if (action == uint8(2))
         ind = ind +1;
     end
+    disp(ind);
     
     %send image
     %image_mem.data(1).image(:,:,:) = image(:,:,:);
-    env = squeeze(oloop_standard_env(ind,:,:,:));
-    reshape = reshape(env, [3 210 160]);
-    oloop_permute = permute(reshape, [3,2,1]);
-    image_mem.data(1).image(:,:,:) = squeeze(oloop_permute(ind,:,:,:));
+    env = squeeze(oloop_permute(ind,:,:,:));
+    %image(env);
+    image_mem.data(1).image(:,:,:) = env(:,:,:);
+    
     
     %set flag
     image_flag_mem.data(1).image_flag = uint8(1);

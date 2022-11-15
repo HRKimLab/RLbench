@@ -61,7 +61,7 @@ while True:
     image.show()
 
     #send action
-    action_mem[:] = np.uint([2])
+    action_mem[:] = np.uint8([2])
 
     #set flag
     image_flag_mem[:] = np.uint8([0])
