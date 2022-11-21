@@ -20,7 +20,7 @@ action_flag_mem = memmapfile(action_flag_filename, 'Writable', true, 'Format', {
 
 env_mem = memmapfile(env_filename, 'Writable', true, 'Format', {'uint8' [459 160 210 3] 'env'});
 
-ind = 1;
+ind = 90;
 oloop_standard_env = env_mem.data(1).env;
 oloop_reshape = reshape(oloop_standard_env, [3 210 160 459]);
 oloop_permute = permute(oloop_reshape, [4,3,2,1]);
