@@ -1,4 +1,5 @@
 from .oloop1d import OpenLoopStandard1DTrack, OpenLoopTeleportLong1DTrack
+from .cloop1d_virmen import ClosedLoop1DTrack_virmen
 
 import gym
 import numpy as np
