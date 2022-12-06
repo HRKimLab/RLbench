@@ -123,6 +123,8 @@ class ClosedLoop1DTrack_virmen(gym.Env):
         self.img_flag_mem[:] = np.uint8([0])
         self.action_flag_mem[:] = np.uint8([1])
 
+        #Ben you should edit this part: 1. while loop to get img_flag is True(image available) 2. send action 3. next state change 4. flag change
+
         #####################################################################################################
 
 
