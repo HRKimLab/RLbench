@@ -100,7 +100,7 @@ def get_args():
     args = parser.parse_args()
 
     # Post-processing for arguments
-    args.algo = args.algo.lower()
+    # args.algo = args.algo.lower()
     args.seed = SEEDS[:args.nseed]
     if args.hp is None:
         args.hp = os.path.join(
@@ -161,5 +161,5 @@ def get_search_args():
 
 
 if __name__ == "__main__":
-    args = get_args()
+    # args = get_args()
     print(args)

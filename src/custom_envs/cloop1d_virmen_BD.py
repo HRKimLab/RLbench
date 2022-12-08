@@ -8,26 +8,26 @@ from gym import spaces
 from random import randrange
 
 
-class ClosedLoop1DTrack_virmen(gym.Env):
+class ClosedLoop1DTrack_virmen_BD(gym.Env):
     """ Licking task in 1D open-loop track with mouse agent """
 
     metadata = {'render.modes': ['human', 'gif']}
 
-    def __init__(self, visual_noise=False, pos_rew=10, neg_rew=-5): #water_spout, video_path,
+    def __init__(self, water_spout, video_path, visual_noise=False, pos_rew=10, neg_rew=-5):
         super().__init__()
         self.action_space = spaces.Discrete(3) # No action / Lick / Move forward
         self.observation_space = spaces.Box(
-            low=0, high=255, shape=(1080, 1920, 3), dtype=np.uint8
+            low=0, high=255, shape=(160, 210, 3), dtype=np.uint8
         )
 
-        # self.water_spout = water_spout
-        # self.video_path = video_path
+        self.water_spout = water_spout
+        self.video_path = video_path
         self.visual_noise = visual_noise #TODO
-        
-        # self.data = self._load_data()
+
+        self.data = self._load_data()
         self.cur_time = 0
         self.end_time = 3000
-        
+
         self.cur_pos = randrange(51, 100) # Remove time-bias
         self.start_pos = self.cur_pos
         self.end_pos = randrange(414, 424) # Black screen
@@ -64,14 +64,11 @@ class ClosedLoop1DTrack_virmen(gym.Env):
         self.rew_flag_mem[:]=rew_flag[:]
         self.img_flag_mem[:] = self.img_flag[:]
         self.action_flag_mem[:] = self.action_flag[:]
-        
-        self.data = self.img_mem
-        self.state = self.img_mem
-        
-        # # For rendering
-        # self.frames = []
+
+        # For rendering
+        self.frames = []
         # self.original_frames = self._get_original_video_frames() # (682, 1288) #stack the frame one at a time
-        # self.mice_pic = self._load_mice_image()
+        self.mice_pic = self._load_mice_image()
 
         #####################################################################################################
 
@@ -86,7 +83,7 @@ class ClosedLoop1DTrack_virmen(gym.Env):
         self.neg_rew = neg_rew
         self.reward_set = []
         self.reward_set_eps = []
-        
+
     def step(self, action):
         """
             0: No action
@@ -99,21 +96,19 @@ class ClosedLoop1DTrack_virmen(gym.Env):
         #custom part
         #####################################################################################################
 
-        # Reward
-        reward = 0
-        if action == 1:
-            self.action = np.uint8([1])
-            self._licking()
-            if self.rew_flag_mem[:] == np.uint8([1]) and (self.licking_cnt <= 20):
-            # if (self.cur_pos >= self.water_spout) and (self.licking_cnt <= 20):
-                reward = self.pos_rew
-                self.rew_flag_mem[:] = np.uint8([0])
-            else:
-                reward = self.neg_rew
-        elif action == 2:
-            self.action = np.uint8([2])
-            self._moving()
-        self.reward_set_eps.append(reward)
+        # # Reward
+        # reward = 0
+        # if action == 1:
+        #     action = np.uint8([1])
+        #     self._licking()
+        #     if (self.cur_pos >= self.water_spout) and (self.licking_cnt <= 20):
+        #         reward = self.pos_rew
+        #     else:
+        #         reward = self.neg_rew
+        # elif action == 2:
+        #     action = np.uint8([2])
+        #     self._moving()
+        # self.reward_set_eps.append(reward)
 
         #아래거 주석처리 했음
         # Next state
@@ -124,7 +119,7 @@ class ClosedLoop1DTrack_virmen(gym.Env):
         #get image from virmen
         #그렇지만 지금은 matlab에서 가져오는겨
         next_state = self.img_mem
-        self.action_mem[:] = self.action[:]
+
         self.img_flag_mem[:] = np.uint8([0])
         self.action_flag_mem[:] = np.uint8([1])
 
@@ -159,8 +154,7 @@ class ClosedLoop1DTrack_virmen(gym.Env):
         self.start_pos = self.cur_pos
         self.end_pos = randrange(414, 424) if stochasticity else 414 # Black screen
         # self.state = self.data[self.cur_pos, :, :, :]
-        self.state = self.img_mem
-        # self.env_mem[:] = self.oloop_standard_env[:] 
+        self.env_mem[:] = self.oloop_standard_env[:] 
         self.licking_cnt = 0
 
         self.move_timing.append(self.move_timing_eps)

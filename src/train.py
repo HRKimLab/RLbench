@@ -24,7 +24,7 @@ from utils.sb3_callbacks import TqdmCallback, LickingTrackerCallback
 
 def train(args):
     """ Train with multiple random seeds """
-
+    print('train')
     info_logger, error_logger = get_logger()
 
     hp = load_json(args.hp)
@@ -89,7 +89,7 @@ def _train(
     eval_env, eval_freq, eval_eps, save_freq, save_path
 ):
     """ Train with single seed """
-
+    print('_train')
     # Set logger
     logger = configure(save_path, ["csv"])
     model.set_logger(logger)
@@ -132,6 +132,7 @@ def _train(
 
 
 if __name__ == "__main__":
+    print('__main__')
     args = get_args()
     configure_cudnn()
 
