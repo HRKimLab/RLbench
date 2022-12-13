@@ -51,7 +51,7 @@ class ClosedLoop1DTrack_virmen(gym.Env):
         action_flag_filename = 'C:\\Users\\NeuRLab\\Documents\\MATLAB\\action_flag'
         action_filename = 'C:\\Users\\NeuRLab\\Documents\\MATLAB\\action_mem'
 
-        # image_mem = np.memmap(image_filename, dtype = 'uint8', mode = 'w+', shape = (131,200,3))
+        # Memmap shaping
         self.img_mem = np.memmap(image_filename, dtype='uint8',mode='r+', shape=(1080, 1920, 3))
         self.img_flag_mem = np.memmap(image_flag_filename, dtype='uint8',mode='r+', shape=(1, 1))
         self.rew_flag_mem = np.memmap(reward_flag_filename, dtype='uint8',mode='r+', shape=(1, 1))   
@@ -101,7 +101,9 @@ class ClosedLoop1DTrack_virmen(gym.Env):
 
         # Reward
         reward = 0
-        if action == 1:
+        if action == 0:
+            self.action = np.uint8([0])
+        elif action == 1:
             self.action = np.uint8([1])
             self._licking()
             if self.rew_flag_mem[:] == np.uint8([1]) and (self.licking_cnt <= 20):
@@ -123,6 +125,7 @@ class ClosedLoop1DTrack_virmen(gym.Env):
 
         #get image from virmen
         #그렇지만 지금은 matlab에서 가져오는겨
+        
         next_state = self.img_mem
         self.action_mem[:] = self.action[:]
         self.img_flag_mem[:] = np.uint8([0])
