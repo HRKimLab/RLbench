@@ -69,7 +69,7 @@ def train(args):
             Path(os.path.join(save_path, FLAG_FILE_NAME)).touch()
 
             print(f"[{i + 1}/{args.nseed}] Ready to train {i + 1}th agent - RANDOM SEED: {seed}")
-            is_licking_task = (args.env in ["OpenLoopStandard1DTrack", "OpenLoopTeleportLong1DTrack"])
+            is_licking_task = (args.env in ["OpenLoopStandard1DTrack", "OpenLoopTeleportLong1DTrack", "ClosedLoop1DTrack_virmen"])
             _train(
                 model, args.nstep, is_licking_task,
                 eval_env, args.eval_freq, args.eval_eps, args.save_freq, save_path

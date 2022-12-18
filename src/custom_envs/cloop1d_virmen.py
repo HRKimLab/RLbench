@@ -40,7 +40,7 @@ class ClosedLoop1DTrack_virmen(gym.Env):
         #flag
         self.img_flag = np.uint8([0]) # 0 for false (initialize)
         rew_flag = np.uint8([0])
-        self.action_flag = np.uint8([1]) # 1 for true (initialize)
+        self.action_flag = np.uint8([0]) # 1 for true (initialize)
         self.action = np.uint8([0]) #default action
 
         #file memmap
@@ -100,45 +100,76 @@ class ClosedLoop1DTrack_virmen(gym.Env):
         #####################################################################################################
 
         # Reward
+       
+       
         reward = 0
+        #set action
         if action == 1:
             self.action = np.uint8([1])
+            self.action_mem[:] = self.action[:]
+            self.action_flag_mem[:] = np.uint8([1])
             self._licking()
-            if self.rew_flag_mem[:] == np.uint8([1]) and (self.licking_cnt <= 20):
-            # if (self.cur_pos >= self.water_spout) and (self.licking_cnt <= 20):
-                reward = self.pos_rew
+            # if (self.rew_flag_mem == np.uint8([1])) and (self.licking_cnt <= 20):
+            # # if (self.cur_pos >= self.water_spout) and (self.licking_cnt <= 20):
+            #     reward = self.pos_rew
+            #     self.rew_flag_mem[:] = np.uint8([0])
+            # else:
+            #     reward = self.neg_rew
+
+            if (self.rew_flag_mem == np.uint8([1])) and (self.licking_cnt <= 20):
+                if (self.rew_mem == np.uint8([1])):
+                    reward = self.pos_rew
+                else:
+                    reward = self.neg_rew
+                # reward = self.pos_rew
                 self.rew_flag_mem[:] = np.uint8([0])
             else:
                 reward = self.neg_rew
+
         elif action == 2:
             self.action = np.uint8([2])
             self._moving()
+            self.action_mem[:] = self.action[:]
+            self.action_flag_mem[:] = np.uint8([1])
         self.reward_set_eps.append(reward)
+
+        # self.action_mem[:] = self.action[:]
+        # self.action_flag_mem[:] = np.uint8([1])
 
         #아래거 주석처리 했음
         # Next state
         # next_state = self.data[self.cur_pos, :, :, :]
 
-        reward = self.rew_mem
+        # reward = self.rew_mem
 
         #get image from virmen
         #그렇지만 지금은 matlab에서 가져오는겨
-        next_state = self.img_mem
-        self.action_mem[:] = self.action[:]
+
+        while (self.img_flag_mem != np.uint8([1])):
+            continue
+        image = self.img_mem
+        image_reshape = np.reshape(image, (3,1920,1080))
+        image_permute = image_reshape.transpose((2,1,0))
+        next_state = image_permute
+
+        # next_state = self.img_mem
         self.img_flag_mem[:] = np.uint8([0])
-        self.action_flag_mem[:] = np.uint8([1])
+
+        # if self.visual_noise: #TODO
+        # self.state = next_state
+        # self.env_mem = next_state
+
+
+        # Done
+        # done = (self.cur_time == self.end_time) or (self.cur_pos >= self.end_pos)
+        done = False
+        
+        if (next_state[60:64,60:64,:] == np.zeros(4,4,3)): #if black screen, done -> in the agent it uses done to reset?
+            done = True
 
         #Ben you should edit this part: 1. while loop to get img_flag is True(image available) 2. send action 3. next state change 4. flag change
 
         #####################################################################################################
-
-
-        # if self.visual_noise: #TODO
-        # self.state = next_state
-        self.env_mem = next_state
-
-        # Done
-        done = (self.cur_time == self.end_time) or (self.cur_pos >= self.end_pos)
 
         # Info
         info = {
@@ -161,7 +192,14 @@ class ClosedLoop1DTrack_virmen(gym.Env):
         self.start_pos = self.cur_pos
         self.end_pos = randrange(414, 424) if stochasticity else 414 # Black screen
         # self.state = self.data[self.cur_pos, :, :, :]
+        
+        while (self.img_flag_mem != np.uint8([1])):
+            continue
         self.state = self.img_mem
+        self.img_flag[:] = np.uint8([0]) #make it false (after reading img frame)
+
+        self.rew_flag_mem[:] = np.uint8([0]) #reward flag to 0(false)
+
         # self.env_mem[:] = self.oloop_standard_env[:] 
         self.licking_cnt = 0
 
