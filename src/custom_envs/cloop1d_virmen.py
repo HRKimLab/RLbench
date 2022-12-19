@@ -73,6 +73,8 @@ class ClosedLoop1DTrack_virmen(gym.Env):
         # self.original_frames = self._get_original_video_frames() # (682, 1288) #stack the frame one at a time
         # self.mice_pic = self._load_mice_image()
 
+        self.zeros = np.zeros(shape = (1920,1080,3), dtype = np.uint8)
+
         #####################################################################################################
 
         # For plotting
@@ -164,8 +166,9 @@ class ClosedLoop1DTrack_virmen(gym.Env):
         # done = (self.cur_time == self.end_time) or (self.cur_pos >= self.end_pos)
         done = False
         
-        if (next_state[60:64,60:64,:] == np.zeros(4,4,3)): #if black screen, done -> in the agent it uses done to reset?
+        while (np.array_equal(next_state, self.zeros)): #if black screen, done -> in the agent it uses done to reset?
             done = True
+            next_state = self.reset()
 
         #Ben you should edit this part: 1. while loop to get img_flag is True(image available) 2. send action 3. next state change 4. flag change
 
