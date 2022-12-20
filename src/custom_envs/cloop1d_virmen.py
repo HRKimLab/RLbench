@@ -17,8 +17,8 @@ class ClosedLoop1DTrack_virmen(gym.Env):
         super().__init__()
         self.action_space = spaces.Discrete(3) # No action / Lick / Move forward
         self.observation_space = spaces.Box(
-            low=0, high=255, shape=(1080, 1920, 3), dtype=np.uint8
-        )
+            low=0, high=255, shape=(108, 192, 3), dtype=np.uint8
+        ) #changed shape
 
         # self.water_spout = water_spout
         # self.video_path = video_path
@@ -73,7 +73,8 @@ class ClosedLoop1DTrack_virmen(gym.Env):
         # self.original_frames = self._get_original_video_frames() # (682, 1288) #stack the frame one at a time
         # self.mice_pic = self._load_mice_image()
 
-        self.zeros = np.zeros(shape = (1920,1080,3), dtype = np.uint8)
+        # self.zeros = np.zeros(shape = (1080,1920,3), dtype = np.uint8)
+        self.zeros = np.zeros(shape = (108,192,3), dtype = np.uint8)
 
         #####################################################################################################
 
@@ -150,7 +151,8 @@ class ClosedLoop1DTrack_virmen(gym.Env):
         while (self.img_flag_mem != np.uint8([1])):
             continue
         image = self.img_mem
-        image_reshape = np.reshape(image, (3,1920,1080))
+        image_state = cv2.resize(image, dsize=(108, 192), interpolation=cv2.INTER_CUBIC)
+        image_reshape = np.reshape(image_state, (3,192,108))
         image_permute = image_reshape.transpose((2,1,0))
         next_state = image_permute
 
@@ -166,9 +168,8 @@ class ClosedLoop1DTrack_virmen(gym.Env):
         # done = (self.cur_time == self.end_time) or (self.cur_pos >= self.end_pos)
         done = False
         
-        while (np.array_equal(next_state, self.zeros)): #if black screen, done -> in the agent it uses done to reset?
+        if (np.array_equal(next_state, self.zeros)): #if black screen, done -> in the agent it uses done to reset?
             done = True
-            next_state = self.reset()
 
         #Ben you should edit this part: 1. while loop to get img_flag is True(image available) 2. send action 3. next state change 4. flag change
 
@@ -198,7 +199,8 @@ class ClosedLoop1DTrack_virmen(gym.Env):
         
         while (self.img_flag_mem != np.uint8([1])):
             continue
-        self.state = self.img_mem
+        image = self.img_mem
+        state = cv2.resize(image, dsize=(108, 192), interpolation=cv2.INTER_CUBIC) # resize
         self.img_flag[:] = np.uint8([0]) #make it false (after reading img frame)
 
         self.rew_flag_mem[:] = np.uint8([0]) #reward flag to 0(false)
@@ -213,7 +215,7 @@ class ClosedLoop1DTrack_virmen(gym.Env):
         self.reward_set.append(self.reward_set_eps)
         self.reward_set_eps = []
 
-        return self.state
+        return state
 
     def render(self, mode='human', close=False):
         # Render the environment to the screen
