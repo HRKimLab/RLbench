@@ -172,8 +172,12 @@ class VirmenCNN:
         while (self.img_flag_mem != np.uint8([1])):
             continue
         state_image = self.img_mem
-        state = cv2.resize(state_image, dsize=(108, 192), interpolation=cv2.INTER_CUBIC)
+        state_resize = cv2.resize(state_image, dsize=(108, 192), interpolation=cv2.INTER_CUBIC)
         self.img_flag[:] = np.uint8([0]) #make it false (after reading img frame)
+
+        image_reshape = np.reshape(state_resize, (3,192,108))
+        image_permute = image_reshape.transpose((2,1,0))
+        state = image_permute
 
         self.rew_flag_mem[:] = np.uint8([0]) #reward flag to 0 (false)
 
@@ -268,7 +272,6 @@ class VirmenCNN:
             action = self.act(state)
             next_state, reward, done, _ = self.step(action.item())
             self.learn(state, action, reward, next_state)
-            state = next_state
 
             if step % self.FRAME_STEP == 0:
                 self.target_update()
@@ -276,15 +279,20 @@ class VirmenCNN:
             if done:
                 self.episode += 1
                 print("episode #{} finished".format(self.episode))
-                while (np.array_equal(state, self.zeros)):
-                    state = self.reset()
-                    print("reset")
+                next_state = self.reset() 
+                while (np.array_equal(next_state, self.zeros)):
+                    action = self.act(next_state)
+                    next_state, reward, done, _ = self.step(action.item())    
+
+            state = next_state
 
     def _licking(self):
         self.licking_cnt += 1
         self.lick_pos_eps.append(self.steps_done)
 
 model = VirmenCNN()
+print("Train starts...")
 model.train()
-save_path = "C:\\Users\\NeuRLab\\RLbench\\data\\ClosedLoop1DTrack_virmen\\a1\\a1s1\\a1s1r1-0\\"
-model.save(os.path.join(save_path, "info.zip"))
+print("Train ends...")
+# save_path = "C:\\Users\\NeuRLab\\RLbench\\data\\ClosedLoop1DTrack_virmen\\a1\\a1s1\\a1s1r1-0\\"
+# model.save(os.path.join(save_path, "info.zip"))
