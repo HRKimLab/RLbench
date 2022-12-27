@@ -10,11 +10,12 @@ class MaxAndSkipEnv(gym.Wrapper):
         self.skip_history_eps = []
 
     def step(self, action):
-        skip_step = np.random.choice(
-            [self._skip - 1, self._skip, self._skip + 1],
-            p=[0.2, 0.6, 0.2]
-        )
+        # skip_step = np.random.choice(
+        #     [self._skip - 1, self._skip, self._skip + 1],
+        #     p=[0.2, 0.6, 0.2]
+        # )
 
+        skip_step = self._skip
         if action == 1: # Only for oloop
             self.skip_history_eps.append(skip_step)
 
@@ -28,6 +29,7 @@ class MaxAndSkipEnv(gym.Wrapper):
                 if action == 1:
                     self.skip_history_eps[-1] = i + 1
                 break
+        self.skip_step = skip_step
         return self._obs_buffer, total_reward, done, info
 
     def reset(self, **kwargs):

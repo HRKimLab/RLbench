@@ -20,7 +20,7 @@ from utils import (
 )
 from utils.options import get_args
 from utils.sb3_callbacks import (
-    TqdmCallback, OpenLoopLickingTrackerCallback,
+    TqdmCallback, OpenLoopLickingTrackerCallback, OpenLoopEvalCallback,
     InterleavedLickingTrackerCallback, ClosedLoopLickingTrackerCallback
 )
 
@@ -99,17 +99,7 @@ def _train(
     model.set_logger(logger)
 
     # Set callbacks
-    eval_callback = EvalCallback(
-        eval_env,
-        n_eval_episodes=eval_eps,
-        eval_freq=eval_freq, 
-        log_path=save_path,
-        best_model_save_path=save_path,
-        deterministic=True,
-        verbose=0
-    )
-    tqdm_callback = TqdmCallback()
-    callbacks = [eval_callback, tqdm_callback]
+    callbacks = [TqdmCallback()]
     if save_freq != -1:
         checkpoint_callback = CheckpointCallback(
             save_freq=save_freq,
@@ -123,28 +113,47 @@ def _train(
         "OpenLoopTeleportLong1DTrack",
         "OpenLoopPause1DTrack",
         "InterleavedOpenLoop1DTrack",
+        "SequentialInterleavedOpenLoop1DTrack",
         "ClosedLoopStandard1DTrack"
     ]
 
     if env in env_candidates[:3]:
-        callback = OpenLoopLickingTrackerCallback(
+        lick_callback = OpenLoopLickingTrackerCallback(
             env=model.env,
             save_path=save_path
         )
-        callbacks.append(callback)
-    elif env == env_candidates[3]: # Interleaved
-        callback = InterleavedLickingTrackerCallback(
+        lick_eval_callback = OpenLoopEvalCallback(
+            eval_env=eval_env,
+            n_eval_episodes=1,
+            eval_freq=eval_freq,
+            save_path=save_path,
+            deterministic=True
+        )
+        callbacks.extend([lick_callback, lick_eval_callback])
+    elif env in env_candidates[3:5]: # Interleaved
+        lick_callback = InterleavedLickingTrackerCallback(
             env=model.env,
             n_env=3,
             save_path=save_path
         )
-        callbacks.append(callback)
-    elif env == env_candidates[4]: # Cloop standard
-        callback = ClosedLoopLickingTrackerCallback(
+        callbacks.append(lick_callback)
+    elif env in env_candidates[5]: # Cloop standard
+        lick_callback = ClosedLoopLickingTrackerCallback(
             env=model.env,
             save_path=save_path
         )
-        callbacks.append(callback)
+        callbacks.append(lick_callback)
+    else:
+        eval_callback = EvalCallback(
+            eval_env,
+            n_eval_episodes=eval_eps,
+            eval_freq=eval_freq, 
+            log_path=save_path,
+            best_model_save_path=save_path,
+            deterministic=True,
+            verbose=0
+        )
+        callbacks.append(eval_callback)
 
     # Training
     model.learn(

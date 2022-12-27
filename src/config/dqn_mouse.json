@@ -2,16 +2,16 @@
     "policy": "CnnPolicy",
     "learning_rate": 0.0001,
     "buffer_size": 1000,
-    "learning_starts": 500,
+    "learning_starts": 100,
     "batch_size": 32,
     "tau": 1.0,
     "gamma": 0.99,
     "train_freq": 4,
 
     "gradient_steps": 1,
-    "target_update_interval": 10000,
+    "target_update_interval": 100,
     "exploration_fraction": 0.1,
     "exploration_initial_eps": 1.0,
-    "exploration_final_eps": 0.05,
+    "exploration_final_eps": 0.01,
     "max_grad_norm": 10
 }

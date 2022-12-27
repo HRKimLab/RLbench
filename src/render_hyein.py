@@ -169,7 +169,7 @@ def render(env_name, model, nstep):
         obs_tensor = torch.tensor(obs).permute(2, 0, 1).unsqueeze(0).cuda()
         q_values = model.q_net(obs_tensor)[0].detach().cpu().tolist()
         next_obs, reward , done, _ = env.step(action)
-        next_obs_tensor = torch.tensor(obs).permute(2, 0, 1).unsqueeze(0).cuda()
+        next_obs_tensor = torch.tensor(next_obs).permute(2, 0, 1).unsqueeze(0).cuda()
         for i in range(env.action_space.n):
             q_value_history[i].append(q_values[i])
         #td_error
@@ -201,37 +201,7 @@ def render(env_name, model, nstep):
 
 if __name__ == "__main__":
     GAME = "OpenLoopStandard1DTrack"
-    agent_paths = [
-        # "a1/a1s1/a1s1r1-0/rl_model_50000_steps",
-        # "a1/a1s1/a1s1r1-0/rl_model_100000_steps",
-        # "a1/a1s1/a1s1r1-0/rl_model_150000_steps",
-        # "a1/a1s1/a1s1r1-0/rl_model_300000_steps",
-        # "a1/a1s1/a1s1r2-42/rl_model_500000_steps",
-        # "a1/a1s1/a1s1r2-42/rl_model_700000_steps",
-        # "a1/a1s1/a1s1r4-7/rl_model_800000_steps",
-        # "a1/a1s1/a1s1r4-7/best_model",
-    ]
-    # agent_paths = ["a1/a1s1/a1s1r1-0/best_model", "a2/a2s1/a2s1r1-0/best_model"]
-    names = [
-        # "0.05M steps",
-        "0.1M steps"
-        # "0.15M steps",
-        # "0.2M steps",
-        # "0.4M steps",
-        # "0.6M steps",
-        # "0.8M steps",
-        # "1.0M steps",
-    ]
     model = [
-
-        # DQN.load("/home/neurlab-dl1/workspace/RLbench/data/ClosedLoopStandard1DTrack_P10_N-5/a1/a1s1/a1s1r1-0/best_model.zip")
-        # DQN.load("/home/neurlab/hyein/RLbencandard1DTrack/a1/a1s1/a1s1r1-0/best_model")
-        DQN.load("/home/neurlab-dl1/workspace/RLbench/data/OpenLoopStandard1DTrack_P11_N-5/a1/a1s1/a1s1r1-0/best_model")
-        
-        # PPO.load(p.join(BASE_PATH, GAME, agent_path)) for agent_path in agent_paths
-    ]
-    agents = [
-        PPO.load(p.join(BASE_PATH, GAME, agent_paths[0])),
-        A2C.load(p.join(BASE_PATH, GAME, agent_paths[1]))
+        DQN.load("/home/neurlab-dl1/workspace/RLbench/data/OpenLoopStandard1DTrack_P2_N-1/a1/a1s1/a1s1r1-0/best_model.zip")
     ]
     render(GAME, model, 1000)

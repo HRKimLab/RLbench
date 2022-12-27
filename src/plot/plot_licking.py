@@ -13,7 +13,7 @@ from utils import get_algo_from_agent
 from options import get_args_licking
 from custom_envs import (
     OpenLoopStandard1DTrack, OpenLoopTeleportLong1DTrack, OpenLoopPause1DTrack,
-    InterleavedOpenLoop1DTrack,
+    InterleavedOpenLoop1DTrack, SequentialInterleavedOpenLoop1DTrack,
     ClosedLoopStandard1DTrack,
 )
 
@@ -41,8 +41,9 @@ def plot_licking(args):
     """ Plot the behavior (licking) data of mouse agent """
 
     date_today = date.today().isoformat()
-    track_len = TRACK_LEN[args.env.split('_')[0]]
-    spout_time = SPOUT_TIME[args.env.split('_')[0]]
+    env_name = args.env.split('_')[0]
+    track_len = TRACK_LEN[env_name]
+    spout_time = SPOUT_TIME[env_name]
 
     data_path = Path(os.path.abspath(os.path.join(os.getcwd(), os.pardir, 'data')))
     data_path = data_path / args.env
@@ -72,6 +73,8 @@ def plot_licking(args):
 
     # Dotplot
     fig, (ax1, ax2) = plt.subplots(nrows=2, sharex=True)
+    if env_name == 'OpenLoopPause1DTrack':
+        ax1.axvspan(253, 461, alpha=0.2, color='g') # Pause timing
     for i, (licks, skips) in enumerate(zip(licking_data, skip_data)):
         if len(licks) == 0:
             continue

@@ -248,7 +248,7 @@ class OpenLoopPause1DTrack(OpenLoop1DTrack):
 
     def __init__(self, visual_noise=False, pos_rew=10, neg_rew=-5):
         super().__init__(
-            water_spout=518,
+            water_spout=518, # PAUSE: 253~461
             video_path="custom_envs/track/VR_tele_1dest_pause.mp4",
             visual_noise=visual_noise,
             pos_rew=pos_rew,

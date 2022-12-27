@@ -12,17 +12,19 @@ import torch
 from torch.backends import cudnn
 from gym import envs
 from sb3_contrib import ARS, QRDQN, TQC, TRPO
-from stable_baselines3 import A2C, DDPG, DQN, PPO, SAC, TD3
+from stable_baselines3 import A2C, DDPG, PPO, SAC, TD3
 from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.vec_env import VecFrameStack
 from stable_baselines3.common.env_util import make_vec_env, make_atari_env
 
+from custom_algos import DQN
 from custom_envs import (
     MaxAndSkipEnv,
     OpenLoopStandard1DTrack, 
     OpenLoopTeleportLong1DTrack,
     OpenLoopPause1DTrack,
     InterleavedOpenLoop1DTrack,
+    SequentialInterleavedOpenLoop1DTrack,
     ClosedLoopStandard1DTrack
 )
 
@@ -116,19 +118,24 @@ def get_env(env_name, n_env, save_path, seed, rewards):
             elif env_name == "OpenLoopPause1DTrack":
                 env = OpenLoopPause1DTrack(pos_rew=pos_rew, neg_rew=neg_rew)
                 eval_env = OpenLoopPause1DTrack(pos_rew=pos_rew, neg_rew=neg_rew)
+            elif env_name == "ClosedLoopStandard1DTrack":
+                env = ClosedLoopStandard1DTrack(pos_rew=pos_rew, neg_rew=neg_rew)
+                eval_env = ClosedLoopStandard1DTrack(pos_rew=pos_rew, neg_rew=neg_rew)
             elif env_name == "InterleavedOpenLoop1DTrack":
                 env = InterleavedOpenLoop1DTrack(pos_rew=pos_rew, neg_rew=neg_rew)
                 eval_env = InterleavedOpenLoop1DTrack(pos_rew=pos_rew, neg_rew=neg_rew)
                 env = Monitor(env, save_path)
                 return env, eval_env
-            elif env_name == "ClosedLoopStandard1DTrack":
-                env = ClosedLoopStandard1DTrack(pos_rew=pos_rew, neg_rew=neg_rew)
-                eval_env = ClosedLoopStandard1DTrack(pos_rew=pos_rew, neg_rew=neg_rew)
+            elif env_name == "SequentialInterleavedOpenLoop1DTrack":
+                env = SequentialInterleavedOpenLoop1DTrack(n_env=3, pos_rew=pos_rew, neg_rew=neg_rew)
+                eval_env = SequentialInterleavedOpenLoop1DTrack(n_env=3, pos_rew=pos_rew, neg_rew=neg_rew)
+                env = Monitor(env, save_path)
+                return env, eval_env
             else:
                 raise ImportError
             env = MaxAndSkipEnv(env, skip=5) # Mouse can lick about 8 times per second, 40 (frames) / 5 (skipping).
             env = Monitor(env, save_path)
-            eval_env = MaxAndSkipEnv(env, skip=5)
+            eval_env = MaxAndSkipEnv(eval_env, skip=5)
         except ImportError:
             raise ValueError(f"Given environment name [{env_name}] does not exist.")
     return env, eval_env

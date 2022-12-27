@@ -13,7 +13,7 @@ from utils import get_algo_from_agent
 from options import get_args_licking
 from custom_envs import (
     OpenLoopStandard1DTrack, OpenLoopTeleportLong1DTrack, OpenLoopPause1DTrack,
-    InterleavedOpenLoop1DTrack,
+    InterleavedOpenLoop1DTrack, SequentialInterleavedOpenLoop1DTrack,
     ClosedLoopStandard1DTrack,
 )
 
@@ -66,22 +66,26 @@ def plot_licking(args):
     except:
         raise FileNotFoundError("Given agent name is not found.")
 
-    lick_datas = []
+    lick_dataset = []
+    skip_dataset = []
     for i in range(args.nenv):
-        dp = data_path / f"lick_timing_{i}.pkl"
-        d = pd.read_pickle(dp)
-        lick_datas.append(d)
-
-    total_len = sum([len(x) for x in lick_datas])
+        lick_data = pd.read_pickle(data_path / f"lick_timing_{i}.pkl")
+        lick_dataset.append(lick_data)
+        skip_data = pd.read_pickle(data_path / f"skip_history_{i}.pkl")
+        skip_dataset.append(skip_data)
+    total_len = sum([len(x) for x in lick_dataset])
     data = np.zeros((total_len, max(track_len)))
 
     # Dotplot
     fig, (ax1, ax2) = plt.subplots(nrows=2, sharex=True)
     offset = 0
     cset = ['r', 'g', 'b']
-    for n, licking_data in enumerate(lick_datas):
-        for i, l in enumerate(licking_data):
-            x = l[::5]
+    ax1.axvspan(253, 461, alpha=0.2, color='g') # Pause timing
+    for n, (licking_data, skip_data) in enumerate(zip(lick_dataset, skip_dataset)):
+        for i, (licks, skips) in enumerate(zip(licking_data, skip_data)):
+            if len(licks) == 0:
+                continue
+            x = np.array(licks)[np.cumsum([0] + skips[:-1])]
             y = [i + offset] * len(x)
             ax1.scatter(x, y, color=cset[n], s=1)
             data[i + offset, x] = 1
@@ -93,17 +97,18 @@ def plot_licking(args):
 
     # Lineplot
     offset = 0
-    for n in range(args.nenv):
-        cur_len = len(lick_datas[n])
+    for n, label in enumerate(('Standard', 'Pause', 'Teleport')[:args.nenv]):
+        cur_len = len(lick_dataset[n])
         line_y = []
         for i in range(max(track_len) - LICK_PER_SEC):
             half_window = LICK_PER_SEC // 2
             line_y.append(data[offset:offset+cur_len, i-half_window:i+half_window].sum() / LICK_PER_SEC)
-        ax2.plot(moving_average(line_y), c=cset[n])
+        ax2.plot(moving_average(line_y), c=cset[n], label=label)
         ax2.set_xlabel("Time (40fps)", fontsize=10)
         ax2.set_ylabel("Lick (licks/s)", fontsize=10)
         ax2.axvline(x=spout_time[n], color='black', linestyle='-')
         offset += cur_len
+    ax2.legend()
 
     algo_name, _ = get_algo_from_agent(args.agent, data_path)
     fig.suptitle(f"{args.agent} ({algo_name.upper()}) / {args.env} / {date_today}")
