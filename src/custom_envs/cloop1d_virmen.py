@@ -164,11 +164,10 @@ class ClosedLoop1DTrack_virmen(gym.Env):
         # done = (self.cur_time == self.end_time) or (self.cur_pos >= self.end_pos)
         done = False
         
-        if (next_state[60:64,60:64,:] == np.zeros(4,4,3)): #if black screen, done -> in the agent it uses done to reset?
+        if (next_state == np.zeros(1920,1080,3)): #if black screen, done -> in the agent it uses done to reset?
             done = True
 
-        #Ben you should edit this part: 1. while loop to get img_flag is True(image available) 2. send action 3. next state change 4. flag change
-
+        
         #####################################################################################################
 
         # Info
