@@ -10,6 +10,7 @@ import random
 import os
 from stable_baselines3.common.utils import polyak_update
 from stable_baselines3.common.torch_layers import BaseFeaturesExtractor
+import time
 
 class CustomCNN(BaseFeaturesExtractor):
 
@@ -67,7 +68,7 @@ class VirmenCNN:
         self,
         env = "virmen",
         seed = 0,
-        nstep = 2000,
+        nstep = 200,
         verbose = 0,
         #hyperparameters
         # EPISODES = 15,
@@ -292,7 +293,10 @@ class VirmenCNN:
 
 model = VirmenCNN()
 print("Train starts...")
+start = time.time()
 model.train()
 print("Train ends...")
+end = time.time()
+print("FPS {}".format(1/((end-start)/200)))
 # save_path = "C:\\Users\\NeuRLab\\RLbench\\data\\ClosedLoop1DTrack_virmen\\a1\\a1s1\\a1s1r1-0\\"
 # model.save(os.path.join(save_path, "info.zip"))

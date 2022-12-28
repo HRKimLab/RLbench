@@ -2,13 +2,14 @@ import numpy as np
 import cv2
 from PIL import Image
 from tqdm import tqdm
+import time
 
 class VirmenCNN:
     def __init__(
         self,
         env = "virmen",
         seed = 0,
-        nstep = 2000,
+        nstep = 200,
         verbose = 0,
         #hyperparameters
         # EPISODES = 15,
@@ -52,7 +53,11 @@ class VirmenCNN:
         action_flag_filename = 'C:\\Users\\NeuRLab\\Documents\\MATLAB\\action_flag'
         action_filename = 'C:\\Users\\NeuRLab\\Documents\\MATLAB\\action_mem'
 
-        self.img_mem = np.memmap(image_filename, dtype='uint8',mode='r+', shape=(1080, 1920, 3))
+        # image_size = (1080, 1920, 3)
+        image_size = (720, 1280, 3)
+        # image_size = (270, 480, 3)
+
+        self.img_mem = np.memmap(image_filename, dtype='uint8',mode='r+', shape=image_size)
         self.img_flag_mem = np.memmap(image_flag_filename, dtype='uint8',mode='r+', shape=(1, 1))
         self.rew_flag_mem = np.memmap(reward_flag_filename, dtype='uint8',mode='r+', shape=(1, 1))   
         self.rew_mem = np.memmap(reward_mem_filename, dtype='uint8',mode='r+', shape=(1, 1))   
@@ -60,13 +65,14 @@ class VirmenCNN:
         self.action_mem = np.memmap(action_filename, dtype='uint8',mode='r+', shape=(1, 1))
 
         #initialize
-        self.action_mem[:] = self.action[:] #default
-        self.rew_flag_mem[:]=self.rew_flag[:]
-        self.img_flag_mem[:] = self.img_flag[:]
-        self.action_flag_mem[:] = self.action_flag[:]
+        # self.action_mem[:] = self.action[:] #default
+        # self.rew_flag_mem[:]=self.rew_flag[:]
+        # self.img_flag_mem[:] = self.img_flag[:]
+        # self.action_flag_mem[:] = self.action_flag[:]
 
         #black image
-        self.zeros = np.zeros(shape = (108,192,3), dtype = np.uint8)
+        # self.zeros = np.zeros(shape = (108,192,3), dtype = np.uint8)
+        self.zeros = np.zeros(shape = image_size, dtype = np.uint8)
 
         self.pos_rew = 10
         self.neg_rew = -5
@@ -83,15 +89,19 @@ class VirmenCNN:
         state_image = self.img_mem
         self.img_flag[:] = np.uint8([0]) #make it false (after reading img frame)
 
-        image_reshape = np.reshape(state_image, (3,1920,1080))
-        image_permute = image_reshape.transpose((2,1,0))
-        image_resize = cv2.resize(image_permute, dsize=(192, 108), interpolation=cv2.INTER_CUBIC)
+        # image_reshape = np.reshape(state_image, (3,1920,1080))
+        # image_permute = image_reshape.transpose((2,1,0))
+        # image_resize = cv2.resize(image_permute, dsize=(192, 108), interpolation=cv2.INTER_CUBIC)
+
+        image_reshape = np.reshape(state_image, (3,1280,720))
+        image_resize = image_reshape.transpose((2,1,0))
+        # image_resize = cv2.resize(image_permute, dsize=(192, 108), interpolation=cv2.INTER_CUBIC)
 
         state = image_resize
 
         #see the reshaped image
-        image = Image.fromarray(image_resize, 'RGB')
-        image.show()
+        # image = Image.fromarray(image_resize, 'RGB')
+        # image.show()
 
         #initialize
         self.licking_cnt = 0
@@ -138,9 +148,12 @@ class VirmenCNN:
         image = self.img_mem
         self.img_flag_mem[:] = np.uint8([0])
 
-        image_reshape = np.reshape(image, (3,1920,1080))
-        image_permute = image_reshape.transpose((2,1,0))
-        image_resize = cv2.resize(image_permute, dsize=(192, 108), interpolation=cv2.INTER_CUBIC)
+        # image_reshape = np.reshape(image, (3,1920,1080))
+        # image_permute = image_reshape.transpose((2,1,0))
+        # image_resize = cv2.resize(image_permute, dsize=(192, 108), interpolation=cv2.INTER_CUBIC)
+        image_reshape = np.reshape(image, (3,1280,720))
+        image_resize = image_reshape.transpose((2,1,0))
+        # image_resize = cv2.resize(image_permute, dsize=(192, 108), interpolation=cv2.INTER_CUBIC)
         next_state = image_resize
 
         #Done
@@ -165,11 +178,11 @@ class VirmenCNN:
 
             if done:
                 self.episode += 1
-                print("episode #{} finished".format(self.episode))
+                # print("episode #{} finished".format(self.episode))
                 next_state = self.reset() 
-                while (np.array_equal(next_state, self.zeros)):
-                    action = self.act(next_state)
-                    next_state, reward, done, _ = self.step(action.item())    
+                # while (np.array_equal(next_state, self.zeros)):
+                #     action = self.act(next_state)
+                #     next_state, reward, done, _ = self.step(action.item())    
 
             state = next_state
 
@@ -179,5 +192,8 @@ class VirmenCNN:
 
 model = VirmenCNN()
 print("Train starts...")
+start = time.time()
 model.train()
 print("Train ends...")
+end = time.time()
+print("FPS {}".format(1/((end-start)/200)))
