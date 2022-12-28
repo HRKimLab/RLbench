@@ -151,13 +151,14 @@ class ClosedLoop1DTrack_virmen(gym.Env):
         while (self.img_flag_mem != np.uint8([1])):
             continue
         image = self.img_mem
-        image_state = cv2.resize(image, dsize=(108, 192), interpolation=cv2.INTER_CUBIC)
-        image_reshape = np.reshape(image_state, (3,192,108))
+        self.img_flag_mem[:] = np.uint8([0])
+
+        image_reshape = np.reshape(image, (3,1920,1080))
         image_permute = image_reshape.transpose((2,1,0))
-        next_state = image_permute
+        image_resize = cv2.resize(image_permute, dsize=(192, 108), interpolation=cv2.INTER_CUBIC)
+        next_state = image_resize
 
         # next_state = self.img_mem
-        self.img_flag_mem[:] = np.uint8([0])
 
         # if self.visual_noise: #TODO
         # self.state = next_state
@@ -200,8 +201,12 @@ class ClosedLoop1DTrack_virmen(gym.Env):
         while (self.img_flag_mem != np.uint8([1])):
             continue
         image = self.img_mem
-        state = cv2.resize(image, dsize=(108, 192), interpolation=cv2.INTER_CUBIC) # resize
         self.img_flag[:] = np.uint8([0]) #make it false (after reading img frame)
+
+        image_reshape = np.reshape(image, (3,1920,1080))
+        image_permute = image_reshape.transpose((2,1,0))
+        image_resize = cv2.resize(image_permute, dsize=(192, 108), interpolation=cv2.INTER_CUBIC)
+        state = image_resize
 
         self.rew_flag_mem[:] = np.uint8([0]) #reward flag to 0(false)
 
