@@ -51,7 +51,7 @@ class ClosedLoop1DTrack_virmen(gym.Env):
         action_flag_filename = 'C:\\Users\\NeuRLab\\Documents\\MATLAB\\action_flag'
         action_filename = 'C:\\Users\\NeuRLab\\Documents\\MATLAB\\action_mem'
 
-        # image_mem = np.memmap(image_filename, dtype = 'uint8', mode = 'w+', shape = (131,200,3))
+        # Memmap shaping
         self.img_mem = np.memmap(image_filename, dtype='uint8',mode='r+', shape=(1080, 1920, 3))
         self.img_flag_mem = np.memmap(image_flag_filename, dtype='uint8',mode='r+', shape=(1, 1))
         self.rew_flag_mem = np.memmap(reward_flag_filename, dtype='uint8',mode='r+', shape=(1, 1))   
@@ -172,8 +172,7 @@ class ClosedLoop1DTrack_virmen(gym.Env):
         if (np.array_equal(next_state, self.zeros)): #if black screen, done -> in the agent it uses done to reset?
             done = True
 
-        #Ben you should edit this part: 1. while loop to get img_flag is True(image available) 2. send action 3. next state change 4. flag change
-
+        
         #####################################################################################################
 
         # Info
