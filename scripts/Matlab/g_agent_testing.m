@@ -7,8 +7,8 @@
 function g_agent_testing()
 
 global g_agent
-
-g_agent = [];
+g_agent = []; %initialize g_agent
+%preset resolutions
 g_agent.image_720 = [720 1280 3];
 g_agent.image_480 = [480 640 3];
 g_agent.image_270 = [270 480 3];

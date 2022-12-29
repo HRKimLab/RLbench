@@ -4,8 +4,10 @@
 %BED - 2022/12/29
 
 function dummy_virmen()
+
 global g_virmen
-g_virmen = [];
+g_virmen = []; %initialize g_virmen
+%preset resolutions
 g_virmen.image_720 = [720 1280 3];
 g_virmen.image_480 = [480 640 3];
 g_virmen.image_270 = [270 480 3];
