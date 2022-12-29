@@ -1,6 +1,7 @@
 %Acts as an agent without learning, for testing communication speed
-%Change 2 variables: g_agent.actions_total and g_agent.image_size 
-%to set how how many actions are taken and resultion respectively 
+%Change 3 variables: g_agent.actions_total and g_agent.image_size
+%g_agent.display to set how how many actions are taken, resultion, 
+%and displays first 10 pixel values respectively 
 %BED - 2022/12/29
 
 function g_agent_testing()
@@ -8,13 +9,16 @@ function g_agent_testing()
 global g_agent
 
 g_agent = [];
-g_agent.actions_total = 2000; %default 2000
-
 g_agent.image_720 = [720 1280 3];
 g_agent.image_480 = [480 640 3];
 g_agent.image_270 = [270 480 3];
 
-g_agent.image_size = g_agent.image_720; %set resolution
+%%%%%%%%%%%%%%%USER SETTINGS%%%%%%%%%%%%%%%
+g_agent.actions_total = 100; %set actions default 200
+g_agent.image_size = g_agent.image_720; %set resolution image_720, image_480, image_270
+g_agent.display = 0; %0: no display 1: display pixel values
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 g_agent.run = 1; %initialize while loop
 g_agent.run_counter = 1; %counts actions for while loop break
 
@@ -36,6 +40,10 @@ while g_agent.run == 1
             
             %access image
             g_agent.image_out;
+            if g_agent.display == 1
+                %display image first 10 values
+                disp(g_agent.image_out.Data.img(1:10))
+            end
             %flip flags back
             g_agent.image_flag.Data.img(1) = 0;
             g_agent.action_flag.Data.img(1) = 1;

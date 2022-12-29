@@ -6,17 +6,17 @@
 function dummy_virmen()
 global g_virmen
 g_virmen = [];
-
-g_virmen.frame_get = 0; %0 = refresh frame once, 1 = refresh frame every action
-
 g_virmen.image_720 = [720 1280 3];
 g_virmen.image_480 = [480 640 3];
 g_virmen.image_270 = [270 480 3];
 
-g_virmen.image_size = g_virmen.image_720; %set resolution
+%%%%%%%%%%%%%%%USER SETTINGS%%%%%%%%%%%%%%%
+g_virmen.frame_get = 1; %0 = refresh frame once, 1 = refresh frame every action
+g_virmen.image_size = g_virmen.image_720; %set resolution image_720, image_480, image_270
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 g_virmen.getframe_size = [0 0 g_virmen.image_size(2) g_virmen.image_size(1)];
-g_virmen.figsize = zeros(g_virmen.image_size(1),g_virmen.image_size(2));
+g_virmen.figsize = rand(g_virmen.image_size(1),g_virmen.image_size(2));
 
 g_virmen.run = 1; %initialize while loop
 imshow(g_virmen.figsize); %make plot for getframe
@@ -40,19 +40,18 @@ g_virmen.action = memmapfile('C:\Users\NeuRLab\Documents\MATLAB\action_mem','Wri
 g_virmen.action_flag.Data.img(1) = 1; 
 g_virmen.image_flag.Data.img(1) = 0;
 
-if g_virmen.frame_get == 0
-    g_virmen.frame=getframe(1,g_virmen.getframe_size); %get new frame
-end
+g_virmen.frame=getframe(1,g_virmen.getframe_size); %get new frame
 
 while g_virmen.run == 1;
+    
     if g_virmen.action_flag.Data.img(1) == 1 && g_virmen.image_flag.Data.img(1) == 0
         g_virmen.action_process = g_virmen.action.Data.img(1); %intake action
         
         if g_virmen.frame_get == 1
-            g_virmen.frame=getframe(1,g_virmen.getframe_size); %get new frame
+            g_virmen.frame.cdata = uint8(200*rand(size(g_virmen.frame.cdata)));
         end
         
-        g_virmen.image_out = g_virmen.frame.cdata;
+        g_virmen.image_out.Data.img = g_virmen.frame.cdata;
         
         g_virmen.action_flag.Data.img(1) = 0;
         g_virmen.image_flag.Data.img(1) = 1;
