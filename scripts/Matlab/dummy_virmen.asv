@@ -1,12 +1,20 @@
 function dummy_virmen()
 global g_virmen
 g_virmen = [];
-%g_virmen.image_size = [720 1280 3];
-%g_virmen.getframe_size = [0 0 1280 720];
+
+g_virmen.frame_get = 0; %0 = refresh frame once, 1 = refresh frame every action
+
+g_virmen.image_size = [720 1280 3];
+g_virmen.image_size = [720 1280 3];
+g_virmen.image_size = [720 1280 3];
+g_virmen.image_size = g_virmen.image_720; %set resolution
+g_virmen.getframe_size = [0 0 1280 720];
 g_virmen.figsize = zeros(1280,720);
-%g_virmen.image_size = [270 480 3];
-%g_virmen.getframe_size = [0 0 480 270];
-%g_virmen.figsize = zeros(480,170);
+
+
+% g_virmen.image_size = [270 480 3];
+% g_virmen.getframe_size = [0 0 480 270];
+% g_virmen.figsize = zeros(480,270);
 g_virmen.run = 1;
 imshow(g_virmen.figsize);
 

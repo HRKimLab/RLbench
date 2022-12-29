@@ -1,6 +1,6 @@
 %Acts as an agent without learning, for testing communication speed
 %Change 2 variables: g_agent.actions_total and g_agent.image_size 
-%to set how how many actions are taken and resultion respectively 
+%to set how often it refreshes the frame and resultion respectively 
 %BED - 2022/12/29
 
 function g_agent_testing()
@@ -54,5 +54,5 @@ while g_agent.run == 1
     end
 
 end
-fprintf('actions per second: %.2f in %.0f actions\n',1/(toc(g_agent.tic)/g_agent.actions_total),g_agent.actions_total)
+disp(1/(toc(g_agent.tic)/g_agent.actions_total))
 end
