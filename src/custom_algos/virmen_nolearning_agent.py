@@ -54,8 +54,8 @@ class VirmenCNN:
         action_filename = 'C:\\Users\\NeuRLab\\Documents\\MATLAB\\action_mem'
 
         # image_size = (1080, 1920, 3)
-        image_size = (720, 1280, 3)
-        # image_size = (270, 480, 3)
+        # image_size = (720, 1280, 3)
+        image_size = (270, 480, 3)
 
         self.img_mem = np.memmap(image_filename, dtype='uint8',mode='r+', shape=image_size)
         self.img_flag_mem = np.memmap(image_flag_filename, dtype='uint8',mode='r+', shape=(1, 1))
@@ -93,7 +93,7 @@ class VirmenCNN:
         # image_permute = image_reshape.transpose((2,1,0))
         # image_resize = cv2.resize(image_permute, dsize=(192, 108), interpolation=cv2.INTER_CUBIC)
 
-        image_reshape = np.reshape(state_image, (3,1280,720))
+        image_reshape = np.reshape(state_image, (3,480,270))
         image_resize = image_reshape.transpose((2,1,0))
         # image_resize = cv2.resize(image_permute, dsize=(192, 108), interpolation=cv2.INTER_CUBIC)
 
@@ -151,7 +151,7 @@ class VirmenCNN:
         # image_reshape = np.reshape(image, (3,1920,1080))
         # image_permute = image_reshape.transpose((2,1,0))
         # image_resize = cv2.resize(image_permute, dsize=(192, 108), interpolation=cv2.INTER_CUBIC)
-        image_reshape = np.reshape(image, (3,1280,720))
+        image_reshape = np.reshape(image, (3,480,270))
         image_resize = image_reshape.transpose((2,1,0))
         # image_resize = cv2.resize(image_permute, dsize=(192, 108), interpolation=cv2.INTER_CUBIC)
         next_state = image_resize

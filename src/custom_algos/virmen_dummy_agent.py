@@ -5,6 +5,7 @@ import random
 
 actions_total = 200
 image_size = (270, 480, 3)
+# image_size = (720,1280,3)
 run = 1
 counter = 0
 

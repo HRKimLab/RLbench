@@ -14,7 +14,7 @@ g_virmen.image_270 = [270 480 3];
 
 %%%%%%%%%%%%%%%USER SETTINGS%%%%%%%%%%%%%%%
 g_virmen.frame_get = 1; %0 = refresh frame once, 1 = refresh frame every action
-g_virmen.image_size = g_virmen.image_720; %set resolution image_720, image_480, image_270
+g_virmen.image_size = g_virmen.image_270; %set resolution image_720, image_480, image_270
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 g_virmen.getframe_size = [0 0 g_virmen.image_size(2) g_virmen.image_size(1)];
