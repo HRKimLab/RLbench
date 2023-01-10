@@ -11,6 +11,15 @@ https://kr.mathworks.com/help/matlab/matlab_external/table-of-mex-file-source-co
 
 https://kr.mathworks.com/help/matlab/import_export/map-a-file-to-memory.html
 
+Another methods:
+
+poxis shared memory:
+https://www.boost.org/doc/libs/1_47_0/doc/html/interprocess/sharedmemorybetweenprocesses.html
+https://kr.mathworks.com/matlabcentral/fileexchange/28572-sharedmatrix
+https://github.com/osvenskan/posix_ipc
+
+https://zeromq.org/
+
 ## install matlab engine for python
 ```
 (test1) neurlab@NeuRLab-DL4:/usr/local/MATLAB/R2018b/extern/engines/python$ sudo python setup.py install --prefix /home/neurlab-dl4/matlab_engine/matlab2018b
