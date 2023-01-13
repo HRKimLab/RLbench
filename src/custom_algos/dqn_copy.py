@@ -1,6 +1,5 @@
 import numpy as np
 import cv2
-import matplotlib.pyplot as plt
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -12,7 +11,6 @@ import os
 from stable_baselines3.common.utils import polyak_update
 from stable_baselines3.common.torch_layers import BaseFeaturesExtractor
 import time
-from PIL import Image
 
 class CustomCNN(BaseFeaturesExtractor):
 
@@ -70,7 +68,7 @@ class VirmenCNN:
         self,
         env = "virmen",
         seed = 0,
-        nstep = 100000,
+        nstep = 200,
         verbose = 0,
         #hyperparameters
         # EPISODES = 15,
@@ -128,7 +126,7 @@ class VirmenCNN:
         self.img_flag = np.uint8([0]) # 0 for false (initialize)
         self.rew_flag = np.uint8([0])
         self.action_flag = np.uint8([0]) # 1 for true (initialize)
-        self.action = np.uint8([2]) #default action
+        self.action = np.uint8([0]) #default action
 
         #file memmap
         image_filename = 'C:\\Users\\NeuRLab\\Documents\\MATLAB\\image_file'
@@ -144,12 +142,12 @@ class VirmenCNN:
         self.rew_mem = np.memmap(reward_mem_filename, dtype='uint8',mode='r+', shape=(1, 1))   
         self.action_flag_mem = np.memmap(action_flag_filename, dtype='uint8',mode='r+', shape=(1, 1))
         self.action_mem = np.memmap(action_filename, dtype='uint8',mode='r+', shape=(1, 1))
-        
+
         #initialize
-        # self.action_mem[:] = self.action[:] #default
-        # self.rew_flag_mem[:]=self.rew_flag[:]
-        # self.img_flag_mem[:] = self.img_flag[:]
-        # self.action_flag_mem[:] = self.action_flag[:]
+        self.action_mem[:] = self.action[:] #default
+        self.rew_flag_mem[:]=self.rew_flag[:]
+        self.img_flag_mem[:] = self.img_flag[:]
+        self.action_flag_mem[:] = self.action_flag[:]
 
         #black image
         # self.zeros = np.zeros(shape = (1080,1920,3), dtype = np.uint8)
@@ -172,19 +170,15 @@ class VirmenCNN:
     #RESET
     def reset(self):
         #get image
-        # print('1')
-        # print(self.img_flag_mem)
         while (self.img_flag_mem != np.uint8([1])):
             continue
         state_image = self.img_mem
         self.img_flag[:] = np.uint8([0]) #make it false (after reading img frame)
-        # print('2')
+
         image_reshape = np.reshape(state_image, (3,1920,1080))
         image_permute = image_reshape.transpose((2,1,0))
         image_resize = cv2.resize(image_permute, dsize=(192, 108), interpolation=cv2.INTER_CUBIC)
-        # print('3')
-        # image = Image.fromarray(image_resize, 'RGB')
-        # image.show()
+
         state = image_resize
 
         self.rew_flag_mem[:] = np.uint8([0]) #reward flag to 0 (false)
@@ -195,7 +189,7 @@ class VirmenCNN:
         self.lick_pos_eps = []
         self.reward_set.append(self.reward_set_eps)
         self.reward_set_eps = []
-        # print('4')
+
         return state
     
 
@@ -208,13 +202,14 @@ class VirmenCNN:
         """
         # Reward
         reward = 0
-        print(action)
+
         #Send action to MATLAB
         if action == 1: #lick
             self.action = np.uint8([1])
             self.action_mem[:] = self.action[:]
             self.action_flag_mem[:] = np.uint8([1])
             self._licking()
+
             #when reward flag is 1(true, there is reward -> end) & less than 20 licks
             if (self.rew_flag_mem == np.uint8([1])) and (self.licking_cnt <= 20):
                 if (self.rew_mem == np.uint8([1])): #reward is 1 (yes reward)
@@ -231,8 +226,7 @@ class VirmenCNN:
             self.action_mem[:] = self.action[:]
             self.action_flag_mem[:] = np.uint8([1])
             # self._moving()
-        # print(self.img_flag_mem)
-        # print(self.action_flag_mem)
+
         #Next state - Get Image from MATLAB
         while (self.img_flag_mem != np.uint8([1])): #if 1(true)
             continue
@@ -243,10 +237,6 @@ class VirmenCNN:
         image_permute = image_reshape.transpose((2,1,0))
         image_resize = cv2.resize(image_permute, dsize=(192, 108), interpolation=cv2.INTER_CUBIC)
         next_state = image_resize
-        # image = Image.fromarray(image_resize, 'RGB')
-        # image.show()
-        # plt.imshow(next_state)
-        # plt.show()
 
         #Done
         done = False
@@ -278,18 +268,12 @@ class VirmenCNN:
 
     #TRAIN
     def train(self):
-        # print('a')
         state = self.reset()
-        # print('b')
         for step in tqdm(range(self.nstep)):
-            # print('c')
             action = self.act(state)
             next_state, reward, done, _ = self.step(action.item())
             self.learn(state, action, reward, next_state)
-            # print('---')
-            # print(self.img_flag_mem)
-            # print(self.action_flag_mem)
-            # print('----')
+
             if step % self.FRAME_STEP == 0:
                 self.target_update()
 
@@ -297,12 +281,10 @@ class VirmenCNN:
                 self.episode += 1
                 print("episode #{} finished\n".format(self.episode))
                 next_state = self.reset() 
-                print('d')
                 while (np.array_equal(next_state, self.zeros)):
-                    print('e')
                     action = self.act(next_state)
                     next_state, reward, done, _ = self.step(action.item())    
-                print('f')
+
             state = next_state
 
     def _licking(self):
@@ -315,6 +297,6 @@ start = time.time()
 model.train()
 print("Train ends...")
 end = time.time()
-print("FPS {}".format(1/((end-start)/100000)))
+print("FPS {}".format(1/((end-start)/200)))
 # save_path = "C:\\Users\\NeuRLab\\RLbench\\data\\ClosedLoop1DTrack_virmen\\a1\\a1s1\\a1s1r1-0\\"
 # model.save(os.path.join(save_path, "info.zip"))

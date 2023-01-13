@@ -1,12 +1,15 @@
 function dummy_virmen()
 global g_virmen
 g_virmen = [];
-g_virmen.image_size = [720 1280 3];
-g_virmen.getframe_size = [0 0 1280 720];
-g_virmen.figsize = zeros(1280,720);
+% g_virmen.image_size = [720 1280 3];
+% g_virmen.getframe_size = [0 0 1280 720];
+% g_virmen.figsize = zeros(1280,720);
 % g_virmen.image_size = [270 480 3];
 % g_virmen.getframe_size = [0 0 480 270];
 % g_virmen.figsize = zeros(480,270);
+g_virmen.image_size = [108 192 3];
+g_virmen.getframe_size = [0 0 192 108];
+g_virmen.figsize = zeros(192,108);
 g_virmen.run = 1;
 imshow(g_virmen.figsize);
 

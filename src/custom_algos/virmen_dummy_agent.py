@@ -4,7 +4,7 @@ import time
 import random
 
 actions_total = 200
-image_size = (270, 480, 3)
+image_size = (720, 1280, 3)
 run = 1
 counter = 0
 
@@ -18,10 +18,11 @@ rew_mem = np.memmap('C:\\Users\\NeuRLab\\Documents\\MATLAB\\reward_mem', dtype='
 action_flag_mem = np.memmap('C:\\Users\\NeuRLab\\Documents\\MATLAB\\action_flag', dtype='uint8',mode='r+', shape=(1, 1))
 action_mem = np.memmap('C:\\Users\\NeuRLab\\Documents\\MATLAB\\action_mem', dtype='uint8',mode='r+', shape=(1, 1))
 
-start = time.time()
-print(start)
+start1 = time.time()
+# print(start)
 
 while (run == 1):
+    start = time.time()
     if ((action_flag_mem == np.uint8([0])) and (img_flag_mem == np.uint8([1]))):
         if (counter < len(dummy_actions)-1):
             #write action
@@ -35,6 +36,7 @@ while (run == 1):
             action_flag_mem[:] = np.uint8([1])
             # print("run {}".format(counter))
             counter+=1
+            print(time.time() - start)
         else:
             #write action
             action_mem[:] = dummy_actions[counter]
@@ -48,9 +50,10 @@ while (run == 1):
             # print("run {}".format(counter))
             #exit loop
             run = 0
+            print(time.time() - start)
 
 
 end = time.time()
 print(end)
 # print("FPS: {}".format(end-start))
-print("FPS: {}".format(1/((end-start)/actions_total)))
+print("FPS: {}".format(1/((end-start1)/actions_total)))

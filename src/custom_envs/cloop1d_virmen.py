@@ -27,12 +27,19 @@ class ClosedLoop1DTrack_virmen(gym.Env):
         # self.data = self._load_data()
         self.cur_time = 0
         self.end_time = 3000
-        
-        self.cur_pos = randrange(51, 100) # Remove time-bias
+
+        self.cur_pos = 0
         self.start_pos = self.cur_pos
-        self.end_pos = randrange(414, 424) # Black screen
+        self.end_pos = 3000        
+        # self.cur_pos = randrange(51, 100) # Remove time-bias
+        # self.start_pos = self.cur_pos
+        # self.end_pos = randrange(414, 424) # Black screen
         # self.state = self.data[self.cur_pos, :, :, :]
         self.licking_cnt = 0
+        self.lick_timing = []
+        self.lick_timing_eps = []
+        self.spout_timing = []
+        self.spout_timing_eps = []
 
         #custom part
         #####################################################################################################
@@ -50,6 +57,7 @@ class ClosedLoop1DTrack_virmen(gym.Env):
         reward_mem_filename = 'C:\\Users\\NeuRLab\\Documents\\MATLAB\\reward_mem'
         action_flag_filename = 'C:\\Users\\NeuRLab\\Documents\\MATLAB\\action_flag'
         action_filename = 'C:\\Users\\NeuRLab\\Documents\\MATLAB\\action_mem'
+        result_flag_filename = 'C:\\Users\\NeuRLab\\Documents\\MATLAB\\result_flag'
 
         # Memmap shaping
         self.img_mem = np.memmap(image_filename, dtype='uint8',mode='r+', shape=(1080, 1920, 3))
@@ -57,13 +65,14 @@ class ClosedLoop1DTrack_virmen(gym.Env):
         self.rew_flag_mem = np.memmap(reward_flag_filename, dtype='uint8',mode='r+', shape=(1, 1))   
         self.rew_mem = np.memmap(reward_mem_filename, dtype='uint8',mode='r+', shape=(1, 1))   
         self.action_flag_mem = np.memmap(action_flag_filename, dtype='uint8',mode='r+', shape=(1, 1))
-        self.action_mem = np.memmap(action_filename, dtype='uint8',mode='r+', shape=(1, 1))  
+        self.action_mem = np.memmap(action_filename, dtype='uint8',mode='r+', shape=(1, 1))
+        self.result_flag_mem = np.memmap(result_flag_filename, dtype='uint8',mode='r+', shape=(1, 1))  #if the agent reaches the reward zone, it changes to 1(true)
 
         #initialize
-        self.action_mem[:] = self.action[:] #default
-        self.rew_flag_mem[:]=rew_flag[:]
-        self.img_flag_mem[:] = self.img_flag[:]
-        self.action_flag_mem[:] = self.action_flag[:]
+        # self.action_mem[:] = self.action[:] #default
+        # self.rew_flag_mem[:]=rew_flag[:]
+        # self.img_flag_mem[:] = self.img_flag[:]
+        # self.action_flag_mem[:] = self.action_flag[:]
         
         self.data = self.img_mem
         self.state = self.img_mem
@@ -171,6 +180,9 @@ class ClosedLoop1DTrack_virmen(gym.Env):
         
         if (np.array_equal(next_state, self.zeros)): #if black screen, done -> in the agent it uses done to reset?
             done = True
+        
+        if self.result_flag_mem == np.uint8([1]):
+            self.spout_timing_eps.append(self.cur_time)
 
         
         #####################################################################################################
@@ -182,19 +194,22 @@ class ClosedLoop1DTrack_virmen(gym.Env):
             "cur_pos": self.cur_pos,
             "end_pos": self.end_pos,
             "licking_cnt": self.licking_cnt,
-            "lick_pos_eps": self.lick_pos_eps
+            "lick_pos_eps": self.lick_pos_eps,
+            "lick_timing_eps": self.lick_timing_eps
         }
 
         return next_state, reward, done, info
 
     def reset(self, stochasticity=True):
+        print("reset")
         # Reset the state of the environment to an initial state
         self.cur_time = 0
         self.end_time = 3000
 
-        self.cur_pos = randrange(51, 100) if stochasticity else 51 # Remove time-bias
-        self.start_pos = self.cur_pos
-        self.end_pos = randrange(414, 424) if stochasticity else 414 # Black screen
+        self.cur_pos = 0
+        # self.cur_pos = randrange(51, 100) if stochasticity else 51 # Remove time-bias
+        # self.start_pos = self.cur_pos
+        # self.end_pos = randrange(414, 424) if stochasticity else 414 # Black screen
         # self.state = self.data[self.cur_pos, :, :, :]
         
         while (self.img_flag_mem != np.uint8([1])):
@@ -208,6 +223,7 @@ class ClosedLoop1DTrack_virmen(gym.Env):
         state = image_resize
 
         self.rew_flag_mem[:] = np.uint8([0]) #reward flag to 0(false)
+        self.result_flag_mem[:] = np.uint8([0]) #result flag to 0(false)
 
         # self.env_mem[:] = self.oloop_standard_env[:] 
         self.licking_cnt = 0
@@ -218,6 +234,10 @@ class ClosedLoop1DTrack_virmen(gym.Env):
         self.lick_pos_eps = []
         self.reward_set.append(self.reward_set_eps)
         self.reward_set_eps = []
+        self.lick_timing.append(self.lick_timing_eps)
+        self.lick_timing_eps = []
+        self.spout_timing.append(self.spout_timing_eps)
+        self.spout_timing_eps = []
 
         return state
 
@@ -276,6 +296,7 @@ class ClosedLoop1DTrack_virmen(gym.Env):
     def _licking(self):
         self.licking_cnt += 1
         self.lick_pos_eps.append(self.cur_pos)
+        self.lick_timing_eps.append(self.cur_time)
 
     def _moving(self):
         self.cur_pos += 1

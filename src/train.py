@@ -3,6 +3,7 @@
 import os
 from datetime import datetime
 from pathlib import Path
+import time
 
 import torch
 from stable_baselines3.common.noise import (
@@ -121,12 +122,15 @@ def _train(
         callbacks.append(licking_tracker_callback)
 
     # Training
+    start = time.time()
     model.learn(
         total_timesteps=nstep,
         callback=callbacks,
         eval_log_path=save_path
     )
-
+    end = time.time()
+    print("FPS {}".format(1/((end-start)/5000)))
+    
     os.remove(os.path.join(save_path, FLAG_FILE_NAME))
     model.save(os.path.join(save_path, "info.zip"))
 
