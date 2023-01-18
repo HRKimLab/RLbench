@@ -9,13 +9,14 @@ function g_agent_testing()
 global g_agent
 g_agent = []; %initialize g_agent
 %preset resolutions
+g_agent.image_1080 = [1080 1920 3];
 g_agent.image_720 = [720 1280 3];
 g_agent.image_480 = [480 640 3];
 g_agent.image_270 = [270 480 3];
 
 %%%%%%%%%%%%%%%USER SETTINGS%%%%%%%%%%%%%%%
 g_agent.actions_total = 100; %set actions default 200
-g_agent.image_size = g_agent.image_720; %set resolution image_720, image_480, image_270
+g_agent.image_size = g_agent.image_1080; %set resolution image_1080 image_720, image_480, image_270
 g_agent.display = 0; %0: no display 1: display pixel values
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
