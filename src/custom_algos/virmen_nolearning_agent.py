@@ -54,8 +54,8 @@ class VirmenCNN:
         action_filename = 'C:\\Users\\NeuRLab\\Documents\\MATLAB\\action_mem'
 
         # image_size = (1080, 1920, 3)
-        image_size = (270, 480, 3)
         # image_size = (270, 480, 3)
+        image_size = (270, 480, 3)
 
         self.img_mem = np.memmap(image_filename, dtype='uint8',mode='r+', shape=image_size)
         self.img_flag_mem = np.memmap(image_flag_filename, dtype='uint8',mode='r+', shape=(1, 1))
