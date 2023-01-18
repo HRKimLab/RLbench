@@ -13,7 +13,7 @@ class ClosedLoop1DTrack_virmen(gym.Env):
 
     metadata = {'render.modes': ['human', 'gif']}
 
-    def __init__(self, visual_noise=False, pos_rew=10, neg_rew=-5): #water_spout, video_path,
+    def __init__(self, visual_noise=False, pos_rew=50, neg_rew=-5): #water_spout, video_path,
         super().__init__()
         self.action_space = spaces.Discrete(3) # No action / Lick / Move forward
         self.observation_space = spaces.Box(
@@ -40,6 +40,8 @@ class ClosedLoop1DTrack_virmen(gym.Env):
         self.lick_timing_eps = []
         self.spout_timing = []
         self.spout_timing_eps = []
+        self.actions_eps = []
+        self.actions = []
 
         #custom part
         #####################################################################################################
@@ -58,6 +60,7 @@ class ClosedLoop1DTrack_virmen(gym.Env):
         action_flag_filename = 'C:\\Users\\NeuRLab\\Documents\\MATLAB\\action_flag'
         action_filename = 'C:\\Users\\NeuRLab\\Documents\\MATLAB\\action_mem'
         result_flag_filename = 'C:\\Users\\NeuRLab\\Documents\\MATLAB\\result_flag'
+        ITI_flag_filename = 'C:\\Users\\NeuRLab\\Documents\\MATLAB\\ITI_flag'
 
         # Memmap shaping
         self.img_mem = np.memmap(image_filename, dtype='uint8',mode='r+', shape=(1080, 1920, 3))
@@ -67,6 +70,7 @@ class ClosedLoop1DTrack_virmen(gym.Env):
         self.action_flag_mem = np.memmap(action_flag_filename, dtype='uint8',mode='r+', shape=(1, 1))
         self.action_mem = np.memmap(action_filename, dtype='uint8',mode='r+', shape=(1, 1))
         self.result_flag_mem = np.memmap(result_flag_filename, dtype='uint8',mode='r+', shape=(1, 1))  #if the agent reaches the reward zone, it changes to 1(true)
+        self.ITI_flag_mem = np.memmap(ITI_flag_filename, dtype='uint8',mode='r+', shape=(1, 1))
 
         #initialize
         # self.action_mem[:] = self.action[:] #default
@@ -76,6 +80,7 @@ class ClosedLoop1DTrack_virmen(gym.Env):
         
         self.data = self.img_mem
         self.state = self.img_mem
+        self.previous_state = self.state
         
         # # For rendering
         # self.frames = []
@@ -107,6 +112,7 @@ class ClosedLoop1DTrack_virmen(gym.Env):
         """
         # Execute one time step within the environment
         self.cur_time += 1
+        self.actions_eps.append(action)
 
         #custom part
         #####################################################################################################
@@ -166,6 +172,7 @@ class ClosedLoop1DTrack_virmen(gym.Env):
         image_permute = image_reshape.transpose((2,1,0))
         image_resize = cv2.resize(image_permute, dsize=(192, 108), interpolation=cv2.INTER_CUBIC)
         next_state = image_resize
+        # print(next_state)
 
         # next_state = self.img_mem
 
@@ -178,11 +185,36 @@ class ClosedLoop1DTrack_virmen(gym.Env):
         # done = (self.cur_time == self.end_time) or (self.cur_pos >= self.end_pos)
         done = False
         
-        if (np.array_equal(next_state, self.zeros)): #if black screen, done -> in the agent it uses done to reset?
+        # if (np.array_equal(next_state, self.zeros)): #if black screen, done -> in the agent it uses done to reset?
+        #     done = True
+        if (self.ITI_flag_mem[:] == np.uint8(1)):
             done = True
+            # self.previous_state = image
+            # self.action = np.uint8([2])
+            # self.action_flag_mem[:] = np.uint8([1])
+            # print("1")
+            # while (self.img_flag_mem != np.uint8([1])):
+            #     continue
+            # image = self.img_mem
+            # print("2")
+            # self.img_flag_mem[:] = np.uint8([0])
+
+            # while (np.all(image == self.previous_state)):
+            #     print("3")
+            #     self.previous_state = image
+            #     self.action = np.uint8([2])
+            #     self.action_flag_mem[:] = np.uint8([1])
+            #     while (self.img_flag_mem != np.uint8([1])):
+            #         continue
+            #     print("4")
+            #     image = self.img_mem
+            #     self.img_flag_mem[:] = np.uint8([0])
+
         
         if self.result_flag_mem == np.uint8([1]):
             self.spout_timing_eps.append(self.cur_time)
+            self.spout_pos = self.cur_pos
+            # print(self.spout_pos)
 
         
         #####################################################################################################
@@ -224,6 +256,7 @@ class ClosedLoop1DTrack_virmen(gym.Env):
 
         self.rew_flag_mem[:] = np.uint8([0]) #reward flag to 0(false)
         self.result_flag_mem[:] = np.uint8([0]) #result flag to 0(false)
+        self.ITI_flag_mem[:] = np.uint8([0]) #ITI flag to 0(false)
 
         # self.env_mem[:] = self.oloop_standard_env[:] 
         self.licking_cnt = 0
@@ -238,6 +271,8 @@ class ClosedLoop1DTrack_virmen(gym.Env):
         self.lick_timing_eps = []
         self.spout_timing.append(self.spout_timing_eps)
         self.spout_timing_eps = []
+        self.actions.append(self.actions_eps)
+        self.actions_eps = []
 
         return state
 

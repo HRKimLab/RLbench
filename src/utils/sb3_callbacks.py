@@ -83,5 +83,11 @@ class LickingTrackerCallback(BaseCallback):
         return True
 
     def _on_training_end(self):
-        with open(os.path.join(self.save_path, "lick_timing.pkl"), "wb") as f:
-            pickle.dump(self.env.get_attr("lick_timing")[0], f)
+        with open(os.path.join(self.save_path, "lick_timing.pkl"), "wb") as f1:
+            pickle.dump(self.env.get_attr("lick_timing")[0], f1)
+
+        with open(os.path.join(self.save_path, "spout_timing.pkl"), "wb") as f2:
+            pickle.dump(self.env.get_attr("spout_timing")[0], f2)
+
+        with open(os.path.join(self.save_path, "actions.pkl"), "wb") as f3:
+            pickle.dump(self.env.get_attr("actions")[0], f3)
