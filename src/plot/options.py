@@ -106,6 +106,12 @@ def get_args_licking():
         '--agent', '-A', type=str,
         help="Agent to plot (specify the agent numbers)"
     )
+    parser.add_argument(
+        '--mode', '-M', type=str,
+        choices = ['train', 'evaluation', 'all'],
+        default = 'all',
+        help="Plot mode"
+    )
 
     args = parser.parse_args()
 

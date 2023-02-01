@@ -6,6 +6,7 @@ import gym
 import imageio
 from gym import spaces
 from random import randrange
+from PIL import Image
 
 
 class ClosedLoop1DTrack_virmen(gym.Env):
@@ -13,9 +14,9 @@ class ClosedLoop1DTrack_virmen(gym.Env):
 
     metadata = {'render.modes': ['human', 'gif']}
 
-    def __init__(self, visual_noise=False, pos_rew=50, neg_rew=-5): #water_spout, video_path,
+    def __init__(self, visual_noise=False, pos_rew=40, neg_rew=-2): #water_spout, video_path,
         super().__init__()
-        self.action_space = spaces.Discrete(3) # No action / Lick / Move forward
+        self.action_space = spaces.Discrete(4) # No action / Lick / Move forward / Move+Lick
         self.observation_space = spaces.Box(
             low=0, high=255, shape=(108, 192, 3), dtype=np.uint8
         ) #changed shape
@@ -97,10 +98,17 @@ class ClosedLoop1DTrack_virmen(gym.Env):
         self.move_timing_eps = []
         self.lick_pos = []
         self.lick_pos_eps = []
+        self.move_and_lick_timing = []
+        self.move_and_lick_timing_eps = []
+        self.move_and_lick_pos = []
+        self.move_and_lick_pos_eps = []
 
         # Temporal variables (for experiments)
         self.pos_rew = pos_rew
         self.neg_rew = neg_rew
+        self.move_neg_rew = -2
+        self.no_neg_rew = -2
+        self.twice_neg_rew = -3
         self.reward_set = []
         self.reward_set_eps = []
         
@@ -109,6 +117,7 @@ class ClosedLoop1DTrack_virmen(gym.Env):
             0: No action
             1: Licking
             2: Move forward
+            3: Move + Lick
         """
         # Execute one time step within the environment
         self.cur_time += 1
@@ -146,9 +155,33 @@ class ClosedLoop1DTrack_virmen(gym.Env):
 
         elif action == 2:
             self.action = np.uint8([2])
-            self._moving()
             self.action_mem[:] = self.action[:]
             self.action_flag_mem[:] = np.uint8([1])
+            self._moving()
+            reward = self.move_neg_rew
+
+        elif action == 0:
+            self.action = np.uint8([0])
+            self.action_mem[:] = self.action[:]
+            self.action_flag_mem[:] = np.uint8([1])
+            reward = self.no_neg_rew
+
+        elif action == 3:
+            self.action = np.uint8([3])
+            self.action_mem[:] = self.action[:]
+            self.action_flag_mem[:] = np.uint8([1])
+            self._moving_and_licking()
+
+            if (self.rew_flag_mem == np.uint8([1])) and (self.licking_cnt <= 20):
+                if (self.rew_mem == np.uint8([1])):
+                    reward = self.pos_rew
+                else:
+                    reward = self.twice_neg_rew
+
+                self.rew_flag_mem[:] = np.uint8([0])
+            else:
+                reward = self.twice_neg_rew
+
         self.reward_set_eps.append(reward)
 
         # self.action_mem[:] = self.action[:]
@@ -168,10 +201,13 @@ class ClosedLoop1DTrack_virmen(gym.Env):
         image = self.img_mem
         self.img_flag_mem[:] = np.uint8([0])
 
+
         image_reshape = np.reshape(image, (3,1920,1080))
         image_permute = image_reshape.transpose((2,1,0))
         image_resize = cv2.resize(image_permute, dsize=(192, 108), interpolation=cv2.INTER_CUBIC)
         next_state = image_resize
+        # img = Image.fromarray(next_state, 'RGB')
+        # img.show()
         # print(next_state)
 
         # next_state = self.img_mem
@@ -187,7 +223,7 @@ class ClosedLoop1DTrack_virmen(gym.Env):
         
         # if (np.array_equal(next_state, self.zeros)): #if black screen, done -> in the agent it uses done to reset?
         #     done = True
-        if (self.ITI_flag_mem[:] == np.uint8(1)):
+        if (self.ITI_flag_mem == np.uint8(1)):
             done = True
             # self.previous_state = image
             # self.action = np.uint8([2])
@@ -210,11 +246,13 @@ class ClosedLoop1DTrack_virmen(gym.Env):
             #     image = self.img_mem
             #     self.img_flag_mem[:] = np.uint8([0])
 
-        
-        if self.result_flag_mem == np.uint8([1]):
+        # print(self.result_flag_mem)
+        if (self.result_flag_mem == np.uint8([1]) and self.rew_mem == np.uint8([1])):
             self.spout_timing_eps.append(self.cur_time)
+            print(self.spout_timing_eps)
             self.spout_pos = self.cur_pos
-            # print(self.spout_pos)
+            print(self.spout_pos)
+            self.result_flag_mem[:] = np.uint8([0]) #result flag to 0(false)
 
         
         #####################################################################################################
@@ -255,7 +293,7 @@ class ClosedLoop1DTrack_virmen(gym.Env):
         state = image_resize
 
         self.rew_flag_mem[:] = np.uint8([0]) #reward flag to 0(false)
-        self.result_flag_mem[:] = np.uint8([0]) #result flag to 0(false)
+        # self.result_flag_mem[:] = np.uint8([0]) #result flag to 0(false)
         self.ITI_flag_mem[:] = np.uint8([0]) #ITI flag to 0(false)
 
         # self.env_mem[:] = self.oloop_standard_env[:] 
@@ -263,6 +301,7 @@ class ClosedLoop1DTrack_virmen(gym.Env):
 
         self.move_timing.append(self.move_timing_eps)
         self.move_timing_eps = []
+        # print(self.lick_pos_eps)
         self.lick_pos.append(self.lick_pos_eps)
         self.lick_pos_eps = []
         self.reward_set.append(self.reward_set_eps)
@@ -273,6 +312,10 @@ class ClosedLoop1DTrack_virmen(gym.Env):
         self.spout_timing_eps = []
         self.actions.append(self.actions_eps)
         self.actions_eps = []
+        self.move_and_lick_pos.append(self.move_and_lick_pos_eps)
+        self.move_and_lick_pos_eps = []
+        self.move_and_lick_timing.append(self.move_and_lick_timing_eps)
+        self.move_and_lick_timing_eps = []
 
         return state
 
@@ -336,6 +379,12 @@ class ClosedLoop1DTrack_virmen(gym.Env):
     def _moving(self):
         self.cur_pos += 1
         self.move_timing_eps.append(self.cur_time)
+
+    def _moving_and_licking(self):
+        self.cur_pos += 1
+        self.licking_cnt +=1
+        self.move_and_lick_pos_eps.append(self.cur_pos)
+        self.move_and_lick_timing_eps.append(self.cur_time)
 
     def _get_original_video_frames(self):
         capture = cv2.VideoCapture(self.video_path)
