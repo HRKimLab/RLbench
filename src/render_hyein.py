@@ -69,7 +69,7 @@ def mk_fig(q_values, y_max, y_min, q_value_history, nstep, steps, final_steps, t
     plt.close()
     line_plot, ax1 = plt.subplots()
     ax2 = ax1.twinx()
-    colors = ['blue', 'green', 'skyblue', 'magenta', 'purple']
+    colors = ['black', 'orange', 'green', 'darkviolet', 'skyblue']
     for i in range(len(q_value_history)):
         ax1.plot(list(range(1,steps+1)), q_value_history[i], color = colors[i])
     # ax2.plot(list(range(1,steps+1)), td_error, color = 'orange', alpha = 0.5)
@@ -163,7 +163,7 @@ def render(env_name, model, nstep):
         obs_tensor = torch.tensor(obs).permute(2, 0, 1).unsqueeze(0).cuda()
         q_values = model.q_net(obs_tensor)[0].detach().cpu().tolist()
         next_obs, reward , done, _ = env.step(action)
-        next_obs_tensor = torch.tensor(obs).permute(2, 0, 1).unsqueeze(0).cuda()
+        next_obs_tensor = torch.tensor(next_obs).permute(2, 0, 1).unsqueeze(0).cuda()
         for i in range(env.action_space.n):
             q_value_history[i].append(q_values[i])
         #td_error

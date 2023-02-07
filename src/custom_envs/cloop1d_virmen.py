@@ -14,7 +14,7 @@ class ClosedLoop1DTrack_virmen(gym.Env):
 
     metadata = {'render.modes': ['human', 'gif']}
 
-    def __init__(self, visual_noise=False, pos_rew=40, neg_rew=-2): #water_spout, video_path,
+    def __init__(self, visual_noise=False, pos_rew=5000, neg_rew=-2): #water_spout, video_path,
         super().__init__()
         self.action_space = spaces.Discrete(4) # No action / Lick / Move forward / Move+Lick
         self.observation_space = spaces.Box(
@@ -31,12 +31,13 @@ class ClosedLoop1DTrack_virmen(gym.Env):
 
         self.cur_pos = 0
         self.start_pos = self.cur_pos
-        self.end_pos = 3000        
+        self.end_pos = 100    
         # self.cur_pos = randrange(51, 100) # Remove time-bias
         # self.start_pos = self.cur_pos
         # self.end_pos = randrange(414, 424) # Black screen
         # self.state = self.data[self.cur_pos, :, :, :]
         self.licking_cnt = 0
+        self.licking_after_spout = 0
         self.lick_timing = []
         self.lick_timing_eps = []
         self.spout_timing = []
@@ -62,6 +63,8 @@ class ClosedLoop1DTrack_virmen(gym.Env):
         action_filename = 'C:\\Users\\NeuRLab\\Documents\\MATLAB\\action_mem'
         result_flag_filename = 'C:\\Users\\NeuRLab\\Documents\\MATLAB\\result_flag'
         ITI_flag_filename = 'C:\\Users\\NeuRLab\\Documents\\MATLAB\\ITI_flag'
+        step_mem_filename = 'C:\\Users\\NeuRLab\\Documents\\MATLAB\\step_mem'
+        position_mem_filename = 'C:\\Users\\NeuRLab\\Documents\\MATLAB\\position_mem'
 
         # Memmap shaping
         self.img_mem = np.memmap(image_filename, dtype='uint8',mode='r+', shape=(1080, 1920, 3))
@@ -72,6 +75,8 @@ class ClosedLoop1DTrack_virmen(gym.Env):
         self.action_mem = np.memmap(action_filename, dtype='uint8',mode='r+', shape=(1, 1))
         self.result_flag_mem = np.memmap(result_flag_filename, dtype='uint8',mode='r+', shape=(1, 1))  #if the agent reaches the reward zone, it changes to 1(true)
         self.ITI_flag_mem = np.memmap(ITI_flag_filename, dtype='uint8',mode='r+', shape=(1, 1))
+        self.step_mem = np.memmap(step_mem_filename, dtype='uint16',mode='r+', shape=(1, 1))
+        self.position_mem = np.memmap(position_mem_filename, dtype='double',mode='r+', shape=(1, 4))
 
         #initialize
         # self.action_mem[:] = self.action[:] #default
@@ -86,7 +91,9 @@ class ClosedLoop1DTrack_virmen(gym.Env):
         # # For rendering
         # self.frames = []
         # self.original_frames = self._get_original_video_frames() # (682, 1288) #stack the frame one at a time
-        # self.mice_pic = self._load_mice_image()
+        self.original_frames = (108,192)
+        self.mice_pic = self._load_mice_image()
+        self.frames = [[] for i in range(101)]
 
         # self.zeros = np.zeros(shape = (1080,1920,3), dtype = np.uint8)
         self.zeros = np.zeros(shape = (108,192,3), dtype = np.uint8)
@@ -107,7 +114,7 @@ class ClosedLoop1DTrack_virmen(gym.Env):
         self.pos_rew = pos_rew
         self.neg_rew = neg_rew
         self.move_neg_rew = -2
-        self.no_neg_rew = -2
+        self.no_neg_rew = -1
         self.twice_neg_rew = -3
         self.reward_set = []
         self.reward_set_eps = []
@@ -122,6 +129,7 @@ class ClosedLoop1DTrack_virmen(gym.Env):
         # Execute one time step within the environment
         self.cur_time += 1
         self.actions_eps.append(action)
+        self.nstep += 1
 
         #custom part
         #####################################################################################################
@@ -131,27 +139,25 @@ class ClosedLoop1DTrack_virmen(gym.Env):
        
         reward = 0
         #set action
+        # print(self.rew_mem)
+        # print(self.licking_after_spout)
+        # print(reward)
         if action == 1:
             self.action = np.uint8([1])
             self.action_mem[:] = self.action[:]
             self.action_flag_mem[:] = np.uint8([1])
             self._licking()
-            # if (self.rew_flag_mem == np.uint8([1])) and (self.licking_cnt <= 20):
-            # # if (self.cur_pos >= self.water_spout) and (self.licking_cnt <= 20):
-            #     reward = self.pos_rew
-            #     self.rew_flag_mem[:] = np.uint8([0])
-            # else:
-            #     reward = self.neg_rew
 
-            if (self.rew_flag_mem == np.uint8([1])) and (self.licking_cnt <= 20):
-                if (self.rew_mem == np.uint8([1])):
+            if (self.rew_flag_mem == np.uint8([1])):
+                self.licking_after_spout += 1
+                if self.licking_after_spout <= 20:   
                     reward = self.pos_rew
                 else:
                     reward = self.neg_rew
-                # reward = self.pos_rew
                 self.rew_flag_mem[:] = np.uint8([0])
             else:
                 reward = self.neg_rew
+
 
         elif action == 2:
             self.action = np.uint8([2])
@@ -172,33 +178,29 @@ class ClosedLoop1DTrack_virmen(gym.Env):
             self.action_flag_mem[:] = np.uint8([1])
             self._moving_and_licking()
 
-            if (self.rew_flag_mem == np.uint8([1])) and (self.licking_cnt <= 20):
-                if (self.rew_mem == np.uint8([1])):
+            if (self.rew_flag_mem == np.uint8([1])):
+                self.licking_after_spout += 1
+                if self.licking_after_spout <= 20:
                     reward = self.pos_rew
                 else:
                     reward = self.twice_neg_rew
-
                 self.rew_flag_mem[:] = np.uint8([0])
             else:
                 reward = self.twice_neg_rew
 
         self.reward_set_eps.append(reward)
+        # print(reward)
 
         # self.action_mem[:] = self.action[:]
         # self.action_flag_mem[:] = np.uint8([1])
 
-        #아래거 주석처리 했음
-        # Next state
-        # next_state = self.data[self.cur_pos, :, :, :]
-
-        # reward = self.rew_mem
-
-        #get image from virmen
-        #그렇지만 지금은 matlab에서 가져오는겨
-
         while (self.img_flag_mem != np.uint8([1])):
             continue
+        # print(self.nstep)
+        self.step_mem[:] = np.uint16([self.nstep])
         image = self.img_mem
+        position = self.position_mem
+        self.frames[int(position[0][1])] = image
         self.img_flag_mem[:] = np.uint8([0])
 
 
@@ -220,38 +222,15 @@ class ClosedLoop1DTrack_virmen(gym.Env):
         # Done
         # done = (self.cur_time == self.end_time) or (self.cur_pos >= self.end_pos)
         done = False
-        
-        # if (np.array_equal(next_state, self.zeros)): #if black screen, done -> in the agent it uses done to reset?
-        #     done = True
         if (self.ITI_flag_mem == np.uint8(1)):
             done = True
-            # self.previous_state = image
-            # self.action = np.uint8([2])
-            # self.action_flag_mem[:] = np.uint8([1])
-            # print("1")
-            # while (self.img_flag_mem != np.uint8([1])):
-            #     continue
-            # image = self.img_mem
-            # print("2")
-            # self.img_flag_mem[:] = np.uint8([0])
-
-            # while (np.all(image == self.previous_state)):
-            #     print("3")
-            #     self.previous_state = image
-            #     self.action = np.uint8([2])
-            #     self.action_flag_mem[:] = np.uint8([1])
-            #     while (self.img_flag_mem != np.uint8([1])):
-            #         continue
-            #     print("4")
-            #     image = self.img_mem
-            #     self.img_flag_mem[:] = np.uint8([0])
 
         # print(self.result_flag_mem)
         if (self.result_flag_mem == np.uint8([1]) and self.rew_mem == np.uint8([1])):
             self.spout_timing_eps.append(self.cur_time)
-            print(self.spout_timing_eps)
+            # print(self.spout_timing_eps)
             self.spout_pos = self.cur_pos
-            print(self.spout_pos)
+            # print(self.spout_pos)
             self.result_flag_mem[:] = np.uint8([0]) #result flag to 0(false)
 
         
@@ -277,6 +256,7 @@ class ClosedLoop1DTrack_virmen(gym.Env):
         self.end_time = 3000
 
         self.cur_pos = 0
+        self.nstep = 0
         # self.cur_pos = randrange(51, 100) if stochasticity else 51 # Remove time-bias
         # self.start_pos = self.cur_pos
         # self.end_pos = randrange(414, 424) if stochasticity else 414 # Black screen
@@ -284,7 +264,11 @@ class ClosedLoop1DTrack_virmen(gym.Env):
         
         while (self.img_flag_mem != np.uint8([1])):
             continue
+        self.step_mem[:] = np.uint16([self.nstep])
+        # print(self.nstep)
         image = self.img_mem
+        position = self.position_mem
+        self.frames[int(position[0][1])] = image
         self.img_flag[:] = np.uint8([0]) #make it false (after reading img frame)
 
         image_reshape = np.reshape(image, (3,1920,1080))
@@ -298,6 +282,7 @@ class ClosedLoop1DTrack_virmen(gym.Env):
 
         # self.env_mem[:] = self.oloop_standard_env[:] 
         self.licking_cnt = 0
+        self.licking_after_spout = 0
 
         self.move_timing.append(self.move_timing_eps)
         self.move_timing_eps = []
@@ -321,7 +306,12 @@ class ClosedLoop1DTrack_virmen(gym.Env):
 
     def render(self, mode='human', close=False):
         # Render the environment to the screen
-        rgb_array = self.original_frames[self.cur_pos, :, :, :].copy()
+        # rgb_array = self.original_frames[self.cur_pos, :, :, :].copy()
+        image = self.img_mem[:]
+        image_reshape = np.reshape(image, (3,1920,1080))
+        image_permute = image_reshape.transpose((2,1,0))
+        image_resize = cv2.resize(image_permute, dsize=(640, 360), interpolation=cv2.INTER_CUBIC)
+        rgb_array = image_resize
         height, width, _ = rgb_array.shape
 
         unit_pos = (width - 40) / (self.end_pos - self.start_pos)
@@ -335,18 +325,18 @@ class ClosedLoop1DTrack_virmen(gym.Env):
         cv2.line(rgb_array, (20, base_height), (width - 20, base_height), (0, 0, 0), 2)
         
         # Current position
-        x_offset = int((self.cur_pos - self.start_pos) * unit_pos)
+        x_offset = int((self.position_mem[0][1] - self.start_pos) * unit_pos)
         y_offset = base_height - 20
         rgb_array[y_offset:y_offset+self.mice_pic.shape[0], x_offset:x_offset+self.mice_pic.shape[1], :] = self.mice_pic
 
         # Licking
         for lick_x in self.lick_pos_eps:
             lick_x_pos = 20 + int((lick_x - self.start_pos) * unit_pos)
-            cv2.line(rgb_array, (lick_x_pos, base_height - 30), (lick_x_pos, base_height + 30), (0, 0, 0), 1)
+            cv2.line(rgb_array, (lick_x_pos, base_height - 20), (lick_x_pos, base_height + 20), (0, 0, 0), 1)
 
         # Water spout
-        spout_x_pos = 20 + int((self.water_spout - self.start_pos) * unit_pos)
-        cv2.line(rgb_array, (spout_x_pos, base_height - 30), (spout_x_pos, base_height + 30), (255, 0, 0), 3)
+        spout_x_pos = 20 + int((96 - self.start_pos) * unit_pos)
+        cv2.line(rgb_array, (spout_x_pos, base_height - 20), (spout_x_pos, base_height + 20), (255, 0, 0), 2)
 
         if mode == 'human':
             cv2.imshow("licking", rgb_array)
@@ -356,7 +346,8 @@ class ClosedLoop1DTrack_virmen(gym.Env):
         elif mode == 'mp4':
             self.frames.append(rgb_array)
         elif mode == 'rgb_array':
-            return cv2.cvtColor(rgb_array, cv2.COLOR_BGR2RGB)
+            return rgb_array
+            # return cv2.cvtColor(rgb_array, cv2.COLOR_BGR2RGB)
 
     def save_gif(self):
         imageio.mimsave('video.gif', self.frames, duration=0.005)
@@ -373,7 +364,7 @@ class ClosedLoop1DTrack_virmen(gym.Env):
 
     def _licking(self):
         self.licking_cnt += 1
-        self.lick_pos_eps.append(self.cur_pos)
+        self.lick_pos_eps.append(self.position_mem[0][1])
         self.lick_timing_eps.append(self.cur_time)
 
     def _moving(self):
@@ -383,7 +374,7 @@ class ClosedLoop1DTrack_virmen(gym.Env):
     def _moving_and_licking(self):
         self.cur_pos += 1
         self.licking_cnt +=1
-        self.move_and_lick_pos_eps.append(self.cur_pos)
+        self.move_and_lick_pos_eps.append(self.position_mem[0][1])
         self.move_and_lick_timing_eps.append(self.cur_time)
 
     def _get_original_video_frames(self):

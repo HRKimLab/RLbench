@@ -9,7 +9,7 @@ import imageio
 from PIL import Image
 from tqdm import tqdm
 
-from custom_envs import OpenLoopStandard1DTrack, MaxAndSkipEnv
+from custom_envs import OpenLoopStandard1DTrack, MaxAndSkipEnv, ClosedLoop1DTrack_virmen
 
 BASE_PATH = "../data/"
 
@@ -27,6 +27,11 @@ def get_mouse_env(n_skip=5):
     env = OpenLoopStandard1DTrack()
     env = MaxAndSkipEnv(env, skip=n_skip)
     return env
+
+def get_virmen_mouse_env(n_skip=5):
+    env = ClosedLoop1DTrack_virmen()
+    env = MaxAndSkipEnv(env, skip=n_skip)
+    return env    
 
 def take_snap(env, ax, name, step=0):
     frame = env.render(mode='rgb_array')
@@ -69,10 +74,10 @@ def mk_fig(q_values, y_max, y_min, q_value_history, nstep, steps, final_steps, t
     plt.close()
     line_plot, ax1 = plt.subplots()
     ax2 = ax1.twinx()
-    colors = ['blue', 'green', 'skyblue', 'magenta', 'purple']
+    colors = ['black', 'orange', 'green', 'darkviolet', 'skyblue']
     for i in range(len(q_value_history)):
         ax1.plot(list(range(1,steps+1)), q_value_history[i], color = colors[i])
-        ax2.plot(list(range(1,steps+1)), td_error, color = 'orange', alpha = 0.5)
+        ax2.plot(list(range(1,steps+1)), td_error, color = 'red', alpha = 0.5)
     plt.xlim([0,nstep])
     ax1.set_ylim(top = y_max + interval, bottom = y_min - interval)
     # plt.axvline(final_steps, 0,1, linestyle = '--')
@@ -131,7 +136,8 @@ def render(env_name, model, nstep):
     """ Render how agent interact with environment"""
     # env = get_vec_env(env_name)
     # env = env.envs[0]
-    env = get_mouse_env()
+    # env = get_mouse_env()
+    env = get_virmen_mouse_env()
     obs = env.reset()
 
     done = False
@@ -154,10 +160,12 @@ def render(env_name, model, nstep):
         steps += 1
         frame = env.render(mode='rgb_array')
         action, _ = model.predict(obs, deterministic=True)
-        obs_tensor = torch.tensor(obs).permute(2, 0, 1).unsqueeze(0).cuda()
+        # obs_tensor = torch.tensor(obs).permute(2, 0, 1).unsqueeze(0).cuda()
+        obs_tensor = torch.tensor(obs).permute(2, 0, 1).unsqueeze(0)
         q_values = model.q_net(obs_tensor)[0].detach().cpu().tolist()
         next_obs, reward , done, _ = env.step(action)
-        next_obs_tensor = torch.tensor(obs).permute(2, 0, 1).unsqueeze(0).cuda()
+        # next_obs_tensor = torch.tensor(obs).permute(2, 0, 1).unsqueeze(0).cuda()
+        next_obs_tensor = torch.tensor(next_obs).permute(2, 0, 1).unsqueeze(0)
         for i in range(env.action_space.n):
             q_value_history[i].append(q_values[i])
         #td_error
@@ -178,11 +186,13 @@ def render(env_name, model, nstep):
         frame = concat_v_resize(frame, plot2_figure)
         frames.append(frame)
 
-    imageio.mimwrite('/home/neurlab-dl1/workspace/RLbench/src/' + str(env_name) + str(model) + '.gif', frames, fps=15)
+    # imageio.mimwrite('C:\\Users\\NeuRLab\\Desktop\\Lab\\RLbench\\src\\' + str(env_name) + str(model) + '.gif', frames, fps=15)
+    imageio.mimwrite('C:\\Users\\NeuRLab\\Desktop\\Lab\\RLbench\\src\\' + str(env_name) + 'dqn' + '.gif', frames, fps=15)
 
 
 if __name__ == "__main__":
-    GAME = "OpenLoopStandard1DTrack"
+    # GAME = "OpenLoopStandard1DTrack"
+    GAME = "ClosedLoop1DTrack_virmen"
     agent_paths = [
         # "a1/a1s1/a1s1r1-0/rl_model_50000_steps",
         # "a1/a1s1/a1s1r1-0/rl_model_100000_steps",
@@ -207,7 +217,8 @@ if __name__ == "__main__":
     model = [
 
         # DQN.load("/home/neurlab-dl1/workspace/RLbench/data/ClosedLoopStandard1DTrack_P5_N-100/a1/a1s1/a1s1r1-0/best_model.zip")
-        DQN.load("/home/neurlab/hyein/RLbench/data/OpenLoopStandard1DTrack/a1/a1s1/a1s1r1-0/best_model")
+        # DQN.load("/home/neurlab/hyein/RLbench/data/OpenLoopStandard1DTrack/a1/a1s1/a1s1r1-0/best_model")
+        DQN.load("C:\\Users\\NeuRLab\\Desktop\\Lab\\RLbench\\data\\ClosedLoop1DTrack_virmen\\a1\\a1s1\\a1s1r3-53\\info")
         
         # PPO.load(p.join(BASE_PATH, GAME, agent_path)) for agent_path in agent_paths
     ]
@@ -215,4 +226,4 @@ if __name__ == "__main__":
     #     PPO.load(p.join(BASE_PATH, GAME, agent_paths[0])),
     #     A2C.load(p.join(BASE_PATH, GAME, agent_paths[1]))
     # ]
-    render(GAME, model, 1000)
+    render(GAME, model, 100)
