@@ -88,6 +88,14 @@ class ClosedLoop1DTrack_virmen(gym.Env):
         self.data = self.img_mem
         self.state = self.img_mem
         self.previous_state = self.state
+
+        self.ROWS = 108
+        self.COLS = 192
+        self.FRAME_STEP = 8
+        self.EPISODES = 2000
+        self.scores, self.episodes, self.average = [], [], []
+        self.image_memory = np.zeros((self.FRAME_STEP, self.ROWS, self.COLS))
+        self.state_size = (self.FRAME_STEP, self.ROWS, self.COLS)
         
         # # For rendering
         self.frames = []
@@ -127,6 +135,25 @@ class ClosedLoop1DTrack_virmen(gym.Env):
         self.steps = 0
         self.final_steps = []
         self.td_error = []
+
+    def get_frame(self, state):
+        img = state
+        # img_rgb = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+        # print(img_rgb.shape)
+        # img_rgb = np.random.random(size=(400, 600))
+        img_rgb_resized  = cv2.resize(img, (3, self.COLS, self.ROWS), interpolation=cv2.INTER_CUBIC)
+        # print(img_rgb_resized.shape)
+        img_rgb_resized[img_rgb_resized < 255] = 0
+        img_rgb_resized = img_rgb_resized / 255
+        # print(img_rgb_resized.shape)
+        self.image_memory = np.roll(self.image_memory, 1, axis = 0)
+        self.image_memory[0,:,:] = img_rgb_resized
+        print(self.image_memory[0])
+
+        # self.imshow(self.image_memory,0) 
+        # plt.imshow(self.image_memory[0,:,:])
+        # plt.show()
+        return np.expand_dims(self.image_memory, axis=0)
         
     def step(self, action):
         """
