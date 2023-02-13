@@ -4,6 +4,7 @@ import os
 from datetime import datetime
 from pathlib import Path
 import time
+import imageio
 
 import torch
 from stable_baselines3.common.noise import (
@@ -133,6 +134,7 @@ def _train(
     
     os.remove(os.path.join(save_path, FLAG_FILE_NAME))
     model.save(os.path.join(save_path, "info.zip"))
+    # imageio.mimwrite('C:\\Users\\NeuRLab\\Desktop\\Lab\\RLbench\\src\\' + str(args.env) + str(args.algo) + '.gif', model.frames, fps=15)
 
 
 if __name__ == "__main__":

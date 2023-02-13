@@ -7,6 +7,7 @@ import imageio
 from gym import spaces
 from random import randrange
 from PIL import Image
+import matplotlib.pyplot as plt
 
 
 class ClosedLoop1DTrack_virmen(gym.Env):
@@ -14,7 +15,7 @@ class ClosedLoop1DTrack_virmen(gym.Env):
 
     metadata = {'render.modes': ['human', 'gif']}
 
-    def __init__(self, visual_noise=False, pos_rew=5000, neg_rew=-2): #water_spout, video_path,
+    def __init__(self, visual_noise=False, pos_rew=100000, neg_rew=-1): #water_spout, video_path,
         super().__init__()
         self.action_space = spaces.Discrete(4) # No action / Lick / Move forward / Move+Lick
         self.observation_space = spaces.Box(
@@ -89,11 +90,11 @@ class ClosedLoop1DTrack_virmen(gym.Env):
         self.previous_state = self.state
         
         # # For rendering
-        # self.frames = []
+        self.frames = []
         # self.original_frames = self._get_original_video_frames() # (682, 1288) #stack the frame one at a time
         self.original_frames = (108,192)
         self.mice_pic = self._load_mice_image()
-        self.frames = [[] for i in range(101)]
+        self.frame_pos = [[] for i in range(101)]
 
         # self.zeros = np.zeros(shape = (1080,1920,3), dtype = np.uint8)
         self.zeros = np.zeros(shape = (108,192,3), dtype = np.uint8)
@@ -113,11 +114,19 @@ class ClosedLoop1DTrack_virmen(gym.Env):
         # Temporal variables (for experiments)
         self.pos_rew = pos_rew
         self.neg_rew = neg_rew
-        self.move_neg_rew = -2
-        self.no_neg_rew = -1
-        self.twice_neg_rew = -3
+        self.move_neg_rew = -1
+        self.no_neg_rew = -0.9
+        self.twice_neg_rew = -1.2
         self.reward_set = []
         self.reward_set_eps = []
+
+        #for rendering - hyein
+        self.q_value_history = [[] for i in range(self.action_space.n)]
+        self.y_max = np.NaN
+        self.y_min = np.NaN
+        self.steps = 0
+        self.final_steps = []
+        self.td_error = []
         
     def step(self, action):
         """
@@ -138,11 +147,39 @@ class ClosedLoop1DTrack_virmen(gym.Env):
        
        
         reward = 0
-        #set action
-        # print(self.rew_mem)
-        # print(self.licking_after_spout)
-        # print(reward)
-        if action == 1:
+        # #set action
+        # # print(self.rew_mem)
+        # # print(self.licking_after_spout)
+        # # print(reward)
+        # if action == 1:
+        #     self.action = np.uint8([1])
+        #     self.action_mem[:] = self.action[:]
+        #     self.action_flag_mem[:] = np.uint8([1])
+        #     self._licking()
+
+        #     if (self.rew_flag_mem == np.uint8([1])):
+        #         self.licking_after_spout += 1
+        #         if self.licking_after_spout <= 20:   
+        #             reward = self.pos_rew
+        #         else:
+        #             reward = self.neg_rew
+        #         self.rew_flag_mem[:] = np.uint8([0])
+        #     else:
+        #         reward = self.neg_rew
+
+        #     # if (self.rew_flag_mem == np.uint8([1])):
+        #     #     reward = self.pos_rew
+        #     #     self.rew_flag_mem[:] = np.uint8([0])
+        #     # else:
+        #     #     reward = self.neg_rew
+
+        if action == 0:
+            self.action = np.uint8([0])
+            self.action_mem[:] = self.action[:]
+            self.action_flag_mem[:] = np.uint8([1])
+            reward = self.no_neg_rew
+
+        elif action == 1:
             self.action = np.uint8([1])
             self.action_mem[:] = self.action[:]
             self.action_flag_mem[:] = np.uint8([1])
@@ -158,19 +195,12 @@ class ClosedLoop1DTrack_virmen(gym.Env):
             else:
                 reward = self.neg_rew
 
-
         elif action == 2:
             self.action = np.uint8([2])
             self.action_mem[:] = self.action[:]
             self.action_flag_mem[:] = np.uint8([1])
             self._moving()
             reward = self.move_neg_rew
-
-        elif action == 0:
-            self.action = np.uint8([0])
-            self.action_mem[:] = self.action[:]
-            self.action_flag_mem[:] = np.uint8([1])
-            reward = self.no_neg_rew
 
         elif action == 3:
             self.action = np.uint8([3])
@@ -188,6 +218,13 @@ class ClosedLoop1DTrack_virmen(gym.Env):
             else:
                 reward = self.twice_neg_rew
 
+
+            # if (self.rew_flag_mem == np.uint8([1])):
+            #     reward = self.pos_rew
+            #     self.rew_flag_mem[:] = np.uint8([0])
+            # else:
+            #     reward = self.neg_rew
+
         self.reward_set_eps.append(reward)
         # print(reward)
 
@@ -199,10 +236,8 @@ class ClosedLoop1DTrack_virmen(gym.Env):
         # print(self.nstep)
         self.step_mem[:] = np.uint16([self.nstep])
         image = self.img_mem
-        position = self.position_mem
-        self.frames[int(position[0][1])] = image
+        self.frame_pos[int(self.position_mem[0][1])] = image
         self.img_flag_mem[:] = np.uint8([0])
-
 
         image_reshape = np.reshape(image, (3,1920,1080))
         image_permute = image_reshape.transpose((2,1,0))
@@ -212,12 +247,9 @@ class ClosedLoop1DTrack_virmen(gym.Env):
         # img.show()
         # print(next_state)
 
-        # next_state = self.img_mem
-
         # if self.visual_noise: #TODO
         # self.state = next_state
         # self.env_mem = next_state
-
 
         # Done
         # done = (self.cur_time == self.end_time) or (self.cur_pos >= self.end_pos)
@@ -267,8 +299,7 @@ class ClosedLoop1DTrack_virmen(gym.Env):
         self.step_mem[:] = np.uint16([self.nstep])
         # print(self.nstep)
         image = self.img_mem
-        position = self.position_mem
-        self.frames[int(position[0][1])] = image
+        self.frame_pos[int(self.position_mem[0][1])] = image
         self.img_flag[:] = np.uint8([0]) #make it false (after reading img frame)
 
         image_reshape = np.reshape(image, (3,1920,1080))
@@ -375,7 +406,9 @@ class ClosedLoop1DTrack_virmen(gym.Env):
         self.cur_pos += 1
         self.licking_cnt +=1
         self.move_and_lick_pos_eps.append(self.position_mem[0][1])
+        self.lick_pos_eps.append(self.position_mem[0][1])
         self.move_and_lick_timing_eps.append(self.cur_time)
+        self.lick_timing_eps.append(self.cur_time)
 
     def _get_original_video_frames(self):
         capture = cv2.VideoCapture(self.video_path)

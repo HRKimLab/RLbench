@@ -51,7 +51,7 @@ def snap_finish(ax, name, step):
     )
     ax.axis('off')
 
-def mk_fig(q_values, y_max, y_min, q_value_history, nstep, steps, final_steps, td_error):
+def mk_fig(q_values, y_max, y_min, q_value_history, q_value_history_target, nstep, steps, final_steps, td_error):
     bar_plot = plt.figure(figsize=(6,8))
     plt.bar(list(range(len(q_values))), list(q_values[x] for x in range(len(q_values))), width = 0.25)
     if np.isnan(y_max):
@@ -74,9 +74,11 @@ def mk_fig(q_values, y_max, y_min, q_value_history, nstep, steps, final_steps, t
     plt.close()
     line_plot, ax1 = plt.subplots()
     ax2 = ax1.twinx()
-    colors = ['black', 'orange', 'green', 'darkviolet', 'skyblue']
+    colors = ['black', 'orange', 'green', 'darkviolet', 'royalblue']
+    colors_target = ['gray', 'wheat', 'yellowgreen', 'thistle', 'skyblue']
     for i in range(len(q_value_history)):
         ax1.plot(list(range(1,steps+1)), q_value_history[i], color = colors[i])
+        ax1.plot(list(range(1,steps+1)), q_value_history_target[i], color = colors_target[i])
         ax2.plot(list(range(1,steps+1)), td_error, color = 'red', alpha = 0.5)
     plt.xlim([0,nstep])
     ax1.set_ylim(top = y_max + interval, bottom = y_min - interval)
@@ -145,6 +147,7 @@ def render(env_name, model, nstep):
     frames = []
 
     q_value_history = [[] for i in range(env.action_space.n)]
+    q_value_history_target = [[] for i in range(env.action_space.n)]
     y_max = np.NaN
     y_min = np.NaN
     steps = 0
@@ -163,22 +166,25 @@ def render(env_name, model, nstep):
         # obs_tensor = torch.tensor(obs).permute(2, 0, 1).unsqueeze(0).cuda()
         obs_tensor = torch.tensor(obs).permute(2, 0, 1).unsqueeze(0)
         q_values = model.q_net(obs_tensor)[0].detach().cpu().tolist()
+        q_values_target = model.q_net_target(obs_tensor)[0].detach().cpu().tolist()
         next_obs, reward , done, _ = env.step(action)
         # next_obs_tensor = torch.tensor(obs).permute(2, 0, 1).unsqueeze(0).cuda()
         next_obs_tensor = torch.tensor(next_obs).permute(2, 0, 1).unsqueeze(0)
         for i in range(env.action_space.n):
             q_value_history[i].append(q_values[i])
+            q_value_history_target[i].append(q_values_target[i])
         #td_error
         q_value_predict = model.q_net(obs_tensor)[0].detach().cpu()[action]
         q_value_target = model.q_net_target(next_obs_tensor)[0].detach().cpu().max()
+        print(q_value_predict)
         # reward = how to get S(t+1) reward... step 함수를 써야하는 거 같은데 
         # gamma = 얘도 몇으로..?
-        gamma = 0.9
+        gamma = 0.99
         td_error.append((reward + gamma * q_value_target) - (q_value_predict))
         obs = next_obs
 
         # make figures and frames
-        fig_path, fig2_path, y_max, y_min = mk_fig(q_values, y_max, y_min, q_value_history, nstep, steps, final_steps, td_error)
+        fig_path, fig2_path, y_max, y_min = mk_fig(q_values, y_max, y_min, q_value_history, q_value_history_target, nstep, steps, final_steps, td_error)
         frame = Image.fromarray(frame)
         plot_figure = Image.open(fig_path)
         frame = concat_h_resize(frame, plot_figure)
@@ -218,7 +224,7 @@ if __name__ == "__main__":
 
         # DQN.load("/home/neurlab-dl1/workspace/RLbench/data/ClosedLoopStandard1DTrack_P5_N-100/a1/a1s1/a1s1r1-0/best_model.zip")
         # DQN.load("/home/neurlab/hyein/RLbench/data/OpenLoopStandard1DTrack/a1/a1s1/a1s1r1-0/best_model")
-        DQN.load("C:\\Users\\NeuRLab\\Desktop\\Lab\\RLbench\\data\\ClosedLoop1DTrack_virmen\\a1\\a1s1\\a1s1r3-53\\info")
+        DQN.load("C:\\Users\\NeuRLab\\Desktop\\Lab\\RLbench\\data\\ClosedLoop1DTrack_virmen\\a1\\a1s1\\a1s1r4-53\\info")
         
         # PPO.load(p.join(BASE_PATH, GAME, agent_path)) for agent_path in agent_paths
     ]
