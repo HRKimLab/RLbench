@@ -10,8 +10,15 @@ from PIL import Image
 from tqdm import tqdm
 
 from custom_envs import OpenLoopStandard1DTrack, MaxAndSkipEnv, ClosedLoop1DTrack_virmen
+import torch.optim as optim
 
 BASE_PATH = "../data/"
+
+def load_ckp(checkpoint_fpath, model, optimizer):
+    checkpoint = torch.load(checkpoint_fpath)
+    model.load_state_dict(checkpoint['state_dict'])
+    optimizer.load_state_dict(checkpoint['optimizer'])
+    return model, optimizer, checkpoint['epoch']
 
 def get_atari_env(env_name, n_stack=4):
     env = make_atari_env(env_name, n_envs=1)
@@ -143,7 +150,7 @@ def render(env_name, model, nstep):
     obs = env.reset()
 
     done = False
-    model = model[0]
+    model = model
     frames = []
 
     q_value_history = [[] for i in range(env.action_space.n)]
@@ -163,20 +170,26 @@ def render(env_name, model, nstep):
         steps += 1
         frame = env.render(mode='rgb_array')
         action, _ = model.predict(obs, deterministic=True)
+        print(torch.tensor(obs).shape)
         # obs_tensor = torch.tensor(obs).permute(2, 0, 1).unsqueeze(0).cuda()
-        obs_tensor = torch.tensor(obs).permute(2, 0, 1).unsqueeze(0)
+        # obs_tensor = torch.tensor(obs).permute(2, 0, 1).unsqueeze(0)
+        obs_tensor = torch.tensor(obs).unsqueeze(0)
+        # obs_tensor = torch.tensor(obs)
         q_values = model.q_net(obs_tensor)[0].detach().cpu().tolist()
+        print(q_values)
+        print(action)
         q_values_target = model.q_net_target(obs_tensor)[0].detach().cpu().tolist()
         next_obs, reward , done, _ = env.step(action)
         # next_obs_tensor = torch.tensor(obs).permute(2, 0, 1).unsqueeze(0).cuda()
-        next_obs_tensor = torch.tensor(next_obs).permute(2, 0, 1).unsqueeze(0)
+        # next_obs_tensor = torch.tensor(next_obs).permute(2, 0, 1).unsqueeze(0)
+        next_obs_tensor = torch.tensor(next_obs).unsqueeze(0)
+        # next_obs_tensor = torch.tensor(next_obs)
         for i in range(env.action_space.n):
             q_value_history[i].append(q_values[i])
             q_value_history_target[i].append(q_values_target[i])
         #td_error
         q_value_predict = model.q_net(obs_tensor)[0].detach().cpu()[action]
         q_value_target = model.q_net_target(next_obs_tensor)[0].detach().cpu().max()
-        print(q_value_predict)
         # reward = how to get S(t+1) reward... step 함수를 써야하는 거 같은데 
         # gamma = 얘도 몇으로..?
         gamma = 0.99
@@ -220,16 +233,24 @@ if __name__ == "__main__":
         # "0.8M steps",
         # "1.0M steps",
     ]
-    model = [
+    # model = [
 
-        # DQN.load("/home/neurlab-dl1/workspace/RLbench/data/ClosedLoopStandard1DTrack_P5_N-100/a1/a1s1/a1s1r1-0/best_model.zip")
-        # DQN.load("/home/neurlab/hyein/RLbench/data/OpenLoopStandard1DTrack/a1/a1s1/a1s1r1-0/best_model")
-        DQN.load("C:\\Users\\NeuRLab\\Desktop\\Lab\\RLbench\\data\\ClosedLoop1DTrack_virmen\\a1\\a1s1\\a1s1r4-53\\info")
+    #     # DQN.load("/home/neurlab-dl1/workspace/RLbench/data/ClosedLoopStandard1DTrack_P5_N-100/a1/a1s1/a1s1r1-0/best_model.zip")
+    #     # DQN.load("/home/neurlab/hyein/RLbench/data/OpenLoopStandard1DTrack/a1/a1s1/a1s1r1-0/best_model")
+    #     DQN.load("C:\\Users\\NeuRLab\\Desktop\\Lab\\RLbench\\data\\ClosedLoop1DTrack_virmen\\a2\\a2s1\\a2s1r4-0\\info")
         
-        # PPO.load(p.join(BASE_PATH, GAME, agent_path)) for agent_path in agent_paths
-    ]
+    #     # PPO.load(p.join(BASE_PATH, GAME, agent_path)) for agent_path in agent_paths
+    # ]
+    # model = DQN.load("C:\\Users\\NeuRLab\\Desktop\\Lab\\RLbench\\data\\ClosedLoop1DTrack_virmen\\a2\\a2s1\\a2s1r4-0\info")
     # agents = [
     #     PPO.load(p.join(BASE_PATH, GAME, agent_paths[0])),
     #     A2C.load(p.join(BASE_PATH, GAME, agent_paths[1]))
     # ]
+
+    # model, optimizer, start_epoch = load_ckp("C:\\Users\\NeuRLab\\Desktop\\Lab\\RLbench\\data\\ClosedLoop1DTrack_virmen\\a2\\a2s1\\a2s1r4-0\checkpoint0.pt", model, optim.Adam(model.parameters(), lr=learning_rate))
+    
+    model = DQN.load("C:\\Users\\NeuRLab\\Desktop\\Lab\\RLbench\\data\\ClosedLoop1DTrack_virmen\\a2\\a2s1\\a2s1r4-7\checkpoint4.pt")
+
+
+    
     render(GAME, model, 100)

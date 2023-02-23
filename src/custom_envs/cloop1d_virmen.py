@@ -15,12 +15,19 @@ class ClosedLoop1DTrack_virmen(gym.Env):
 
     metadata = {'render.modes': ['human', 'gif']}
 
-    def __init__(self, visual_noise=False, pos_rew=100000, neg_rew=-1): #water_spout, video_path,
+    def __init__(self, visual_noise=False, pos_rew=10000, neg_rew=-0.002): #water_spout, video_path,
         super().__init__()
-        self.action_space = spaces.Discrete(4) # No action / Lick / Move forward / Move+Lick
+        self.action_space = spaces.Discrete(2) # No action / Lick / Move forward / Move+Lick
+        
         self.observation_space = spaces.Box(
-            low=0, high=255, shape=(108, 192, 3), dtype=np.uint8
+            low=0, high=255, shape=(8, 108, 192, 3), dtype=np.uint8
         ) #changed shape
+        
+        # self.observation_space = spaces.Box(
+        #     low=0, high=255, shape=(108, 192, 3), dtype=np.uint8
+        # ) #changed shape
+
+        # self.observation_space = spaces.MultiDiscrete([8, 108, 192, 3]) #changed shape
 
         # self.water_spout = water_spout
         # self.video_path = video_path
@@ -35,7 +42,7 @@ class ClosedLoop1DTrack_virmen(gym.Env):
         self.end_pos = 100    
         # self.cur_pos = randrange(51, 100) # Remove time-bias
         # self.start_pos = self.cur_pos
-        # self.end_pos = randrange(414, 424) # Black screen
+        # self.end_pos = randrange(414, 424) # Black screen 
         # self.state = self.data[self.cur_pos, :, :, :]
         self.licking_cnt = 0
         self.licking_after_spout = 0
@@ -94,18 +101,18 @@ class ClosedLoop1DTrack_virmen(gym.Env):
         self.FRAME_STEP = 8
         self.EPISODES = 2000
         self.scores, self.episodes, self.average = [], [], []
-        self.image_memory = np.zeros((self.FRAME_STEP, self.ROWS, self.COLS))
-        self.state_size = (self.FRAME_STEP, self.ROWS, self.COLS)
+        self.image_memory = np.zeros((self.FRAME_STEP, self.ROWS, self.COLS, 3))
+        self.state_size = (self.FRAME_STEP, self.ROWS, self.COLS, 3)
         
         # # For rendering
         self.frames = []
         # self.original_frames = self._get_original_video_frames() # (682, 1288) #stack the frame one at a time
         self.original_frames = (108,192)
-        self.mice_pic = self._load_mice_image()
-        self.frame_pos = [[] for i in range(101)]
+        # self.mice_pic = self._load_mice_image()
+        self.frame_pos = [[] for i in range(301)]
 
         # self.zeros = np.zeros(shape = (1080,1920,3), dtype = np.uint8)
-        self.zeros = np.zeros(shape = (108,192,3), dtype = np.uint8)
+        # self.zeros = np.zeros(shape = (108,192,3), dtype = np.uint8)
 
         #####################################################################################################
 
@@ -122,9 +129,9 @@ class ClosedLoop1DTrack_virmen(gym.Env):
         # Temporal variables (for experiments)
         self.pos_rew = pos_rew
         self.neg_rew = neg_rew
-        self.move_neg_rew = -1
-        self.no_neg_rew = -0.9
-        self.twice_neg_rew = -1.2
+        self.move_neg_rew = -0.002
+        self.no_neg_rew = -0.001
+        self.twice_neg_rew = -0.002
         self.reward_set = []
         self.reward_set_eps = []
 
@@ -136,19 +143,35 @@ class ClosedLoop1DTrack_virmen(gym.Env):
         self.final_steps = []
         self.td_error = []
 
-    def get_frame(self, state):
-        img = state
-        # img_rgb = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
-        # print(img_rgb.shape)
-        # img_rgb = np.random.random(size=(400, 600))
-        img_rgb_resized  = cv2.resize(img, (3, self.COLS, self.ROWS), interpolation=cv2.INTER_CUBIC)
-        # print(img_rgb_resized.shape)
-        img_rgb_resized[img_rgb_resized < 255] = 0
-        img_rgb_resized = img_rgb_resized / 255
-        # print(img_rgb_resized.shape)
+    def get_frame(self):
+        # img = state
+        # # img_rgb = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+        # # print(img_rgb.shape)
+        # # img_rgb = np.random.random(size=(400, 600))
+        # img_rgb_resized  = cv2.resize(img, (3, self.COLS, self.ROWS), interpolation=cv2.INTER_CUBIC)
+        # # print(img_rgb_resized.shape)
+        # img_rgb_resized[img_rgb_resized < 255] = 0
+        # img_rgb_resized = img_rgb_resized / 255
+        # # print(img_rgb_resized.shape)
+
+        image = self.img_mem
+        self.frame_pos[int(self.position_mem[0][1])] = image
+        self.img_flag_mem[:] = np.uint8([0])
+        
+        image_reshape = np.reshape(image, (3,1920,1080))
+        image_permute = image_reshape.transpose((2,1,0))
+        image_resize = cv2.resize(image_permute, dsize=(192, 108), interpolation=cv2.INTER_CUBIC)
+        # image_resize = cv2.cvtColor(image_resize, cv2.COLOR_RGB2GRAY)
+
+        # print(image_resize.shape)
+        # image_resize[image_resize < 255] = 0
+        # image_resize = image_resize/ 255
+
+
         self.image_memory = np.roll(self.image_memory, 1, axis = 0)
-        self.image_memory[0,:,:] = img_rgb_resized
-        print(self.image_memory[0])
+        # print(self.image_memory.shape)
+        self.image_memory[0,:,:,:] = image_resize
+        # print(self.image_memory[0])
 
         # self.imshow(self.image_memory,0) 
         # plt.imshow(self.image_memory[0,:,:])
@@ -206,7 +229,7 @@ class ClosedLoop1DTrack_virmen(gym.Env):
             self.action_flag_mem[:] = np.uint8([1])
             reward = self.no_neg_rew
 
-        elif action == 1:
+        elif action == 3:
             self.action = np.uint8([1])
             self.action_mem[:] = self.action[:]
             self.action_flag_mem[:] = np.uint8([1])
@@ -229,7 +252,7 @@ class ClosedLoop1DTrack_virmen(gym.Env):
             self._moving()
             reward = self.move_neg_rew
 
-        elif action == 3:
+        elif action == 1:
             self.action = np.uint8([3])
             self.action_mem[:] = self.action[:]
             self.action_flag_mem[:] = np.uint8([1])
@@ -260,26 +283,25 @@ class ClosedLoop1DTrack_virmen(gym.Env):
 
         while (self.img_flag_mem != np.uint8([1])):
             continue
-        # print(self.nstep)
-        self.step_mem[:] = np.uint16([self.nstep])
-        image = self.img_mem
-        self.frame_pos[int(self.position_mem[0][1])] = image
-        self.img_flag_mem[:] = np.uint8([0])
+        # # print(self.nstep)
+        # self.step_mem[:] = np.uint16([self.nstep])
 
-        image_reshape = np.reshape(image, (3,1920,1080))
-        image_permute = image_reshape.transpose((2,1,0))
-        image_resize = cv2.resize(image_permute, dsize=(192, 108), interpolation=cv2.INTER_CUBIC)
-        next_state = image_resize
-        # img = Image.fromarray(next_state, 'RGB')
-        # img.show()
+        # image = self.img_mem
+        # self.frame_pos[int(self.position_mem[0][1])] = image
+        # self.img_flag_mem[:] = np.uint8([0])
+
+        # image_reshape = np.reshape(image, (3,1920,1080))
+        # image_permute = image_reshape.transpose((2,1,0))
+        # image_resize = cv2.resize(image_permute, dsize=(192, 108), interpolation=cv2.INTER_CUBIC)
+        # next_state = image_resize
+
+        next_state = self.get_frame()[0]
+
+        img = Image.fromarray(next_state[7], 'RGB')
+        img.show()
         # print(next_state)
 
-        # if self.visual_noise: #TODO
-        # self.state = next_state
-        # self.env_mem = next_state
-
         # Done
-        # done = (self.cur_time == self.end_time) or (self.cur_pos >= self.end_pos)
         done = False
         if (self.ITI_flag_mem == np.uint8(1)):
             done = True
@@ -324,15 +346,19 @@ class ClosedLoop1DTrack_virmen(gym.Env):
         while (self.img_flag_mem != np.uint8([1])):
             continue
         self.step_mem[:] = np.uint16([self.nstep])
-        # print(self.nstep)
-        image = self.img_mem
-        self.frame_pos[int(self.position_mem[0][1])] = image
-        self.img_flag[:] = np.uint8([0]) #make it false (after reading img frame)
+        # # print(self.nstep)
 
-        image_reshape = np.reshape(image, (3,1920,1080))
-        image_permute = image_reshape.transpose((2,1,0))
-        image_resize = cv2.resize(image_permute, dsize=(192, 108), interpolation=cv2.INTER_CUBIC)
-        state = image_resize
+        # image = self.img_mem
+        # self.frame_pos[int(self.position_mem[0][1])] = image
+        # self.img_flag[:] = np.uint8([0]) #make it false (after reading img frame)
+
+        # image_reshape = np.reshape(image, (3,1920,1080))
+        # image_permute = image_reshape.transpose((2,1,0))
+        # image_resize = cv2.resize(image_permute, dsize=(192, 108), interpolation=cv2.INTER_CUBIC)
+        # state = image_resize
+
+        state = self.get_frame()[0]
+
 
         self.rew_flag_mem[:] = np.uint8([0]) #reward flag to 0(false)
         # self.result_flag_mem[:] = np.uint8([0]) #result flag to 0(false)
@@ -372,29 +398,29 @@ class ClosedLoop1DTrack_virmen(gym.Env):
         rgb_array = image_resize
         height, width, _ = rgb_array.shape
 
-        unit_pos = (width - 40) / (self.end_pos - self.start_pos)
+        # unit_pos = (width - 40) / (self.end_pos - self.start_pos)
 
-        # Upper padding
-        padding_height = height // 8
-        rgb_array = cv2.copyMakeBorder(rgb_array, padding_height, 0, 0, 0, cv2.BORDER_CONSTANT, value=(255, 255, 255))
+        # # Upper padding
+        # padding_height = height // 8
+        # rgb_array = cv2.copyMakeBorder(rgb_array, padding_height, 0, 0, 0, cv2.BORDER_CONSTANT, value=(255, 255, 255))
 
-        # Base line
-        base_height = padding_height // 2
-        cv2.line(rgb_array, (20, base_height), (width - 20, base_height), (0, 0, 0), 2)
+        # # Base line
+        # base_height = padding_height // 2
+        # cv2.line(rgb_array, (20, base_height), (width - 20, base_height), (0, 0, 0), 2)
         
-        # Current position
-        x_offset = int((self.position_mem[0][1] - self.start_pos) * unit_pos)
-        y_offset = base_height - 20
-        rgb_array[y_offset:y_offset+self.mice_pic.shape[0], x_offset:x_offset+self.mice_pic.shape[1], :] = self.mice_pic
+        # # Current position
+        # x_offset = int((self.position_mem[0][1] - self.start_pos) * unit_pos)
+        # y_offset = base_height - 20
+        # rgb_array[y_offset:y_offset+self.mice_pic.shape[0], x_offset:x_offset+self.mice_pic.shape[1], :] = self.mice_pic
 
-        # Licking
-        for lick_x in self.lick_pos_eps:
-            lick_x_pos = 20 + int((lick_x - self.start_pos) * unit_pos)
-            cv2.line(rgb_array, (lick_x_pos, base_height - 20), (lick_x_pos, base_height + 20), (0, 0, 0), 1)
+        # # Licking
+        # for lick_x in self.lick_pos_eps:
+        #     lick_x_pos = 20 + int((lick_x - self.start_pos) * unit_pos)
+        #     cv2.line(rgb_array, (lick_x_pos, base_height - 20), (lick_x_pos, base_height + 20), (0, 0, 0), 1)
 
-        # Water spout
-        spout_x_pos = 20 + int((96 - self.start_pos) * unit_pos)
-        cv2.line(rgb_array, (spout_x_pos, base_height - 20), (spout_x_pos, base_height + 20), (255, 0, 0), 2)
+        # # Water spout
+        # spout_x_pos = 20 + int((96 - self.start_pos) * unit_pos)
+        # cv2.line(rgb_array, (spout_x_pos, base_height - 20), (spout_x_pos, base_height + 20), (255, 0, 0), 2)
 
         if mode == 'human':
             cv2.imshow("licking", rgb_array)
