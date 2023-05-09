@@ -97,3 +97,6 @@ class LickingTrackerCallback(BaseCallback):
         
         with open(os.path.join(self.save_path, "move_and_lick_pos.pkl"), "wb") as f5:
             pickle.dump(self.env.get_attr("move_and_lick_pos")[0], f5)
+        
+        with open(os.path.join(self.save_path, "trial_start_pos.pkl"), "wb") as f6:
+            pickle.dump(self.env.get_attr("trial_start_pos")[0], f6)

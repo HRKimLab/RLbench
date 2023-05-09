@@ -19,6 +19,8 @@ def validate_args(args):
         raise ArgumentTypeError("Algorithm name is mandatory field.")
     if args.nseed > 10:
         raise ArgumentTypeError("nseed should be less than or equal to 10.")
+    print(args.hp)
+    # C:\Users\NeuRLab\Desktop\Lab\RLbench\src\config\dqn_mouse.json
     if not os.path.exists(args.hp):
         raise ArgumentTypeError("Given configuration file name does not exist.")
 
@@ -73,6 +75,27 @@ def get_args():
         '--save-freq', type=int, default=-1,
         help="Per timesteps to save checkpoint (default:-1; Do not save checkpoint)"
     )
+    
+    # Reward hyperparameter
+    parser.add_argument(
+        '--pos_rew', type=float, default=0,
+    )
+    parser.add_argument(
+        '--move_lick', type=float, default=0,
+    )
+    parser.add_argument(
+        '--move', type=float, default=0,
+    )
+    parser.add_argument(
+        '--lick', type=float, default=0,
+    )
+    parser.add_argument(
+        '--stop', type=float, default=0,
+    )
+    parser.add_argument(
+        '--hp_change', type=str, default=None,
+    )
+
 
     # Evaluation
     parser.add_argument(
@@ -104,12 +127,13 @@ def get_args():
     args.seed = SEEDS[:args.nseed]
     if args.hp is None:
         args.hp = os.path.join(
-            os.getcwd(), 
+            #os.getcwd(), 
+            "C:\\Users\\NeuRLab\\Desktop\\Lab\\RLbench\\src",
             "config", "default", f"{args.algo}.json"
         )
     else:
         args.hp = os.path.join(
-            os.getcwd(),
+            "C:\\Users\\NeuRLab\\Desktop\\Lab\\RLbench\\src",
             "config", f"{args.hp}.json"
         )
     validate_args(args)
@@ -161,5 +185,5 @@ def get_search_args():
 
 
 if __name__ == "__main__":
-    # args = get_args()
+    args = get_args()
     print(args)

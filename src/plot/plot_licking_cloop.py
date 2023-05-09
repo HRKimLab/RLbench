@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 
 from utils import get_algo_from_agent
 from options import get_args_licking
+from utils.options import get_args
 
 FPS = 39.15
 LICK_PER_SEC = 8
@@ -42,6 +43,7 @@ def plot_licking(args):
     spout_path = data_path / "spout_timing.pkl"
     licking_path = data_path / "lick_timing.pkl"
     actions_path = data_path / "actions.pkl"
+    trial_start_path = data_path / "trial_start_pos.pkl"
 
     date_today = date.today().isoformat()
     # track_len = 100
@@ -60,6 +62,9 @@ def plot_licking(args):
     # # print(lengths)
     # length = int(max(lengths))
     # # print(length)
+
+    trial_start_data = pd.read_pickle(trial_start_path)
+    print(trial_start_data)
 
     lengths = []
     for i in range(len(actions_data)):
@@ -215,10 +220,12 @@ def plot_licking(args):
         try:
             spout = (spout_data[i][0]-1)//5+1
             ax1.scatter(pad + spout,i,color ='red',s=1)
+            trial_start = (trial_start_data[i][0]-1)//5+1
+            ax1.scatter(pad + trial_start,i,color ='red',s=1, marker = 'x')
         except:
             continue
 
-    ax1.set_title("Actions(orange:lick, green:move, purple:move+lick, black: no action)")
+    # ax1.set_title("Actions(orange:lick, green:move, purple:move+lick, black: no action)\n pos rew: {}, move_lick: {}, move: {}, lick: {}, stop: {}".format(train_args.pos_rew, train_args.move_lick, train_args.move, train_args.lick, train_args.stop))
     ax1.get_xaxis().set_visible(False)
     ax1.invert_yaxis()
 

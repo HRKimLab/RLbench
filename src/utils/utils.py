@@ -6,6 +6,7 @@ import logging
 from shutil import rmtree
 from pathlib import Path
 from datetime import date
+import time
 
 import numpy as np
 import torch
@@ -27,11 +28,12 @@ ALGO_LIST = {
 }
 
 def set_seed(seed):
-    os.environ['PYTHONHASHSEED'] = str(seed)
+    os.environ['PYTHONHASHSEED'] = str(seed) 
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
     torch.cuda.manual_seed(seed)
+    torch.use_deterministic_algorithms(True)
 
 def configure_cudnn(debug=False):
     cudnn.enabled = True
@@ -195,14 +197,35 @@ def set_data_path(algo_name, env_name, hp, seed):
         with open(p.join(data_path, DEP3_CONFIG), "w") as f:
             json.dump(hp, f, indent=4)
 
-    # Run (Depth-4) - Random seed
+    # Run (Depth-4) - Random seed # changed -1 to -2
     seed_list = dict(map(
+        lambda x: (int(x.split("-")[-2]), x),
+        [x for x in os.listdir(data_path) if p.isdir(p.join(data_path, x))]
+    ))
+    # print(seed_list)
+
+    time_list = dict(map(
         lambda x: (int(x.split("-")[-1]), x),
         [x for x in os.listdir(data_path) if p.isdir(p.join(data_path, x))]
     ))
+    # print(time_list)
 
     already_run = False
-    if seed in seed_list.keys(): # Given setting had already been run
+    # if seed in seed_list.keys(): # Given setting had already been run
+    #     data_path = p.join(data_path, seed_list[seed])
+    #     if not p.isfile(p.join(data_path, FLAG_FILE_NAME)):
+    #         already_run = True
+    #     else:
+    #         rmtree(data_path)
+    #         os.mkdir(data_path)
+    # else:
+    #     seed_id = f"r{len(seed_list) + 1}"
+    #     data_path = p.join(
+    #         data_path,
+    #         agent_id + session_id + seed_id + f"-{seed}-{time.strftime('%H%M%S', time.localtime())}/"
+    #     )
+    #     os.mkdir(data_path)
+    if time.strftime('%H%M%S', time.localtime()) in time_list.keys(): # Given setting had already been run
         data_path = p.join(data_path, seed_list[seed])
         if not p.isfile(p.join(data_path, FLAG_FILE_NAME)):
             already_run = True
@@ -210,10 +233,10 @@ def set_data_path(algo_name, env_name, hp, seed):
             rmtree(data_path)
             os.mkdir(data_path)
     else:
-        seed_id = f"r{len(seed_list) + 1}"
+        trial_id = f"r{len(time_list) + 1}"
         data_path = p.join(
             data_path,
-            agent_id + session_id + seed_id + f"-{seed}/"
+            agent_id + session_id + trial_id + f"-{seed}-{time.strftime('%H%M%S', time.localtime())}/"
         )
         os.mkdir(data_path)
 

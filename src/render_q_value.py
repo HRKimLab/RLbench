@@ -9,7 +9,7 @@ import imageio
 from PIL import Image
 from tqdm import tqdm
 
-from custom_envs import OpenLoopStandard1DTrack, MaxAndSkipEnv, ClosedLoop1DTrack_virmen
+from custom_envs import MaxAndSkipEnv, OpenLoopStandard1DTrack, ClosedLoop1DTrack_virmen
 import torch.optim as optim
 
 BASE_PATH = "../data/"
@@ -58,9 +58,9 @@ def snap_finish(ax, name, step):
     )
     ax.axis('off')
 
-def mk_fig(q_values, y_max, y_min, q_value_history, q_value_history_target, nstep, steps, final_steps, td_error):
-    bar_plot = plt.figure(figsize=(6,8))
-    plt.bar(list(range(len(q_values))), list(q_values[x] for x in range(len(q_values))), width = 0.25)
+def mk_fig(q_values, y_max, y_min, q_value_history, q_value_history_target, reward_history, nstep, steps, final_steps, td_error, actions, SPOUT, action_list):
+    bar_plot = plt.figure(figsize=(8,8))
+    plt.bar(list(range(len(q_values))), list(q_values[x] for x in range(len(q_values))), width = 0.4, color = ['black', 'orange', 'green', 'darkviolet'])
     if np.isnan(y_max):
             y_max = max(q_values)
     else:
@@ -71,31 +71,60 @@ def mk_fig(q_values, y_max, y_min, q_value_history, q_value_history_target, nste
     else:
         if min(q_values) < y_min:
             y_min = min(q_values)
-    plt.xticks(list(range(len(q_values))))
+    # plt.xticks(list(range(len(q_values))))
+    plt.xticks(range(len(action_list)), action_list, fontsize = 25)
     interval = (y_max - y_min) * 0.05
-    plt.ylim(top=y_max + interval, bottom=y_min - interval)
-    plt.title('instant q values of actions')
+    # plt.ylim(top=y_max + interval, bottom=y_min - interval)
+    plt.ylim([-15, 25])
+    plt.yticks(np.arange(-10,25,10))
+    plt.title('Q values of actions', fontsize = 30)
+    plt.ylabel('Action Value', fontsize = 25)
+    plt.yticks(fontsize = 20)
     bar_plot.tight_layout(pad=0)
     fig_path = 'q_value_bar_plot.png'
     plt.savefig(fig_path)
     plt.close()
-    line_plot, ax1 = plt.subplots()
+    line_plot, ax1 = plt.subplots(figsize=(24,8))
     ax2 = ax1.twinx()
+    ax1.set_xlabel('Time Step', fontsize = 30)
+    ax1.set_ylabel('Action Value', fontsize = 30)
     colors = ['black', 'orange', 'green', 'darkviolet', 'royalblue']
     colors_target = ['gray', 'wheat', 'yellowgreen', 'thistle', 'skyblue']
     for i in range(len(q_value_history)):
-        ax1.plot(list(range(1,steps+1)), q_value_history[i], color = colors[i])
-        ax1.plot(list(range(1,steps+1)), q_value_history_target[i], color = colors_target[i])
-        ax2.plot(list(range(1,steps+1)), td_error, color = 'red', alpha = 0.5)
+        ax1.plot(list(range(1,steps+1)), q_value_history[i], color = colors[i], label = action_list[i])
+        ax1.plot(list(range(1,steps+1)), reward_history[i], color = 'blue')
+        # ax1.plot(list(range(1,steps+1)), q_value_history_target[i], color = colors_target[i])
+        ax2.plot(list(range(1,steps+1)), td_error, color = 'red', alpha = 0.8, label = 'TD error' if i == 0 else "")
+        ax1.legend(fontsize = 25, loc = 'upper right')
+        ax2.legend(fontsize = 25, loc = 'lower right')
     plt.xlim([0,nstep])
-    ax1.set_ylim(top = y_max + interval, bottom = y_min - interval)
-    # plt.axvline(final_steps, 0,1, linestyle = '--')
-    # plt.legend(loc='upper right')
-    line_plot.tight_layout(pad=0)
+    # ax1.set_ylim(top = y_max + interval, bottom = y_min - interval)
+    ax1.set_ylim([-15,25])
+    ax2.set_ylim([-15,25])
+    ax1.set_yticks(np.arange(-10,25,10))
+    ax2.set_yticks(np.arange(-10,25,10))
+    ax1.hlines(y = 0, xmin = 0, xmax = 80, color = 'black', linestyles = '--')
+    ax1.tick_params(axis='x', labelsize=25)
+    ax1.tick_params(axis = 'y', labelsize = 25)
+    ax2.tick_params(axis = 'y', labelsize = 25)
+    for spout_timing in SPOUT:
+        ax1.axvline(x=spout_timing, color='blue', linestyle='-', alpha = 0.2)
     fig2_path = 'q_value_line_plot.png'
     plt.savefig(fig2_path)
     plt.close()
-    return fig_path, fig2_path, y_max, y_min
+    fig, ax3 = plt.subplots(figsize=(24,1))
+    for i in range(len(q_value_history)):
+        ax3.scatter(list(range(1,steps+1)), [0 for i in range(1,steps+1)], color = [colors[ind] for ind in actions], marker = 's', s=100)
+    ax3.axis('off')
+    ax3.set_xlim([0,80])
+    ax3.set_ylabel('Actions', fontsize = 30)
+    # plt.axvline(final_steps, 0,1, linestyle = '--')
+    # plt.legend(loc='upper right')
+    line_plot.tight_layout(pad=0)
+    fig3_path = 'action_plot.png'
+    plt.savefig(fig3_path)
+    plt.close()
+    return fig_path, fig2_path, fig3_path, y_max, y_min
 
 def concat_h_resize(im1, im2, resample=Image.BICUBIC, resize_big_image=True):
     if im1.height == im2.height:
@@ -108,8 +137,8 @@ def concat_h_resize(im1, im2, resample=Image.BICUBIC, resize_big_image=True):
     else:
         _im1 = im1
         _im2 = im2.resize((int(im2.width * im1.height / im2.height), im1.height), resample=resample)
-    dst = Image.new('RGB', (_im1.width + _im2.width, _im1.height))
-    dst.paste(_im1, (0, 0))
+    dst = Image.new('RGB', (_im1.width + _im2.width, _im1.height), color = 'white')
+    dst.paste(_im1, (-5, 0))
     dst.paste(_im2, (_im1.width, 0))
     return dst
 
@@ -132,16 +161,17 @@ def concat_h_resize(im1, im2, resample=Image.BICUBIC, resize_big_image=True):
 def concat_v_resize(im1, im2, resample=Image.BICUBIC):
     if im1.width == im2.width:
         _im1 = im1
-        _im2 = im2.resize(im2.width, int(im1.height/ 2), resample=resample)
+        # _im2 = im2.resize(im2.width, int(im1.height/ 2), resample=resample)
+        _im2 = im2
     else:
         _im1 = im1
-        _im2 = im2.resize((im1.width, int(im2.height * im1.width / im2.width / 2)), resample=resample)
-    dst = Image.new('RGB', (_im1.width, _im1.height + _im2.height))
-    dst.paste(_im1, (0, 0))
-    dst.paste(_im2, (0, _im1.height))
+        _im2 = im2.resize((im1.width, int(im2.height * im1.width / im2.width )), resample=resample)
+    dst = Image.new('RGB', (_im1.width, _im1.height + _im2.height+10), color = 'white')
+    dst.paste(_im1, (-5, 0))
+    dst.paste(_im2, (0, _im1.height+10))
     return dst
 
-def render(env_name, model, nstep):
+def render(env_name, model, nstep, action_type):
     """ Render how agent interact with environment"""
     # env = get_vec_env(env_name)
     # env = env.envs[0]
@@ -155,11 +185,16 @@ def render(env_name, model, nstep):
 
     q_value_history = [[] for i in range(env.action_space.n)]
     q_value_history_target = [[] for i in range(env.action_space.n)]
+    reward_history = [[] for i in range(env.action_space.n)]
     y_max = np.NaN
     y_min = np.NaN
     steps = 0
     final_steps = []
     td_error = []
+    actions = []
+    SPOUT = []
+    action_list = [["Stop","Lick","Move","Move+Lick"],["Stop","Lick","MoveForward","MoveNorthWest","MoveNorthEast","NorthWestLick","NorthEastLick"],
+                   ["Stop","JoystickNorth","JoystickNorthEast","JoystickEast","JoystickSouthEast","JoystickSouth","JoystickSouthWest","JoystickWest","JoystickNorthWest"]]
 
     for _ in tqdm(range(nstep)):
         if done:
@@ -170,23 +205,24 @@ def render(env_name, model, nstep):
         steps += 1
         frame = env.render(mode='rgb_array')
         action, _ = model.predict(obs, deterministic=True)
-        print(torch.tensor(obs).shape)
+        # print(torch.tensor(obs).shape)
         # obs_tensor = torch.tensor(obs).permute(2, 0, 1).unsqueeze(0).cuda()
-        # obs_tensor = torch.tensor(obs).permute(2, 0, 1).unsqueeze(0)
-        obs_tensor = torch.tensor(obs).unsqueeze(0)
+        obs_tensor = torch.tensor(obs).permute(2, 0, 1).unsqueeze(0)
+        # obs_tensor = torch.tensor(obs).unsqueeze(0)
         # obs_tensor = torch.tensor(obs)
         q_values = model.q_net(obs_tensor)[0].detach().cpu().tolist()
-        print(q_values)
-        print(action)
+        # print(q_values)
+        # print(action)
         q_values_target = model.q_net_target(obs_tensor)[0].detach().cpu().tolist()
         next_obs, reward , done, _ = env.step(action)
         # next_obs_tensor = torch.tensor(obs).permute(2, 0, 1).unsqueeze(0).cuda()
-        # next_obs_tensor = torch.tensor(next_obs).permute(2, 0, 1).unsqueeze(0)
-        next_obs_tensor = torch.tensor(next_obs).unsqueeze(0)
+        next_obs_tensor = torch.tensor(next_obs).permute(2, 0, 1).unsqueeze(0)
+        # next_obs_tensor = torch.tensor(next_obs).unsqueeze(0)
         # next_obs_tensor = torch.tensor(next_obs)
         for i in range(env.action_space.n):
             q_value_history[i].append(q_values[i])
             q_value_history_target[i].append(q_values_target[i])
+            reward_history[i].append(reward)
         #td_error
         q_value_predict = model.q_net(obs_tensor)[0].detach().cpu()[action]
         q_value_target = model.q_net_target(next_obs_tensor)[0].detach().cpu().max()
@@ -195,18 +231,25 @@ def render(env_name, model, nstep):
         gamma = 0.99
         td_error.append((reward + gamma * q_value_target) - (q_value_predict))
         obs = next_obs
+        actions.append(action)
+        print(reward)
+        if reward > 0:
+            SPOUT.append(steps)
 
         # make figures and frames
-        fig_path, fig2_path, y_max, y_min = mk_fig(q_values, y_max, y_min, q_value_history, q_value_history_target, nstep, steps, final_steps, td_error)
+        fig_path, fig2_path, fig3_path, y_max, y_min = mk_fig(q_values, y_max, y_min, q_value_history, q_value_history_target, reward_history,
+                                                   nstep, steps, final_steps, td_error, actions, SPOUT, action_list[action_type])
         frame = Image.fromarray(frame)
         plot_figure = Image.open(fig_path)
         frame = concat_h_resize(frame, plot_figure)
         plot2_figure = Image.open(fig2_path)
+        plot3_figure = Image.open(fig3_path)
         frame = concat_v_resize(frame, plot2_figure)
+        frame = concat_v_resize(frame, plot3_figure)
         frames.append(frame)
 
     # imageio.mimwrite('C:\\Users\\NeuRLab\\Desktop\\Lab\\RLbench\\src\\' + str(env_name) + str(model) + '.gif', frames, fps=15)
-    imageio.mimwrite('C:\\Users\\NeuRLab\\Desktop\\Lab\\RLbench\\src\\' + str(env_name) + 'dqn' + '.gif', frames, fps=15)
+    imageio.mimwrite('C:\\Users\\NeuRLab\\Desktop\\Lab\\RLbench\\src\\' + str(env_name) + 'dqn' + '.gif', frames, fps=6)
 
 
 if __name__ == "__main__":
@@ -249,8 +292,8 @@ if __name__ == "__main__":
 
     # model, optimizer, start_epoch = load_ckp("C:\\Users\\NeuRLab\\Desktop\\Lab\\RLbench\\data\\ClosedLoop1DTrack_virmen\\a2\\a2s1\\a2s1r4-0\checkpoint0.pt", model, optim.Adam(model.parameters(), lr=learning_rate))
     
-    model = DQN.load("C:\\Users\\NeuRLab\\Desktop\\Lab\\RLbench\\data\\ClosedLoop1DTrack_virmen\\a2\\a2s1\\a2s1r4-7\checkpoint4.pt")
+    model = DQN.load("C:\\Users\\NeuRLab\\Desktop\\Lab\\RLbench\\data\\ClosedLoop1DTrack_virmen\\a3\\a3s7\\a3s7r2-42-155444\\info.zip")
 
-
+    action_type = 0
     
-    render(GAME, model, 100)
+    render(GAME, model, 80, action_type)

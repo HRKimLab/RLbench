@@ -5,6 +5,7 @@ from datetime import datetime
 from pathlib import Path
 import time
 import imageio
+import numpy as np
 
 import torch
 from stable_baselines3.common.noise import (
@@ -31,16 +32,20 @@ def train(args):
 
     hp = load_json(args.hp)
 
+    reset_curr_cond_filename = 'C:\\Users\\NeuRLab\\Documents\\MATLAB\\reset_curr_cond'
+    reset_curr_cond = np.memmap(reset_curr_cond_filename, dtype='uint8',mode='r+', shape=(1, 1))
+    reset_curr_cond[:] = np.uint8(0)
+
     for i, seed in enumerate(args.seed):
     # for i, seed in enumerate(args.nseed):
         set_seed(seed)
 
         # Get appropriate path by model info
-        save_path = args.save_path
+        save_path = args.save_path 
         already_run = False
         if save_path is None:
             save_path, already_run = set_data_path(args.algo, args.env, hp, seed)
-
+        
         # If the given setting has already been executed, save_path will be given as None
         if already_run:
             print(f"[{i + 1}/{args.nseed}] Already exists: '{save_path}', skip to run")
@@ -74,7 +79,7 @@ def train(args):
             is_licking_task = (args.env in ["OpenLoopStandard1DTrack", "OpenLoopTeleportLong1DTrack", "ClosedLoop1DTrack","ClosedLoop1DTrack_virmen"])
             _train(
                 model, args.nstep, is_licking_task,
-                eval_env, args.eval_freq, args.eval_eps, args.save_freq, save_path
+                eval_env, args.eval_freq, args.eval_eps, args.save_freq, save_path, reset_curr_cond
             )
             del env, model
         except KeyboardInterrupt:
@@ -88,7 +93,7 @@ def train(args):
 
 def _train(
     model, nstep, is_licking_task,
-    eval_env, eval_freq, eval_eps, save_freq, save_path
+    eval_env, eval_freq, eval_eps, save_freq, save_path, reset_curr_cond
 ):
     """ Train with single seed """
     print('_train')
@@ -124,6 +129,7 @@ def _train(
 
     # Training
     start = time.time()
+    print(model)
     model.learn(
         total_timesteps=nstep,
         callback=callbacks,
@@ -135,6 +141,8 @@ def _train(
     os.remove(os.path.join(save_path, FLAG_FILE_NAME))
     model.save(os.path.join(save_path, "info.zip"))
     # imageio.mimwrite('C:\\Users\\NeuRLab\\Desktop\\Lab\\RLbench\\src\\' + str(args.env) + str(args.algo) + '.gif', model.frames, fps=15)
+    reset_curr_cond[:] = np.uint8(1)
+    print(reset_curr_cond)
 
 
 if __name__ == "__main__":
