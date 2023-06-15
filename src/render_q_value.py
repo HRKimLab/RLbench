@@ -228,7 +228,7 @@ def render(env_name, model, nstep, action_type):
         q_value_target = model.q_net_target(next_obs_tensor)[0].detach().cpu().max()
         # reward = how to get S(t+1) reward... step 함수를 써야하는 거 같은데 
         # gamma = 얘도 몇으로..?
-        gamma = 0.99
+        gamma = 0.95
         td_error.append((reward + gamma * q_value_target) - (q_value_predict))
         obs = next_obs
         actions.append(action)
@@ -292,7 +292,7 @@ if __name__ == "__main__":
 
     # model, optimizer, start_epoch = load_ckp("C:\\Users\\NeuRLab\\Desktop\\Lab\\RLbench\\data\\ClosedLoop1DTrack_virmen\\a2\\a2s1\\a2s1r4-0\checkpoint0.pt", model, optim.Adam(model.parameters(), lr=learning_rate))
     
-    model = DQN.load("C:\\Users\\NeuRLab\\Desktop\\Lab\\RLbench\\data\\ClosedLoop1DTrack_virmen\\a3\\a3s7\\a3s7r2-42-155444\\info.zip")
+    model = DQN.load("C:\\Users\\NeuRLab\\Desktop\\Lab\\RLbench\\data\\ClosedLoop1DTrack_virmen\\a3\\a3s9\\a3s9r8-53-135518\\rl_model_5000_steps.zip")
 
     action_type = 0
     

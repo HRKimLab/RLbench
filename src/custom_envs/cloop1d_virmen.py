@@ -21,7 +21,7 @@ class ClosedLoop1DTrack_virmen(gym.Env):
         # env_list = [[""]]
         self.action_list = [["Stop","Lick","Move","Move+Lick"]]
         super().__init__()
-        self.action_space = spaces.Discrete(4) # No action / Lick / Move forward / Move+Lick
+        self.action_space = spaces.Discrete(2) # No action / Lick / Move forward / Move+Lick
         
         # self.observation_space = spaces.Box(
         #     low=0, high=255, shape=(8, 108, 192, 3), dtype=np.uint8
@@ -80,6 +80,8 @@ class ClosedLoop1DTrack_virmen(gym.Env):
         ITI_flag_filename = 'C:\\Users\\NeuRLab\\Documents\\MATLAB\\ITI_flag'
         step_mem_filename = 'C:\\Users\\NeuRLab\\Documents\\MATLAB\\step_mem'
         position_mem_filename = 'C:\\Users\\NeuRLab\\Documents\\MATLAB\\position_mem'
+        shockzone_start_flag_filename = 'C:\\Users\\NeuRLab\\Documents\\MATLAB\\shockzone_start_flag'
+        shockzone_end_flag_filename = 'C:\\Users\\NeuRLab\\Documents\\MATLAB\\shockzone_end_flag'
 
         # Memmap shaping
         self.img_mem = np.memmap(image_filename, dtype='uint8',mode='r+', shape=(1080, 1920, 3))
@@ -92,6 +94,8 @@ class ClosedLoop1DTrack_virmen(gym.Env):
         self.ITI_flag_mem = np.memmap(ITI_flag_filename, dtype='uint8',mode='r+', shape=(1, 1))
         self.step_mem = np.memmap(step_mem_filename, dtype='uint16',mode='r+', shape=(1, 1))
         self.position_mem = np.memmap(position_mem_filename, dtype='double',mode='r+', shape=(1, 4))
+        self.shockzone_start_flag_mem = np.memmap(shockzone_start_flag_filename, dtype='uint8',mode='r+', shape=(1, 1))
+        self.shockzone_end_flag_mem = np.memmap(shockzone_end_flag_filename, dtype='uint8',mode='r+', shape=(1, 1))
 
         #initialize
         # self.action_mem[:] = self.action[:] #default
@@ -134,6 +138,12 @@ class ClosedLoop1DTrack_virmen(gym.Env):
         self.move_and_lick_pos_eps = []
         self.trial_start_pos = []
         self.trial_start_pos_eps = []
+        self.shockzone_start_timing_eps = []
+        self.shockzone_start_timing = []
+        self.shockzone_end_timing_eps = []
+        self.shockzone_end_timing = []
+        self.shock_timing_eps = []
+        self.shock_timing = []
 
         # #Temporal variables (for experiments)
         # self.pos_rew = args.pos_rew
@@ -147,6 +157,7 @@ class ClosedLoop1DTrack_virmen(gym.Env):
         self.move_neg_rew = 0
         self.no_neg_rew = 0
         self.twice_neg_rew = -0.1
+        self.shock_neg_rew = -1000
        
         self.reward_set = []
         self.reward_set_eps = []
@@ -237,6 +248,10 @@ class ClosedLoop1DTrack_virmen(gym.Env):
         #     #     reward = self.neg_rew
         self.n+=1
         # print(self.twice_neg_rew)
+
+        #for avoidable shock (stop & move -no lick)
+        if action == 1:
+            action += 1
         
         if action == 0:
             self.action = np.uint8([0])
@@ -296,9 +311,22 @@ class ClosedLoop1DTrack_virmen(gym.Env):
             #     self.rew_flag_mem[:] = np.uint8([0])
             # else:
             #     reward = self.neg_rew
+        
+        #for avoidable shock
+        if (self.rew_flag_mem == np.uint8([1])):
+            reward = self.shock_neg_rew
+            self.rew_flag_mem[:] = np.uint8([0])
+            print("shock! {}".format(reward))
+            self.shock_timing_eps.append(self.cur_time)
+        if self.shockzone_start_flag_mem == 1:
+            self.shockzone_start_timing_eps.append(self.cur_time)
+            self.shockzone_start_flag_mem[:] = 0
+        if self.shockzone_end_flag_mem == 1:
+            self.shockzone_end_timing_eps.append(self.cur_time)
+            self.shockzone_end_flag_mem[:] = 0
 
         # self.reward_set_eps.append(reward)
-        # print(reward)
+        print(reward)
 
         # self.action_mem[:] = self.action[:]
         # self.action_flag_mem[:] = np.uint8([1])
@@ -309,7 +337,7 @@ class ClosedLoop1DTrack_virmen(gym.Env):
         self.step_mem[:] = np.uint16([self.nstep])
 
         image = self.img_mem
-        self.frame_pos[int(self.position_mem[0][1])] = image
+        # self.frame_pos[int(self.position_mem[0][1])] = image
         self.img_flag_mem[:] = np.uint8([0])
 
         image_reshape = np.reshape(image, (3,1920,1080))
@@ -325,13 +353,17 @@ class ClosedLoop1DTrack_virmen(gym.Env):
 
         # Done
         done = False
+        # if (self.ITI_flag_mem == np.uint8(1)):
+        #     if (self.pos_rew not in self.reward_set_eps):
+        #         reward = self.agent_stat
+        #     # else:
+        #     #     self.agent_stat += 0.1
+        #     # if self.agent_stat > 0:
+        #     #     self.agent_stat = 0
+        #     done = True
+        
+        #for avoidable shock
         if (self.ITI_flag_mem == np.uint8(1)):
-            if (self.pos_rew not in self.reward_set_eps):
-                reward = self.agent_stat
-            # else:
-            #     self.agent_stat += 0.1
-            # if self.agent_stat > 0:
-            #     self.agent_stat = 0
             done = True
 
         # print(self.result_flag_mem)
@@ -387,7 +419,7 @@ class ClosedLoop1DTrack_virmen(gym.Env):
         # # print(self.nstep)
 
         image = self.img_mem
-        self.frame_pos[int(self.position_mem[0][1])] = image
+        # self.frame_pos[int(self.position_mem[0][1])] = image
         self.img_flag[:] = np.uint8([0]) #make it false (after reading img frame)
 
         image_reshape = np.reshape(image, (3,1920,1080))
@@ -425,6 +457,12 @@ class ClosedLoop1DTrack_virmen(gym.Env):
         self.move_and_lick_timing_eps = []
         self.trial_start_pos.append(self.trial_start_pos_eps)
         self.trial_start_pos_eps = []
+        self.shockzone_start_timing.append(self.shockzone_start_timing_eps)
+        self.shockzone_start_timing_eps = []
+        self.shockzone_end_timing.append(self.shockzone_end_timing_eps)
+        self.shockzone_end_timing_eps = []
+        self.shock_timing.append(self.shock_timing_eps)
+        self.shock_timing_eps = []
 
         return state
 

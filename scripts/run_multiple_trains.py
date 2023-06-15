@@ -16,7 +16,7 @@ for algo in ALGOS:
         args = [
             "--env", env_id,
             "--algo", algo,
-            "--hp", f"default/{algo}",
+            "--hp", f"../default/{algo}",
             "--nseed", N_SEEDS,
             "--nstep", N_TIMESTEPS,
             "--eval-freq", EVAL_FREQ,
