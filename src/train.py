@@ -74,7 +74,6 @@ def train(args):
         # Train with single seed
         try:
             Path(os.path.join(save_path, FLAG_FILE_NAME)).touch()
-
             print(f"[{i + 1}/{args.nseed}] Ready to train {i + 1}th agent - RANDOM SEED: {seed}")
             is_licking_task = (args.env in ["OpenLoopStandard1DTrack", "OpenLoopTeleportLong1DTrack", "ClosedLoop1DTrack","ClosedLoop1DTrack_virmen"])
             _train(
@@ -149,7 +148,6 @@ if __name__ == "__main__":
     print('__main__')
     args = get_args()
     configure_cudnn()
-
     print(f"Using {'CUDA' if torch.cuda.is_available() else 'CPU'} device")
     print("---START EXPERIMENTS---")
     train(args)

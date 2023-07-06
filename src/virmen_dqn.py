@@ -218,7 +218,6 @@ class DQN(OffPolicyAlgorithm):
         self.policy.set_training_mode(True)
         # Update learning rate according to schedule
         self._update_learning_rate(self.policy.optimizer)
-
         losses = []
         for _ in range(gradient_steps):
 

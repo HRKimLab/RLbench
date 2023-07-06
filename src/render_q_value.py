@@ -75,8 +75,9 @@ def mk_fig(q_values, y_max, y_min, q_value_history, q_value_history_target, rewa
     plt.xticks(range(len(action_list)), action_list, fontsize = 25)
     interval = (y_max - y_min) * 0.05
     # plt.ylim(top=y_max + interval, bottom=y_min - interval)
-    plt.ylim([-15, 25])
-    plt.yticks(np.arange(-10,25,10))
+    # plt.ylim([-15, 25])
+    # plt.yticks(np.arange(-10,25,10))
+    plt.ylim([-2, 2])
     plt.title('Q values of actions', fontsize = 30)
     plt.ylabel('Action Value', fontsize = 25)
     plt.yticks(fontsize = 20)
@@ -99,10 +100,12 @@ def mk_fig(q_values, y_max, y_min, q_value_history, q_value_history_target, rewa
         ax2.legend(fontsize = 25, loc = 'lower right')
     plt.xlim([0,nstep])
     # ax1.set_ylim(top = y_max + interval, bottom = y_min - interval)
-    ax1.set_ylim([-15,25])
-    ax2.set_ylim([-15,25])
-    ax1.set_yticks(np.arange(-10,25,10))
-    ax2.set_yticks(np.arange(-10,25,10))
+    # ax1.set_ylim([-15,25])
+    # ax2.set_ylim([-15,25])
+    ax1.set_ylim([-2,2])
+    ax2.set_ylim([-1100,2])
+    # ax1.set_yticks(np.arange(-10,25,10))
+    # ax2.set_yticks(np.arange(-10,25,10))
     ax1.hlines(y = 0, xmin = 0, xmax = 80, color = 'black', linestyles = '--')
     ax1.tick_params(axis='x', labelsize=25)
     ax1.tick_params(axis = 'y', labelsize = 25)
@@ -171,7 +174,7 @@ def concat_v_resize(im1, im2, resample=Image.BICUBIC):
     dst.paste(_im2, (0, _im1.height+10))
     return dst
 
-def render(env_name, model, nstep, action_type):
+def render(env_name, model, nstep, action_type, avoidable_shock):
     """ Render how agent interact with environment"""
     # env = get_vec_env(env_name)
     # env = env.envs[0]
@@ -193,7 +196,8 @@ def render(env_name, model, nstep, action_type):
     td_error = []
     actions = []
     SPOUT = []
-    action_list = [["Stop","Lick","Move","Move+Lick"],["Stop","Lick","MoveForward","MoveNorthWest","MoveNorthEast","NorthWestLick","NorthEastLick"],
+    SHOCK = []
+    action_list = [["Stop","Lick","Move","Move+Lick"],["Stop","Move"],["Stop","Lick","MoveForward","MoveNorthWest","MoveNorthEast","NorthWestLick","NorthEastLick"],
                    ["Stop","JoystickNorth","JoystickNorthEast","JoystickEast","JoystickSouthEast","JoystickSouth","JoystickSouthWest","JoystickWest","JoystickNorthWest"]]
 
     for _ in tqdm(range(nstep)):
@@ -235,10 +239,17 @@ def render(env_name, model, nstep, action_type):
         print(reward)
         if reward > 0:
             SPOUT.append(steps)
+        if reward < -50 :
+            SHOCK.append(steps)
+
 
         # make figures and frames
-        fig_path, fig2_path, fig3_path, y_max, y_min = mk_fig(q_values, y_max, y_min, q_value_history, q_value_history_target, reward_history,
-                                                   nstep, steps, final_steps, td_error, actions, SPOUT, action_list[action_type])
+        if avoidable_shock :
+            fig_path, fig2_path, fig3_path, y_max, y_min = mk_fig(q_values, y_max, y_min, q_value_history, q_value_history_target, reward_history,
+                                                    nstep, steps, final_steps, td_error, actions, SHOCK, action_list[action_type])
+        else:
+            fig_path, fig2_path, fig3_path, y_max, y_min = mk_fig(q_values, y_max, y_min, q_value_history, q_value_history_target, reward_history,
+                                                    nstep, steps, final_steps, td_error, actions, SPOUT, action_list[action_type])
         frame = Image.fromarray(frame)
         plot_figure = Image.open(fig_path)
         frame = concat_h_resize(frame, plot_figure)
@@ -248,8 +259,8 @@ def render(env_name, model, nstep, action_type):
         frame = concat_v_resize(frame, plot3_figure)
         frames.append(frame)
 
-    # imageio.mimwrite('C:\\Users\\NeuRLab\\Desktop\\Lab\\RLbench\\src\\' + str(env_name) + str(model) + '.gif', frames, fps=15)
     imageio.mimwrite('C:\\Users\\NeuRLab\\Desktop\\Lab\\RLbench\\src\\' + str(env_name) + 'dqn' + '.gif', frames, fps=6)
+    # imageio.mimwrite('C:\\Users\\NeuRLab\\Desktop\\Lab\\RLbench\\src\\' + str(env_name) + 'dqn' + '.gif', frames, fps=6)
 
 
 if __name__ == "__main__":
@@ -292,8 +303,10 @@ if __name__ == "__main__":
 
     # model, optimizer, start_epoch = load_ckp("C:\\Users\\NeuRLab\\Desktop\\Lab\\RLbench\\data\\ClosedLoop1DTrack_virmen\\a2\\a2s1\\a2s1r4-0\checkpoint0.pt", model, optim.Adam(model.parameters(), lr=learning_rate))
     
-    model = DQN.load("C:\\Users\\NeuRLab\\Desktop\\Lab\\RLbench\\data\\ClosedLoop1DTrack_virmen\\a3\\a3s9\\a3s9r8-53-135518\\rl_model_5000_steps.zip")
+    model = DQN.load("C:\\Users\\NeuRLab\\Desktop\\Lab\\RLbench\\data\\ClosedLoop1DTrack_virmen\\a3\\a3s8\\a3s8r46-53-122620\\info")
 
-    action_type = 0
+    action_type = 1
+
+    avoidable_shock = True
     
-    render(GAME, model, 80, action_type)
+    render(GAME, model, 80, action_type, avoidable_shock)
