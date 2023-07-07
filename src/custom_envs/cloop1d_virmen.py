@@ -20,11 +20,14 @@ class ClosedLoop1DTrack_virmen(gym.Env):
         # args = get_args()
         # env_list = [[""]]
         self.action_list = [["Stop","Lick","Move","Move+Lick"]]
+
+        #protocol flag - 1: staircase 2: avoidable shock
         self.protocol = 2
         if self.protocol == 1:
             num_actions = 4
-        elif self.protocol == 2:
+        elif self.protocol == 2 or self.protocol == 3:
             num_actions = 2
+
         super().__init__()
         self.action_space = spaces.Discrete(num_actions) # No action / Lick / Move forward / Move+Lick
         
@@ -46,6 +49,7 @@ class ClosedLoop1DTrack_virmen(gym.Env):
         self.cur_time = 0
         self.end_time = 300
 
+        #for rendering
         self.cur_pos = 0
         self.start_pos = self.cur_pos
         if self.protocol == 1:
@@ -166,20 +170,28 @@ class ClosedLoop1DTrack_virmen(gym.Env):
         # self.no_neg_rew = args.stop
         # self.twice_neg_rew = args.move_lick
 
-        if self.protocol == 1:
+        #reward initialization
+        if self.protocol == 1: #staircase
             self.pos_rew = 1
             self.neg_rew = -0.01
             self.move_neg_rew = -0.01
             self.no_neg_rew = 0
             self.twice_neg_rew = -0.1
-        elif self.protocol == 2:
-            self.move_neg_rew = -0.001
+        elif self.protocol == 2: #avoidable shock
+            self.move_neg_rew = -0.01
+            self.no_neg_rew = 0
+            self.shock_neg_rew = -1000
+        elif self.protocol == 3: #mixed valence room
+            self.pos_rew = 1
+            self.neg_rew = -0.01
             self.no_neg_rew = 0
             self.shock_neg_rew = -1000
        
 
         self.reward_set = []
         self.reward_set_eps = []
+        self.episode_rewards = []
+        self.reward_for_best_model = {"r": self.episode_rewards}
 
         #for rendering - hyein
         self.q_value_history = [[] for i in range(self.action_space.n)]
@@ -233,12 +245,7 @@ class ClosedLoop1DTrack_virmen(gym.Env):
         self.nstep += 1
         self.steps += 1
 
-        #custom part
-        #####################################################################################################
-
         # Reward
-       
-       
         reward = 0
         
         # #set action
@@ -269,8 +276,8 @@ class ClosedLoop1DTrack_virmen(gym.Env):
         self.n+=1
         # print(self.twice_neg_rew)
 
-        
-        if action == 0:
+        #send actions to MATLAB
+        if action == 0: # no action
             self.action = np.uint8([0])
             self.action_mem[:] = self.action[:]
             self.action_flag_mem[:] = np.uint8([1])
@@ -283,7 +290,7 @@ class ClosedLoop1DTrack_virmen(gym.Env):
             #         self.count = 0
             
 
-        elif self.protocol == 1 and action ==1:
+        elif (self.protocol == 1 or self.protocol == 3) and action ==1: #lick for staircase & mixed valence
             self.action = np.uint8([1])
             self.action_mem[:] = self.action[:]
             self.action_flag_mem[:] = np.uint8([1])
@@ -296,30 +303,36 @@ class ClosedLoop1DTrack_virmen(gym.Env):
                 else:
                     reward = self.neg_rew
                 self.rew_flag_mem[:] = np.uint8([0])
+            elif (self.rew_flag_mem == np.uint8([1]) and self.rew_mem == np.uint8([1])):
+                self.licking_after_spout += 1
+                if self.licking_after_spout <= 20:   
+                    reward = self.pos_rew
+                else:
+                    reward = self.neg_rew
             else:
                 reward = self.neg_rew
 
-        elif self.protocol == 2 and action == 1:
+        elif self.protocol == 2 and action == 1: #move for avoidable shock
             self.action = np.uint8([2])
             self.action_mem[:] = self.action[:]
             self.action_flag_mem[:] = np.uint8([1])
             self._moving()
             reward = self.move_neg_rew
 
-        elif action == 2:
+        elif action == 2: #move for staircase
             self.action = np.uint8([2])
             self.action_mem[:] = self.action[:]
             self.action_flag_mem[:] = np.uint8([1])
             self._moving()
             reward = self.move_neg_rew
 
-        elif action == 3:
+        elif action == 3: #move+lick for staircase
             self.action = np.uint8([3])
             self.action_mem[:] = self.action[:]
             self.action_flag_mem[:] = np.uint8([1])
             self._moving_and_licking()
 
-            if (self.rew_flag_mem == np.uint8([1]) and self.rew_mem == np.uint8([1])):
+            if (self.rew_flag_mem == np.uint8([1]) and (self.rew_mem == np.uint8([1]))):
                 self.licking_after_spout += 1
                 if self.licking_after_spout <= 20:
                     reward = self.pos_rew
@@ -342,6 +355,7 @@ class ClosedLoop1DTrack_virmen(gym.Env):
         # self.action_mem[:] = self.action[:]
         # self.action_flag_mem[:] = np.uint8([1])
 
+        #get image from MATLAB - wait
         while (self.img_flag_mem != np.uint8([1])):
             continue
         # # print(self.nstep)
@@ -364,22 +378,25 @@ class ClosedLoop1DTrack_virmen(gym.Env):
         # img.show()
         # print(next_state)
 
-        # for avoidable shock
-        if self.protocol == 2:
-            if (self.rew_flag_mem == np.uint8([1]) and self.rew_mem == np.uint8([2])):
+        # shock
+        if (self.protocol == 2 or self.protocol == 3):
+            if (self.rew_flag_mem == np.uint8([1]) and (self.rew_mem == np.uint8([2]) or self.rew_mem == np.uint8([3]))):
                 reward = self.shock_neg_rew
                 self.rew_flag_mem[:] = np.uint8([0])
                 print("shock! {}".format(reward))
                 self.shock_timing_eps.append(self.cur_time)
                 self.shock_pos_eps.append(self.position_mem[0][1])
+
         if self.shockzone_start_mem == np.uint8([1]):
             self.shockzone_start_timing_eps.append(self.cur_time)
             self.shockzone_start_mem[:] = np.uint8([0])
             self.shockzone_start_pos_eps.append(self.position_mem[0][1])
+
         if self.shockzone_end_mem == np.uint8([1]):
             self.shockzone_end_timing_eps.append(self.cur_time)
             self.shockzone_end_mem[:] = np.uint8([0])
             self.shockzone_end_pos_eps.append(self.position_mem[0][1])
+
 
         print(reward)
 
@@ -395,7 +412,7 @@ class ClosedLoop1DTrack_virmen(gym.Env):
                 #     self.agent_stat = 0
                 done = True
         
-        #for avoidable shock
+        #done for avoidable shock
         if self.protocol == 2:
             if (self.ITI_flag_mem == np.uint8(1)):
                 done = True
@@ -409,10 +426,12 @@ class ClosedLoop1DTrack_virmen(gym.Env):
             # print(self.spout_pos)
             self.result_flag_mem[:] = np.uint8([0]) #result flag to 0(false)
 
+        #trial start timing check for plotting
         if (self.ITI_flag_mem == np.uint8(2)):
             self.trial_start_timing_eps.append(self.cur_time)
             self.ITI_flag_mem[:] = np.uint8(0)
 
+        #to find whether the agent gets shock in moving
         if self.protocol == 2:
             if (action == 1) and (reward <-50):
                 f = open("action_reward.txt", "a")
@@ -424,8 +443,10 @@ class ClosedLoop1DTrack_virmen(gym.Env):
                 f.write("{}:{},{}\n".format(self.steps, action,reward))
                 f.close()
 
-        
-        #####################################################################################################
+        self.reward_set_eps.append(reward)
+        self.episode_rewards.append(reward)
+        self.reward_for_best_model = {"r": self.episode_rewards}
+
 
         # Info
         info = {
@@ -435,10 +456,11 @@ class ClosedLoop1DTrack_virmen(gym.Env):
             "end_pos": self.end_pos,
             "licking_cnt": self.licking_cnt,
             "lick_pos_eps": self.lick_pos_eps,
-            "lick_timing_eps": self.lick_timing_eps
+            "lick_timing_eps": self.lick_timing_eps,
+            "shockzone_start_eps": self.shockzone_start_timing_eps,
+            "shockzone_end_eps": self.shockzone_end_timing_eps
+            # "episode": self.reward_for_best_model
         }
-
-        self.reward_set_eps.append(reward)
         # print(reward)
 
         return next_state, reward, done, info
@@ -514,6 +536,9 @@ class ClosedLoop1DTrack_virmen(gym.Env):
         self.shock_timing_eps = []
         self.shock_pos.append(self.shock_pos_eps)
         self.shock_pos_eps = []
+
+        self.episode_rewards = []
+        self.reward_for_best_model = {"r": self.episode_rewards}
 
         return state
 

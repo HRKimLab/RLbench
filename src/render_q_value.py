@@ -58,7 +58,7 @@ def snap_finish(ax, name, step):
     )
     ax.axis('off')
 
-def mk_fig(q_values, y_max, y_min, q_value_history, q_value_history_target, reward_history, nstep, steps, final_steps, td_error, actions, SPOUT, action_list):
+def mk_fig(q_values, y_max, y_min, q_value_history, q_value_history_target, reward_history, nstep, steps, final_steps, td_error, actions, SPOUT, action_list, protocol, SHOCKZONE):
     bar_plot = plt.figure(figsize=(8,8))
     plt.bar(list(range(len(q_values))), list(q_values[x] for x in range(len(q_values))), width = 0.4, color = ['black', 'orange', 'green', 'darkviolet'])
     if np.isnan(y_max):
@@ -111,7 +111,13 @@ def mk_fig(q_values, y_max, y_min, q_value_history, q_value_history_target, rewa
     ax1.tick_params(axis = 'y', labelsize = 25)
     ax2.tick_params(axis = 'y', labelsize = 25)
     for spout_timing in SPOUT:
-        ax1.axvline(x=spout_timing, color='blue', linestyle='-', alpha = 0.2)
+        if protocol == 1:
+            ax1.axvline(x=spout_timing, color='blue', linestyle='-', alpha = 0.2, label = 'WATER')
+        elif protocol == 2:
+            ax1.axvline(x=spout_timing, color='red', linestyle='-', alpha = 0.2, label = 'SHOCK')
+    if protocol == 2:
+        for shockzone_timing in SHOCKZONE:
+            ax1.axvline(x=shockzone_timing, color='green', linestyle='-', label = 'SHOCKZONE')
     fig2_path = 'q_value_line_plot.png'
     plt.savefig(fig2_path)
     plt.close()
@@ -174,7 +180,7 @@ def concat_v_resize(im1, im2, resample=Image.BICUBIC):
     dst.paste(_im2, (0, _im1.height+10))
     return dst
 
-def render(env_name, model, nstep, action_type, avoidable_shock):
+def render(env_name, model, nstep, action_type, protocol):
     """ Render how agent interact with environment"""
     # env = get_vec_env(env_name)
     # env = env.envs[0]
@@ -197,7 +203,8 @@ def render(env_name, model, nstep, action_type, avoidable_shock):
     actions = []
     SPOUT = []
     SHOCK = []
-    action_list = [["Stop","Lick","Move","Move+Lick"],["Stop","Move"],["Stop","Lick","MoveForward","MoveNorthWest","MoveNorthEast","NorthWestLick","NorthEastLick"],
+    SHOCKZONE = []
+    action_list = [["Stop","Lick","Move","Move+Lick"],["Stop","Move"],["Stop", "Lick"],["Stop","Lick","MoveForward","MoveNorthWest","MoveNorthEast","NorthWestLick","NorthEastLick"],
                    ["Stop","JoystickNorth","JoystickNorthEast","JoystickEast","JoystickSouthEast","JoystickSouth","JoystickSouthWest","JoystickWest","JoystickNorthWest"]]
 
     for _ in tqdm(range(nstep)):
@@ -218,7 +225,7 @@ def render(env_name, model, nstep, action_type, avoidable_shock):
         # print(q_values)
         # print(action)
         q_values_target = model.q_net_target(obs_tensor)[0].detach().cpu().tolist()
-        next_obs, reward , done, _ = env.step(action)
+        next_obs, reward , done, info = env.step(action)
         # next_obs_tensor = torch.tensor(obs).permute(2, 0, 1).unsqueeze(0).cuda()
         next_obs_tensor = torch.tensor(next_obs).permute(2, 0, 1).unsqueeze(0)
         # next_obs_tensor = torch.tensor(next_obs).unsqueeze(0)
@@ -232,7 +239,7 @@ def render(env_name, model, nstep, action_type, avoidable_shock):
         q_value_target = model.q_net_target(next_obs_tensor)[0].detach().cpu().max()
         # reward = how to get S(t+1) reward... step 함수를 써야하는 거 같은데 
         # gamma = 얘도 몇으로..?
-        gamma = 0.95
+        gamma = 0.99
         td_error.append((reward + gamma * q_value_target) - (q_value_predict))
         obs = next_obs
         actions.append(action)
@@ -242,14 +249,23 @@ def render(env_name, model, nstep, action_type, avoidable_shock):
         if reward < -50 :
             SHOCK.append(steps)
 
+        try:
+            last_step = final_steps[-1]
+        except:
+            last_step = 0
+        if info['shockzone_start_eps'] != []:
+            SHOCKZONE.append(last_step + (info['shockzone_start_eps'][0]-1)//5+1)      
+        if info['shockzone_end_eps'] != []:
+            SHOCKZONE.append(last_step + (info['shockzone_end_eps'][0]-1)//5+1)      
+
 
         # make figures and frames
-        if avoidable_shock :
+        if protocol == 1:
             fig_path, fig2_path, fig3_path, y_max, y_min = mk_fig(q_values, y_max, y_min, q_value_history, q_value_history_target, reward_history,
-                                                    nstep, steps, final_steps, td_error, actions, SHOCK, action_list[action_type])
-        else:
+                                                    nstep, steps, final_steps, td_error, actions, SPOUT, action_list[action_type], protocol, SHOCKZONE)
+        elif protocol == 2:
             fig_path, fig2_path, fig3_path, y_max, y_min = mk_fig(q_values, y_max, y_min, q_value_history, q_value_history_target, reward_history,
-                                                    nstep, steps, final_steps, td_error, actions, SPOUT, action_list[action_type])
+                                                    nstep, steps, final_steps, td_error, actions, SHOCK, action_list[action_type], protocol, SHOCKZONE)
         frame = Image.fromarray(frame)
         plot_figure = Image.open(fig_path)
         frame = concat_h_resize(frame, plot_figure)
@@ -259,7 +275,7 @@ def render(env_name, model, nstep, action_type, avoidable_shock):
         frame = concat_v_resize(frame, plot3_figure)
         frames.append(frame)
 
-    imageio.mimwrite('C:\\Users\\NeuRLab\\Desktop\\Lab\\RLbench\\src\\' + str(env_name) + 'dqn' + '.gif', frames, fps=6)
+    imageio.mimwrite('C:\\Users\\NeuRLab\\Desktop\\Lab\\RLbench\\src\\' + str(env_name) + 'dqn' + '.gif', frames, fps=3)
     # imageio.mimwrite('C:\\Users\\NeuRLab\\Desktop\\Lab\\RLbench\\src\\' + str(env_name) + 'dqn' + '.gif', frames, fps=6)
 
 
@@ -303,10 +319,10 @@ if __name__ == "__main__":
 
     # model, optimizer, start_epoch = load_ckp("C:\\Users\\NeuRLab\\Desktop\\Lab\\RLbench\\data\\ClosedLoop1DTrack_virmen\\a2\\a2s1\\a2s1r4-0\checkpoint0.pt", model, optim.Adam(model.parameters(), lr=learning_rate))
     
-    model = DQN.load("C:\\Users\\NeuRLab\\Desktop\\Lab\\RLbench\\data\\ClosedLoop1DTrack_virmen\\a3\\a3s8\\a3s8r46-53-122620\\info")
+    model = DQN.load("C:\\Users\\NeuRLab\\Desktop\\Lab\\RLbench\\data\\ClosedLoop1DTrack_virmen\\a3\\a3s8\\a3s8r52-42-152456\\info")
 
     action_type = 1
 
-    avoidable_shock = True
+    protocol = 2 # 1:staircase 2:avoidable shock 3: mixed valence
     
-    render(GAME, model, 80, action_type, avoidable_shock)
+    render(GAME, model, 80, action_type, protocol)
