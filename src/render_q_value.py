@@ -103,7 +103,7 @@ def mk_fig(q_values, y_max, y_min, q_value_history, q_value_history_target, rewa
     # ax1.set_ylim([-15,25])
     # ax2.set_ylim([-15,25])
     ax1.set_ylim([-2,2])
-    ax2.set_ylim([-1100,2])
+    ax2.set_ylim([-10,2])
     # ax1.set_yticks(np.arange(-10,25,10))
     # ax2.set_yticks(np.arange(-10,25,10))
     ax1.hlines(y = 0, xmin = 0, xmax = 80, color = 'black', linestyles = '--')
@@ -246,7 +246,7 @@ def render(env_name, model, nstep, action_type, protocol):
         print(reward)
         if reward > 0:
             SPOUT.append(steps)
-        if reward < -50 :
+        if reward <= -1 :
             SHOCK.append(steps)
 
         try:
@@ -319,7 +319,7 @@ if __name__ == "__main__":
 
     # model, optimizer, start_epoch = load_ckp("C:\\Users\\NeuRLab\\Desktop\\Lab\\RLbench\\data\\ClosedLoop1DTrack_virmen\\a2\\a2s1\\a2s1r4-0\checkpoint0.pt", model, optim.Adam(model.parameters(), lr=learning_rate))
     
-    model = DQN.load("C:\\Users\\NeuRLab\\Desktop\\Lab\\RLbench\\data\\ClosedLoop1DTrack_virmen\\a3\\a3s8\\a3s8r52-42-152456\\info")
+    model = DQN.load("C:\\Users\\NeuRLab\\Desktop\\Lab\\RLbench\\data\\ClosedLoop1DTrack_virmen\\a3\\a3s8\\a3s8r63-0-113815\\info")
 
     action_type = 1
 

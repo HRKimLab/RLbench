@@ -108,4 +108,10 @@ class LickingTrackerCallback(BaseCallback):
             pickle.dump(self.env.get_attr("shockzone_end_timing")[0], f8)
 
         with open(os.path.join(self.save_path, "shock_timing.pkl"), "wb") as f9:
-            pickle.dump(self.env.get_attr("shock_timing")[0], f9)    
+            pickle.dump(self.env.get_attr("shock_timing")[0], f9) 
+
+        with open(os.path.join(self.save_path, "us_type.pkl"), "wb") as f10:
+            pickle.dump(self.env.get_attr("us_type")[0], f10)   
+        
+        with open(os.path.join(self.save_path, "time_step.pkl"), "wb") as f11:
+            pickle.dump(self.env.get_attr("time_step")[0], f11)
