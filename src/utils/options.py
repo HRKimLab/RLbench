@@ -115,7 +115,7 @@ def get_args():
         help="Path to save the data"
     )
 
-    # Debug mode (not used now)
+    # Debug mode (not use now)
     # parser.add_argument('--debug', dest='debug', action='store_true')
     # parser.add_argument('--no-debug', dest='debug', action='store_false')
     # parser.set_defaults(debug=False)
@@ -123,19 +123,12 @@ def get_args():
     args = parser.parse_args()
 
     # Post-processing for arguments
-    # args.algo = args.algo.lower()
+    args.algo = args.algo.lower()
     args.seed = SEEDS[:args.nseed]
     if args.hp is None:
-        args.hp = os.path.join(
-            #os.getcwd(), 
-            "C:\\Users\\NeuRLab\\Desktop\\Lab\\RLbench\\src",
-            "config", "default", f"{args.algo}.json"
-        )
+        args.hp = os.path.join("config", "default", f"{args.algo}.json")
     else:
-        args.hp = os.path.join(
-            "C:\\Users\\NeuRLab\\Desktop\\Lab\\RLbench\\src",
-            "config", f"{args.hp}.json"
-        )
+        args.hp = os.path.join("config", f"{args.hp}.json")
     validate_args(args)
 
     return args
