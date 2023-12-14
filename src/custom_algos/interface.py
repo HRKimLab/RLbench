@@ -209,7 +209,7 @@ def convert_sb3_cfg_to_custom_cfg(args, hp, algo, seed):
     }
     train_cfg["batch_size"] = hp["batch_size"]
     train_cfg["train_step"] = args.nstep
-    train_cfg["save_freq"] = args.save_freq
+    train_cfg["save_freq"] = args.eval_freq # For convenience
     train_cfg["logging_freq"] = args.eval_freq
     train_cfg["device"] = "auto"
     train_cfg["verbose"] = True
@@ -259,6 +259,7 @@ def convert_sb3_cfg_to_custom_cfg(args, hp, algo, seed):
             algo_cfg["gamma_max"] = hp["policy_kwargs"]["gamma_max"]
         if hp.get("policy_kwargs", None) and hp["policy_kwargs"].get("gamma_n", None):
             algo_cfg["gamma_n"] = hp["policy_kwargs"]["gamma_n"]
+        algo_cfg.pop("discount_rate")
     else:
         raise NotImplementedError
 

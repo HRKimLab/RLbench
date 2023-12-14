@@ -103,14 +103,13 @@ class CnnPolicy(PolicyNetwork):
         # Expected input tensor shape: (B, state_len, 84, 84)
         # Input (B, 210, 160, 3) will be processed by `ProcessFrame84` wrapper -> (B, 84, 84, state_len)
         self.conv = nn.Sequential(
-            nn.Conv2d(3, 32, kernel_size=8, stride=4),
+            nn.Conv2d(input_shape[-1], 32, kernel_size=8, stride=4),
             nn.ReLU(),
             nn.Conv2d(32, 64, kernel_size=4, stride=2),
             nn.ReLU(),
             nn.Conv2d(64, 64, kernel_size=3, stride=1),
             nn.ReLU(),
         )
-
         
         example_input = torch.randn((input_shape[2], input_shape[0], input_shape[1]))
         self.fc = nn.Linear(self.conv(example_input).flatten().shape[0], 512)
@@ -139,7 +138,7 @@ class CnnPolicy(PolicyNetwork):
         elif x.dim() == 3 and (self.state_len != 1 or self.rgb_array):
             x = x.unsqueeze(0)
 
-        if x.shape[-1] == 3:
+        if x.shape[-1] <= 4:
             x = x.permute(0, 3, 1, 2)
         x = self.conv(x / 255.0)
         x = x.flatten(start_dim=1)

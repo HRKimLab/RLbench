@@ -1,0 +1,23 @@
+{
+    "policy": "MlpPolicy",
+    "learning_rate": 0.0011,
+    "buffer_size": 100000,
+    "learning_starts": 512,
+    "batch_size": 128,
+    "tau": 1.0,
+    "gamma": 0.99,
+    "train_freq": 1,
+
+    "gradient_steps": 1,
+    "target_update_interval": 512,
+    "exploration_fraction": 0.1,
+    "exploration_initial_eps": 1.0,
+    "exploration_final_eps": 0.05,
+    "max_grad_norm": 10,
+    "policy_kwargs": {
+        "net_arch": [216, 72],
+        "v_min": -10,
+        "v_max": 10,
+        "n_atom": 51
+    }
+}

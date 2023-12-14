@@ -137,4 +137,4 @@ class MGDQN(ValueIterationAlgorithm):
         else:
             action = self.rng.choice(self.n_act, size=(self.n_envs, ))
 
-        return action.squeeze()
+        return action

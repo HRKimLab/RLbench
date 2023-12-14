@@ -161,8 +161,9 @@ class ValueIterationAlgorithm(RLAlgorithm):
             if done:
                 if callback:
                     callback.on_rollout_end()
-                episode_infos.append(infos[0]["episode"])
-                episode_deque.append(infos[0]["episode"]["r"])
+                if infos[0].get("episode"):
+                    episode_infos.append(infos[0]["episode"])
+                    episode_deque.append(infos[0]["episode"]["r"])
                 next_obs = self.env.reset()
                 if callback:
                     callback.on_rollout_start()
