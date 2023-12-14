@@ -44,7 +44,8 @@ def train(args):
         already_run = False
         if save_path is None:
             save_path, already_run = set_data_path(args.algo, args.env, hp, seed)
-        
+        args.save_path = save_path
+
         # If the given setting has already been executed, save_path will be given as None
         if already_run:
             print(f"[{i + 1}/{args.nseed}] Already exists: '{save_path}', skip to run")
@@ -60,7 +61,7 @@ def train(args):
                 action_noise = NormalActionNoise(args.noise_mean, args.noise_std)
                 if args.nenv != 1:
                     action_noise = VectorizedActionNoise(action_noise, args.nenv)
-            model = get_algo(args.algo, env, hp, action_noise, seed)
+            model = get_algo(args, env, hp, action_noise, seed)
         except KeyboardInterrupt:
             clean_data_path(save_path)
         except Exception as e:

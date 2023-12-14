@@ -148,7 +148,7 @@ class OpenLoop1DTrack(gym.Env):
         self.lick_timing_eps.append(self.cur_time)
 
     def _get_original_video_frames(self):
-        capture = cv2.VideoCapture(self.video_path)
+        capture = cv2.VideoCapture(self.video_path, cv2.CAP_FFMPEG)
 
         frames = []
         while True:

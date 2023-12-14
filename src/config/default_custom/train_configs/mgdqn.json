@@ -1,0 +1,22 @@
+{
+    "run_name": "MGDQN-CartPole-Default",
+    "algo": "MGDQN",
+    "env_id": "CartPole-v1",
+    "n_envs": 1,
+    "state_len": 1,
+    "frame_skip": 1,
+    "reward_clipping": false,
+    "random_seed": 42,
+    "loss_cls": "SmoothL1Loss",
+    "loss_kwargs": {},
+    "optim_cls": "Adam",
+    "optim_kwargs": {
+        "lr": 0.0011
+    },
+    "batch_size": 128,
+    "train_step": 100000,
+    "save_freq": 10000,
+    "logging_freq": 10000,
+    "device": "auto",
+    "verbose": true
+}

@@ -18,6 +18,7 @@ from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.vec_env import VecFrameStack
 from stable_baselines3.common.env_util import make_vec_env, make_atari_env
 
+from custom_algos import get_custom_algo
 from custom_envs import MaxAndSkipEnv, OpenLoopStandard1DTrack, OpenLoopTeleportLong1DTrack, ClosedLoop1DTrack_virmen
 
 FLAG_FILE_NAME = "NOT_FINISHED"
@@ -119,15 +120,27 @@ def get_env(env_name, n_env, save_path, seed):
             raise ValueError(f"Given environment name [{env_name}] does not exist.")
     return env, eval_env
 
-def get_algo(algo_name, env, hp, action_noise, seed):
-    if algo_name not in ALGO_LIST:
-        raise ValueError(f"Given algorithm name [{algo_name}] does not exist.")
-
-    # Get model
-    if action_noise is None:
-        model = ALGO_LIST[algo_name](env=env, seed=seed, verbose=0, **hp)
+def get_algo(args, env, hp, action_noise, seed):
+    # Check if the algorithm is valid
+    algo_name = args.algo # lower-case
+    if algo_name in ALGO_LIST:
+        if action_noise is not None:
+            model = ALGO_LIST[algo_name](env=env, seed=seed, action_noise=action_noise, verbose=0, **hp)
+        else:
+            model = ALGO_LIST[algo_name](env=env, seed=seed, verbose=0, **hp)
+    elif "custom" in algo_name:
+        #TODO add action noise to custom algorithm
+        assert action_noise is None, "Custom algorithm cannot utilize action noise now."
+        algo_name = algo_name.split("/")[1]
+        model = get_custom_algo(
+            args=args,
+            algo=algo_name,
+            hp=hp,
+            env=env,
+            seed=seed
+        )
     else:
-        model = ALGO_LIST[algo_name](env=env, seed=seed, action_noise=action_noise, verbose=0, **hp)
+        raise ValueError(f"Given algorithm name [{algo_name}] does not exist.")
 
     return model
 

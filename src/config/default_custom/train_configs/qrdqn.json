@@ -1,0 +1,22 @@
+{
+    "run_name": "QRDQN-CartPole-Default",
+    "algo": "QRDQN",
+    "env_id": "CartPole-v1",
+    "n_envs": 1,
+    "state_len": 1,
+    "frame_skip": 1,
+    "reward_clipping": false,
+    "random_seed": 42,
+    "loss_cls": "QuantileHuberLoss",
+    "loss_kwargs": {},
+    "optim_cls": "Adam",
+    "optim_kwargs": {
+        "lr": 1e-3
+    },
+    "batch_size": 32,
+    "train_step": 50000,
+    "save_freq": 10000,
+    "logging_freq": 2000,
+    "device": "auto",
+    "verbose": true
+}
