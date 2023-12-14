@@ -1,4 +1,4 @@
-from typing import Union, Iterable
+from typing import Union, Iterable, Tuple
 from collections.abc import Iterable as Iterable_
 from math import prod
 
@@ -90,6 +90,7 @@ class CnnPolicy(PolicyNetwork):
         n_actions: int,
         state_len: int = 1,
         n_out: Union[int, Iterable[int]] = -1,
+        input_shape: Tuple[int] = (84, 84, 3),
         rgb_array: bool = False
     ):
         """
@@ -102,14 +103,17 @@ class CnnPolicy(PolicyNetwork):
         # Expected input tensor shape: (B, state_len, 84, 84)
         # Input (B, 210, 160, 3) will be processed by `ProcessFrame84` wrapper -> (B, 84, 84, state_len)
         self.conv = nn.Sequential(
-            nn.Conv2d(state_len if not rgb_array else 3, 32, kernel_size=8, stride=4),
+            nn.Conv2d(3, 32, kernel_size=8, stride=4),
             nn.ReLU(),
             nn.Conv2d(32, 64, kernel_size=4, stride=2),
             nn.ReLU(),
             nn.Conv2d(64, 64, kernel_size=3, stride=1),
             nn.ReLU(),
         )
-        self.fc = nn.Linear(7 * 7 * 64, 512)
+
+        
+        example_input = torch.randn((input_shape[2], input_shape[0], input_shape[1]))
+        self.fc = nn.Linear(self.conv(example_input).flatten().shape[0], 512)
 
         if n_out == -1:
             self.fc_q = nn.Linear(512, n_actions)
@@ -135,6 +139,8 @@ class CnnPolicy(PolicyNetwork):
         elif x.dim() == 3 and (self.state_len != 1 or self.rgb_array):
             x = x.unsqueeze(0)
 
+        if x.shape[-1] == 3:
+            x = x.permute(0, 3, 1, 2)
         x = self.conv(x / 255.0)
         x = x.flatten(start_dim=1)
         x = F.relu(self.fc(x))
@@ -158,6 +164,7 @@ def get_policy_networks(
     n_act: Union[int, Iterable[int]],
     n_in: Union[int, Iterable[int]],
     n_out: Union[int, Iterable[int]] = -1,
+    input_shape=(84, 84, 3),
     hidden_sizes: Iterable[int] = [64, ],
     rgb_array: bool = False
 ) -> PolicyNetwork:
@@ -176,6 +183,7 @@ def get_policy_networks(
             n_actions=n_act,
             state_len=state_len,
             n_out=n_out,
+            input_shape=input_shape,
             rgb_array=rgb_array
         )
     else:

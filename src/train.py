@@ -21,7 +21,6 @@ from utils import (
 from utils.options import get_args
 from utils.sb3_callbacks import TqdmCallback, LickingTrackerCallback
 
-
 def train(args):
     """ Train with multiple random seeds """
 

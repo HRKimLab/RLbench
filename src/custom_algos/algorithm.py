@@ -113,6 +113,7 @@ class ValueIterationAlgorithm(RLAlgorithm):
             n_act=self.n_act,
             n_in=self.env.observation_space.shape[-1],
             n_out=getattr(algo_config, "n_out", -1),
+            input_shape=self.env.reset().squeeze(0).shape,
             **algo_config.policy_kwargs
         ).to(self.device)
         self.target_net = deepcopy(self.pred_net).to(self.device)
@@ -210,9 +211,11 @@ class ValueIterationAlgorithm(RLAlgorithm):
         reward: np.ndarray, # int, (n_envs, *)
         done: np.ndarray, # bool, (n_envs, *)
     ) -> None:
+        """ For the compatibility to stable-baselines 3"""
+        obs, action, next_obs, reward, done = \
+            obs.squeeze(0), action.squeeze(0), next_obs.squeeze(0), reward.squeeze(0), done.squeeze(0)
+
         if self.n_envs == 1: # Single environment
-            obs, action, next_obs, reward, done = \
-                obs.squeeze(0), action.squeeze(0), next_obs.squeeze(0), reward.squeeze(0), done.squeeze(0)
             self.memory.add(obs, action, reward, next_obs, done)
             self.buffer_cnt += 1
         else: # Vectorized environment

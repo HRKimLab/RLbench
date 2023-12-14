@@ -15,11 +15,13 @@ from gym import envs
 from sb3_contrib import ARS, QRDQN, TQC, TRPO
 from stable_baselines3 import A2C, DDPG, DQN, PPO, SAC, TD3
 from stable_baselines3.common.monitor import Monitor
-from stable_baselines3.common.vec_env import VecFrameStack
+from stable_baselines3.common.vec_env import VecFrameStack, DummyVecEnv
 from stable_baselines3.common.env_util import make_vec_env, make_atari_env
 
 from custom_algos import get_custom_algo
 from custom_envs import MaxAndSkipEnv, OpenLoopStandard1DTrack, OpenLoopTeleportLong1DTrack, ClosedLoop1DTrack_virmen
+
+# os.environ['CUBLAS_WORKSPACE_CONFIG'] = ':4096:8'
 
 FLAG_FILE_NAME = "NOT_FINISHED"
 ALGO_LIST = {
@@ -34,7 +36,7 @@ def set_seed(seed):
     np.random.seed(seed)
     torch.manual_seed(seed)
     torch.cuda.manual_seed(seed)
-    torch.use_deterministic_algorithms(True)
+    # torch.use_deterministic_algorithms(True, warn_only=True)
 
 def configure_cudnn(debug=False):
     cudnn.enabled = True
@@ -115,7 +117,10 @@ def get_env(env_name, n_env, save_path, seed):
                 raise ImportError
             env = MaxAndSkipEnv(env, skip=5) # Mouse can lick about 8 times per second, 40 (frames) / 5 (skipping).
             env = Monitor(env, save_path)
-            eval_env = MaxAndSkipEnv(env, skip=5)
+            env = DummyVecEnv([lambda: env])
+            eval_env = MaxAndSkipEnv(eval_env, skip=5)
+            eval_env = Monitor(eval_env, save_path)
+            eval_env = DummyVecEnv([lambda: eval_env])
         except ImportError:
             raise ValueError(f"Given environment name [{env_name}] does not exist.")
     return env, eval_env

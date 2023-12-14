@@ -4,6 +4,7 @@ from typing import Union, Optional, Tuple, Dict, Iterable, Any
 
 import numpy as np
 import torch as th
+import torch.nn as nn
 from stable_baselines3.common.logger import Logger, configure
 from stable_baselines3.common.callbacks import (
     BaseCallback,
@@ -186,9 +187,9 @@ def convert_sb3_cfg_to_custom_cfg(args, hp, algo, seed):
     base_path = os.path.join("config", "default_custom")
 
     train_cfg, algo_cfg = None, None
-    with open(os.path.join(base_path, "train_configs", f"{algo}.json"), "r") as f:
+    with open(os.path.join(base_path, "train_configs", f"{algo.lower()}.json"), "r") as f:
         train_cfg = json.load(f)
-    with open(os.path.join(base_path, "algo_configs", f"{algo}.json"), "r") as f:
+    with open(os.path.join(base_path, "algo_configs", f"{algo.lower()}.json"), "r") as f:
         algo_cfg = json.load(f)
 
     # Common (based on DQN, C51, QR-DQN, MGDQN)
