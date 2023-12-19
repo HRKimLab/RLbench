@@ -3,9 +3,11 @@ This contains rendering methods for custom algorithms.
 If necessary, copy the load part and apply it to the desired render logic. 
 """
 
-""" !!!IMPORTANT!!!
+""" IMPORTANT
 If a display error appears, run the code below in terminal
 (pyglet.canvas.xlib.NoSuchDisplayException: Cannot connect to "None")
+
+BE AWARE THAT this can lead to excessive degradation of rendering time
 
 # Add the gym_duckietown package to your Python path
 export PYTHONPATH="${PYTHONPATH}:`pwd`"
@@ -109,5 +111,4 @@ def main():
     )
 
 if __name__ == "__main__":
-    import cProfile
-    cProfile.runctx('main()', globals(), locals(), 'profile_stats.prof')
+    main()
