@@ -18,7 +18,6 @@ from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.vec_env import VecFrameStack, DummyVecEnv
 from stable_baselines3.common.env_util import make_vec_env, make_atari_env
 
-from custom_algos import get_custom_algo
 from custom_envs import MaxAndSkipEnv, OpenLoopStandard1DTrack, OpenLoopTeleportLong1DTrack, ClosedLoop1DTrack_virmen
 
 # os.environ['CUBLAS_WORKSPACE_CONFIG'] = ':4096:8'
@@ -134,10 +133,12 @@ def get_algo(args, env, hp, action_noise, seed):
         else:
             model = ALGO_LIST[algo_name](env=env, seed=seed, verbose=0, **hp)
     elif "custom" in algo_name:
+        from custom_algos import init_custom_algo
+
         #TODO add action noise to custom algorithm
         assert action_noise is None, "Custom algorithm cannot utilize action noise now."
         algo_name = algo_name.split("/")[1]
-        model = get_custom_algo(
+        model = init_custom_algo(
             args=args,
             algo=algo_name,
             hp=hp,

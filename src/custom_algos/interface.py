@@ -4,8 +4,7 @@ from typing import Union, Optional, Tuple, Dict, Iterable, Any
 
 import numpy as np
 import torch as th
-import torch.nn as nn
-from stable_baselines3.common.logger import Logger, configure
+from stable_baselines3.common.logger import Logger
 from stable_baselines3.common.callbacks import (
     BaseCallback,
     CallbackList,
@@ -13,7 +12,7 @@ from stable_baselines3.common.callbacks import (
     EvalCallback
 )
 from stable_baselines3.common.type_aliases import GymEnv, MaybeCallback
-from stable_baselines3.common.vec_env import DummyVecEnv, VecEnv
+from stable_baselines3.common.vec_env import VecEnv
 
 from utils import utils
 from custom_algos import DQN, C51, QRDQN, MGDQN
@@ -25,6 +24,7 @@ ALGO_LIST = {
     "QRDQN": QRDQN,
     "MGDQN": MGDQN
 }
+
 
 class CustomAlgorithm(object):
     def __init__(self, model, seed):
@@ -79,7 +79,7 @@ class CustomAlgorithm(object):
         algo_cls: str,
         path: str,
         env: Optional[GymEnv] = None,
-        device: Union[th.device, str] = "auto",
+        device: Union[th.device, str] = "auto", # Not used
         custom_objects: Optional[Dict[str, Any]] = None, # Not used
         print_system_info: bool = False, # Not used
         force_reset: bool = True, # Not used
@@ -89,8 +89,8 @@ class CustomAlgorithm(object):
         with open(os.path.join(path, "train_cfg.json"), "r") as f:
             train_config = TrainConfig(**json.load(f))
         algo = train_config.algo
-        env = utils.get_env(env_name=train_config.env_id, n_env=1, save_path=path, seed=train_config.random_seed)
-
+        env, _ = utils.get_env(env_name=train_config.env_id, n_env=1, save_path=path, seed=train_config.random_seed)
+    
         with open(os.path.join(path, "algo_cfg.json"), "r") as f:
             algo_config = ALGO_CONFIG[algo](**json.load(f))
 
@@ -101,6 +101,7 @@ class CustomAlgorithm(object):
             train_config=train_config,
             algo_config=algo_config
         )
+        model.load_model()
 
         return cls(model=model, seed=train_config.random_seed)
 
@@ -267,7 +268,7 @@ def convert_sb3_cfg_to_custom_cfg(args, hp, algo, seed):
     algo_cfg = ALGO_CONFIG[algo](**algo_cfg)
     return train_cfg, algo_cfg
 
-def get_custom_algo(args, algo, hp, env, seed):
+def init_custom_algo(args, algo, hp, env, seed):
     algo = algo.upper()
     train_cfg, algo_cfg = convert_sb3_cfg_to_custom_cfg(args, hp, algo, seed)
     model = ALGO_LIST[algo](
@@ -278,3 +279,19 @@ def get_custom_algo(args, algo, hp, env, seed):
         algo_config=algo_cfg
     )
     return CustomAlgorithm(model=model, seed=seed)
+
+# def load_custom_algo(base_path, env_name, agent_path):
+#     file_path = os.path.join(base_path, env_name, agent_path)
+#     model = ALGO_LIST[algo].load()
+#     level1_path, level2_path, level3_path = agent_path.split('/')
+#     with open(os.path.join(base_path,env_name, level1_path, "policy.json"), "r") as f:
+#         algo = json.load(f)["algorithm"]
+
+#     with open(os.path.join(file_path, "train_configs", f".json"), "r") as f:
+#         train_cfg = json.load(f)
+#     with open(os.path.join(file_path, "algo_configs", f"{algo.lower()}.json"), "r") as f:
+#         algo_cfg = json.load(f)
+
+#     model = ALGO_LIST[algo](
+#         env=
+#     )
