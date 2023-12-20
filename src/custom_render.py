@@ -86,7 +86,7 @@ def display_frames_as_gif(frames, fname="result.gif"):
 
 
 def main():
-    NUM = 1
+    NUM = 0
     ALGO = "DQN"
     ENV = ["ALE/Breakout-v5", "CartPole-v1"][NUM]
     agent_paths = ["a1/a1s1/a1s1r1-0-150003", "a1/a1s1/a1s1r1-0-150012"][NUM]

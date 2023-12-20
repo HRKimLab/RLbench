@@ -14,7 +14,6 @@ from stable_baselines3.common.callbacks import (
 from stable_baselines3.common.type_aliases import GymEnv, MaybeCallback
 from stable_baselines3.common.vec_env import VecEnv
 
-from utils import utils
 from custom_algos import DQN, C51, QRDQN, MGDQN
 from custom_algos.common.config import *
 
@@ -89,7 +88,6 @@ class CustomAlgorithm(object):
         with open(os.path.join(path, "train_cfg.json"), "r") as f:
             train_config = TrainConfig(**json.load(f))
         algo = train_config.algo
-        env, _ = utils.get_env(env_name=train_config.env_id, n_env=1, save_path=path, seed=train_config.random_seed)
     
         with open(os.path.join(path, "algo_cfg.json"), "r") as f:
             algo_config = ALGO_CONFIG[algo](**json.load(f))
