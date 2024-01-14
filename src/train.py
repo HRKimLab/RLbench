@@ -28,12 +28,13 @@ def train(args):
 
     hp = load_json(args.hp)
 
+    given_save_path = args.save_path
     for i, seed in enumerate(args.seed):
     # for i, seed in enumerate(args.nseed):
         set_seed(seed)
 
         # Get appropriate path by model info
-        save_path = args.save_path
+        save_path = given_save_path
         already_run = False
         if save_path is None:
             save_path, already_run = set_data_path(args.algo, args.env, hp, seed)
