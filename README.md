@@ -109,7 +109,7 @@ Then type the following command at the `src/`
 At `src/`,
 
 ```
-python plot/plot_mean_combined --env [ENV_NAME] \
+python plot/plot_mean_combined.py --env [ENV_NAME] \
     --agents [AGENT_LIST] \ 
     --x [X-AXIS] \
     --y [Y-AXIS]
