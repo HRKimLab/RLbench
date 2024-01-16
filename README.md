@@ -126,3 +126,10 @@ python plot/plot_mean_combined.py --env LunarLanderContinuous-v2 \
 
 For more information, please use `--help` option.  
 ```python plot/plot_mean_combined.py --help```
+
+### Rendering
+At `src/`,
+
+```
+python render_q_value.py
+```
